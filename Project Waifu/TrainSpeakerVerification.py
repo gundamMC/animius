@@ -36,7 +36,7 @@ def main(args):
     # [1] = drop out keep rate
     # [2] = regulariation lambda
     # [3] = epoches
-    # [4] = batchSize ("batch" or an int)
+    # [4] = batch number ("s" for stochastic)
     # [5] = Adam Beta 1
     # [6] = Adam Beta 2
     # [7] = Marked true wavs
@@ -67,6 +67,10 @@ def main(args):
         batch_size = args[4]
 
     display_epoch = int(epoches/100) # display 100 steps
+
+    WaifuGUI = False
+    if len(args) > 9 and args[9] == "WaifuGUI":
+        WaifuGUI = True
 
     # Network hyperparameters
     num_input = 390
@@ -145,6 +149,8 @@ def main(args):
 
         summary_writer = tf.summary.FileWriter('./tmp/', graph=tf.get_default_graph())
 
+
+        # TODO: Change batch size to batch number
         if train_x.shape[0] % batch_size == 0:
             batch_num = int(train_x.shape[0] / batch_size)
         else:
@@ -169,9 +175,17 @@ def main(args):
 
                 print('epoch', epoch, '- cost', costprint, '- accuracy', acc)
 
-        print('Done!')
+                if WaifuGUI:
+                    print("WaifuGUI: " + str(epoch) + "-" + str(costprint)) # accuracy doesn't really show the improvements of the network over epoches as they can reach "satisfying" values before the cost does.
+
+            costprint, acc = sess.run([cost, accuracy], feed_dict={x: train_x, y: train_y, keep_prob : 1})
 
         saver.save(sess, "./model/model.ckpt")
+
+        print('Done! Cost:', costprint, "Accuracy:", acc)
+
+        if WaifuGUI:
+            print("WaifuGUI: " + str(epoches) + "-" + str(costprint)) # accuracy doesn't really show the improvements of the network over epoches as they can reach "satisfying" values before the cost does.
 
 
 if __name__ == '__main__':
