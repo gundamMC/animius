@@ -142,12 +142,6 @@ def vad_collector(sample_rate, frame_duration_ms,
 
 
 def main(args):
-    #args.append('3')
-    #args.append('10')
-    #args.append('450')
-    #args.append('test.wav')
-    #args.append('WaifuGUI')
-    # testing stuff
 
     currentDir = os.path.dirname(os.path.realpath(__file__))
 
