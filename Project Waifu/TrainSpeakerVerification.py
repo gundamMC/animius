@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import math
 
 import MFCC
 
@@ -23,6 +24,38 @@ def getData(TruePaths, FalsePaths):
     np.random.shuffle(data)
 
     return data[:, : 390], data[:, 390 :]
+
+def shuffle(X ,Y):
+    permutation = list(np.random.permutation(m))
+    shuffled_X = X[permutation, :]
+    shuffled_Y = Y[permutation, :]
+    return shuffled_X, shuffled_Y
+
+def random_mini_batches(X, Y, mini_batch_number):
+    m = X.shape[0]
+    mini_batches_X = []
+    mini_batches_Y = []
+    
+    shuffled_X, shuffled_Y = shuffle(X,Y)
+
+    mini_batch_size = math.floor(m / mini_batch_number)
+
+    for batch in range(0, mini_batch_number):
+        mini_batch_X = shuffled_X[batch * mini_batch_size : (batch + 1) * mini_batch_size, :]
+        mini_batch_Y = shuffled_Y[batch * mini_batch_size : (batch + 1) * mini_batch_size, :]
+        mini_batches_X.append(mini_batch_X)
+        mini_batches_Y.append(mini_batch_Y)
+
+    if m % mini_batch_size != 0:
+        mini_batch_X = shuffled_X[mini_batch_number * mini_batch_size :, :]
+        mini_batch_Y = shuffled_Y[mini_batch_number * mini_batch_size :, :]
+        mini_batches_X.append(mini_batch_X)
+        mini_batches_Y.append(mini_batch_Y)
+
+    return mini_batches_X, mini_batches_Y
+        
+
+
 
 def main(args):
 
@@ -62,9 +95,9 @@ def main(args):
     epoches = int(args[3])
 
     if args[4] == "batch":
-        batch_size = train_x.shape[0]
+        batch_number = train_x.shape[0]
     else:
-        batch_size = args[4]
+        batch_number = args[4]
 
     display_epoch = int(epoches/100) # display 100 steps
 
@@ -149,22 +182,13 @@ def main(args):
 
         summary_writer = tf.summary.FileWriter('./tmp/', graph=tf.get_default_graph())
 
-
-        # TODO: Change batch size to batch number
-        if train_x.shape[0] % batch_size == 0:
-            batch_num = int(train_x.shape[0] / batch_size)
-        else:
-            batch_num = int(train_x.shape[0] // batch_size + 1)
-
         for epoch in range(epoches + 1):
-            for batch in range(1, batch_num + 1):
-                batch_start = batch_size * (batch - 1) 
-                batch_end = batch_size * batch
-                if batch_end >= train_x.shape[0]:
-                    batch_end = train_x.shape[0] - 1
 
-                batch_x = train_x[batch_start : batch_end]
-                batch_y = train_y[batch_start : batch_end]
+            mini_batches_X, mini_batches_Y = random_mini_batches(train_x, train_y, batch_number)
+
+            for i in range(0, len(mini_batches_X)):
+                batch_x = mini_batches_X[i]
+                batch_y = mini_batches_Y[i]
 
                 _, summary  = sess.run([train_op, merged_summary_op], feed_dict={x : batch_x, y : batch_y, keep_prob : dropout_keeprate})
 
