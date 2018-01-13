@@ -2,16 +2,18 @@ import tensorflow as tf
 import numpy as np
 import math
 
+import sys
+
 import MFCC
 
 def getData(TruePaths, FalsePaths):
     x0 = np.empty(shape=[0, 390])
     x1 = np.empty(shape=[0, 390])
     for path in TruePaths:
-        x0 = np.append(x0, MFCC.getData('./chunks/' + path), axis = 0)
+        x0 = np.append(x0, MFCC.getData(path), axis = 0)
 
     for path in FalsePaths:
-        x1 = np.append(x1, MFCC.getData('./chunks/' + path), axis = 0)
+        x1 = np.append(x1, MFCC.getData(path), axis = 0)
 
     y0 = np.tile([1,0], (x0.shape[0],1))
     y1 = np.tile([0,1], (x1.shape[0],1))
@@ -26,7 +28,7 @@ def getData(TruePaths, FalsePaths):
     return data[:, : 390], data[:, 390 :]
 
 def shuffle(X ,Y):
-    permutation = list(np.random.permutation(m))
+    permutation = list(np.random.permutation(X.shape[0]))
     shuffled_X = X[permutation, :]
     shuffled_Y = Y[permutation, :]
     return shuffled_X, shuffled_Y
@@ -80,7 +82,7 @@ def main(args):
     #TrainFalsePaths = ['chunk-00.wav', 'chunk-155.wav', 'chunk-73.wav', 'chunk-74.wav', 'chunk-132.wav', 'chunk-134.wav', 'chunk-175.wav', 'chunk-197.wav', 'chunk-198.wav', 'chunk-241.wav', 'chunk-246.wav', 'chunk-271.wav', 'chunk-282.wav', 'chunk-283.wav', 'chunk-58.wav', 'chunk-59.wav', 'chunk-253.wav', 'chunk-285.wav', 'chunk-139.wav', 'chunk-140.wav', 'chunk-142.wav', 'chunk-144.wav', 'chunk-224.wav', 'chunk-72.wav', 'chunk-71.wav', 'chunk-182.wav', 'chunk-187.wav', 'chunk-170.wav', 'chunk-183.wav', 'chunk-184.wav']
 
     TrainTruePaths = args[7].split(",")
-    TrainTruePaths = args[8].split(",")
+    TrainFalsePaths = args[8].split(",")
 
     train_x, train_y = getData(TrainTruePaths, TrainFalsePaths)
 
@@ -89,15 +91,15 @@ def main(args):
     print('MFCC got')
 
     # Hyperparameters
-    learning_rate = double(args[0])
-    dropout_keeprate = double(args[1])
-    regularization_rate = double(args[2])
+    learning_rate = float(args[0])
+    dropout_keeprate = float(args[1])
+    regularization_rate = float(args[2])
     epoches = int(args[3])
 
     if args[4] == "batch":
         batch_number = train_x.shape[0]
     else:
-        batch_number = args[4]
+        batch_number = int(args[4])
 
     display_epoch = int(epoches/100) # display 100 steps
 
@@ -192,7 +194,7 @@ def main(args):
 
                 _, summary  = sess.run([train_op, merged_summary_op], feed_dict={x : batch_x, y : batch_y, keep_prob : dropout_keeprate})
 
-                summary_writer.add_summary(summary, epoch * batch_num + batch)
+                summary_writer.add_summary(summary, epoch * batch_number + i)
 
             if epoch % display_epoch == 0:
                 costprint, acc = sess.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, keep_prob : 1})
