@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import sys
 
 import MFCC
 
@@ -48,35 +49,55 @@ def forward_pass(input_x):
 def softmax(output):
     return tf.nn.softmax(output)
 
-predict = softmax(forward_pass(x))
 
-np.set_printoptions(suppress=True)
+def main(args):
 
-saver = tf.train.Saver()
+    if len(args) < 1:
+        sys.stderr.write(
+            'Usage: SpeakerPredict.py <paths to predict>\n')
+        sys.exit(1)
 
-with tf.Session() as sess:
+    paths = args[0].split(",")
 
-    sess.run(tf.global_variables_initializer())
+    WaifuGUI = False
+    if len(args) > 1 and args[1] == "WaifuGUI":
+        WaifuGUI = True
 
-    saver.restore(sess, "./model/model.ckpt")
+    predict = softmax(forward_pass(x))
 
-    print ("\nModel restored")
+    np.set_printoptions(suppress=True)
 
-    id = ''
+    saver = tf.train.Saver()
 
-    while id != 'exit':
+    with tf.Session() as sess:
 
-        id = input("input chunk id")
+        sess.run(tf.global_variables_initializer())
 
-        data = MFCC.getData('./chunks/chunk-' + id + '.wav')
+        saver.restore(sess, "./model/model.ckpt")
 
-        predictvar = sess.run(predict, feed_dict ={ x: data})
-        # not to override predict
+        print ("\nModel restored")
 
-        predictvar /= np.sum(predictvar, axis=1, keepdims=True)
+        id = ''
 
-        print("Final result:")
-        print("Is Yuki   |    Is Not")
-        print(np.sum(predictvar, axis=0) / predictvar.shape[0])
+        for path in paths:
 
-        predictvar = np.zeros((1,1))
+            data = MFCC.getData(path)
+
+            predictvar = sess.run(predict, feed_dict ={ x: data})
+            # not to override predict
+
+            predictvar /= np.sum(predictvar, axis=1, keepdims=True)
+
+            print("Final result:")
+            result = np.argmax(np.sum(predictvar, axis=0) / predictvar.shape[0])
+            print(result)
+
+            if WaifuGUI:
+                print("WaifuGUI: " + path + "-" + str(result))
+
+            # not resetting it for some reason causes problems...
+            predictvar = np.zeros((1,1))
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
