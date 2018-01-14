@@ -1,3 +1,8 @@
+# IMPORTANT:
+
+# This file is no longer used in Project Waifu.
+# For now, it remains as a backup in case of future references
+
 # edited from https://github.com/wiseman/py-webrtcvad/blob/master/example.py
 import collections
 import contextlib

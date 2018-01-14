@@ -78,9 +78,6 @@ def main(args):
     # [8] = Marked false wavs
     # [9] = WaifuGUI
 
-    #TrainTruePaths = ['chunk-95.wav', 'chunk-157.wav', 'chunk-102.wav', 'chunk-108.wav', 'chunk-112.wav', 'chunk-113.wav', 'chunk-114.wav', 'chunk-115.wav', 'chunk-120.wav', 'chunk-121.wav', 'chunk-122.wav', 'chunk-130.wav', 'chunk-213.wav', 'chunk-214.wav', 'chunk-233.wav', 'chunk-110.wav', 'chunk-164.wav', 'chunk-169.wav', 'chunk-145.wav', 'chunk-158.wav', 'chunk-163.wav', 'chunk-164.wav', 'chunk-165.wav', 'chunk-168.wav', 'chunk-215.wav', 'chunk-218.wav', 'chunk-186.wav']
-    #TrainFalsePaths = ['chunk-00.wav', 'chunk-155.wav', 'chunk-73.wav', 'chunk-74.wav', 'chunk-132.wav', 'chunk-134.wav', 'chunk-175.wav', 'chunk-197.wav', 'chunk-198.wav', 'chunk-241.wav', 'chunk-246.wav', 'chunk-271.wav', 'chunk-282.wav', 'chunk-283.wav', 'chunk-58.wav', 'chunk-59.wav', 'chunk-253.wav', 'chunk-285.wav', 'chunk-139.wav', 'chunk-140.wav', 'chunk-142.wav', 'chunk-144.wav', 'chunk-224.wav', 'chunk-72.wav', 'chunk-71.wav', 'chunk-182.wav', 'chunk-187.wav', 'chunk-170.wav', 'chunk-183.wav', 'chunk-184.wav']
-
     TrainTruePaths = args[7].split(",")
     TrainFalsePaths = args[8].split(",")
 
@@ -153,7 +150,7 @@ def main(args):
 
     # optimize
 
-    cost = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = forward_pass(x, keep_prob), labels = y)) +
+    cost = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = forward_pass(x, keep_prob), labels = y)) +
             regularization_rate * 
             (tf.nn.l2_loss(weights["h1"]) +
             tf.nn.l2_loss(weights["h2"]) +
@@ -177,8 +174,11 @@ def main(args):
     #Create a saver object which will save all the variables
     saver = tf.train.Saver()
 
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
     # Start training
-    with tf.Session() as sess:
+    with tf.Session(config = config) as sess:
         print('starting training')
         sess.run(init)
 
