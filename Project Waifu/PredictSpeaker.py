@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 import numpy as np
 import sys
 
@@ -57,7 +58,12 @@ def main(args):
             'Usage: SpeakerPredict.py <paths to predict>\n')
         sys.exit(1)
 
-    paths = args[0].split(",")
+    paths = []
+
+    for root, directories, filenames in os.walk(args[0]):
+        for filename in filenames: 
+            print(os.path.join(root, filename))
+            paths.append(os.path.join(root, filename))
 
     WaifuGUI = False
     if len(args) > 1 and args[1] == "WaifuGUI":
@@ -69,7 +75,10 @@ def main(args):
 
     saver = tf.train.Saver()
 
-    with tf.Session() as sess:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
+    with tf.Session(config = config) as sess:
 
         sess.run(tf.global_variables_initializer())
 

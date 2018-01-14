@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>703cefe3-35ee-41c0-a765-775a6d99800f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>SpeakerPredict.py</StartupFile>
+    <StartupFile>PredictSpeaker.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,7 +23,7 @@
   <ItemGroup>
     <Compile Include="MFCC.py" />
     <Compile Include="SliceFrames.py" />
-    <Compile Include="SpeakerPredict.py">
+    <Compile Include="PredictSpeaker.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TrainSpeakerVerification.py" />
