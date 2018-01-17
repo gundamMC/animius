@@ -86,7 +86,7 @@ def main(args):
 
         print ("\nModel restored")
 
-        id = ''
+        file = open("./PredictedClips.waifu", "w")
 
         for path in paths:
 
@@ -97,9 +97,9 @@ def main(args):
 
             predictvar /= np.sum(predictvar, axis=1, keepdims=True)
 
-            print("Final result:")
             result = np.argmax(np.sum(predictvar, axis=0) / predictvar.shape[0])
-            print(result)
+            print(path + " - result: " + str(result))
+            file.write(path + "-" + str(result))
 
             if WaifuGUI:
                 print("WaifuGUI: " + path + "-" + str(result))
