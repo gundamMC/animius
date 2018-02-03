@@ -2,7 +2,7 @@ import numpy as np
 import speechpy
 import scipy.io.wavfile as wav
 
-def getData(path):
+def getData(path, flatten = True):
 
     # read wav
     sample_rate, signal = wav.read(path)
@@ -15,8 +15,12 @@ def getData(path):
 
     data = []
 
-    for i in range(10, mfcc_data.shape[0], 3):
-        data.append(mfcc_data[i - 10 : i].flatten('C'))
+    if(flatten):
+        for i in range(10, mfcc_data.shape[0], 3):
+            data.append(mfcc_data[i - 10 : i].flatten('C'))
+    else:
+        for i in range(10, mfcc_data.shape[0], 3):
+            data.append(mfcc_data[i - 10 : i])
 
     print(path, "processed")
 
