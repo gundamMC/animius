@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>703cefe3-35ee-41c0-a765-775a6d99800f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>PredictSpeaker.py</StartupFile>
+    <StartupFile>TrainSpeakerVerification - CNN.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,10 +22,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MFCC.py" />
+    <Compile Include="PredictSpeaker - CNN.py" />
     <Compile Include="SliceFrames.py" />
     <Compile Include="PredictSpeaker.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="TrainSpeakerVerification - CNN.py" />
     <Compile Include="TrainSpeakerVerification.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

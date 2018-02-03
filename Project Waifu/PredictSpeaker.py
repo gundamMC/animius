@@ -92,20 +92,20 @@ def main(args):
 
             data = MFCC.getData(path)
 
-            predictvar = sess.run(predict, feed_dict ={ x: data})
+            predictvar = sess.run(predict, feed_dict ={ x: data })
             # not to override predict
 
             predictvar /= np.sum(predictvar, axis=1, keepdims=True)
 
             result = np.argmax(np.sum(predictvar, axis=0) / predictvar.shape[0])
             print(path + " - result: " + str(result))
-            file.write(path + "-" + str(result))
+            file.write(path + "-" + str(result) + "\n")
 
             if WaifuGUI:
                 print("WaifuGUI: " + path + "-" + str(result))
 
             # not resetting it for some reason causes problems...
-            predictvar = np.zeros((1,1))
+            predictvar = np.ones((1,1))
 
 
 if __name__ == '__main__':

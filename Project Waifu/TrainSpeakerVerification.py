@@ -10,10 +10,10 @@ def getData(TruePaths, FalsePaths):
     x0 = np.empty(shape=[0, 390])
     x1 = np.empty(shape=[0, 390])
     for path in TruePaths:
-        x0 = np.append(x0, MFCC.getData(path), axis = 0)
+        x0 = np.append(x0, MFCC.getData(path, True), axis = 0)
 
     for path in FalsePaths:
-        x1 = np.append(x1, MFCC.getData(path), axis = 0)
+        x1 = np.append(x1, MFCC.getData(path, True), axis = 0)
 
     y0 = np.tile([1,0], (x0.shape[0],1))
     y1 = np.tile([0,1], (x1.shape[0],1))
@@ -117,10 +117,10 @@ def main(args):
     keep_prob = tf.placeholder(tf.float32, ())
 
     weights = {
-        'h1' : tf.Variable(tf.random_normal([num_input, num_hidden_1])) * tf.sqrt(2/num_input),
-        'h2' : tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])) * tf.sqrt(2/num_hidden_1),
-        'h3' : tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])) * tf.sqrt(2/num_hidden_2),
-        'output' : tf.Variable(tf.random_normal([num_hidden_3, num_output])) * tf.sqrt(2/num_hidden_3)
+        'h1' : tf.Variable(tf.random_normal([num_input, num_hidden_1])),
+        'h2' : tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
+        'h3' : tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])),
+        'output' : tf.Variable(tf.random_normal([num_hidden_3, num_output]))
         }
 
     biases = {

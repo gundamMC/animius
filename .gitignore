@@ -398,5 +398,10 @@ ENV/
 # Project Waifu:
 # 
 
-# .wav files
+# folders
 chunks/
+model/
+tmp/
+
+# storage info
+*.waifu
