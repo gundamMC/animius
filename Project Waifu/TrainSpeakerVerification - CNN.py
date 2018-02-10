@@ -64,18 +64,8 @@ def random_mini_batches(X, Y, mini_batch_number):
 def main(args):
 
     if len(args) < 7:
-        sys.stderr.write(
-            'Usage: SpeakerVerificationTrain.py <learning rate> <drop out keep rate> <epoches> <batch number> <adam beta 1> <adam beta 2> <true paths> <false paths>\n')
-        args.append("0.01")
-        args.append("0.8")
-        args.append("0.01")
-        args.append("200")
-        args.append("1")
-        args.append("0.9")
-        args.append("0.999")
-        args.append("D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\078 - 折木奉太郎さんですよね 一年B組の.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\079 - 私一年A組なんです.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\083 - はい.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\094 - もうお帰りですか.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\096 - 私戸締りできません.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\160 - でも 後から来た折木さんは鍵が閉まってたと言ってます.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\171 - 気になります 私 なぜ閉じ込められたんでしょう.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\173 - 仮に何かの間違いだというなら 誰のどういう間違いでしょうか.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\176 - 私 気になります.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\192 - 聞こえますよ ほら.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\221 - 入部届けももう書いてるんだし.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\308 - 女郎蜘蛛.wav")
-        args.append("D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\001 - 高校生活といえば薔薇色.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\002 - 薔薇色といえば高校生活.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\003 - そう言われるのが当たり前なくらい 高校生活はいつも薔薇色な扱いだよな.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\048 - 神校 FIGHT  FIGHT  FIGHT.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\049 - エネルギー消費の大きい生き方に敬礼.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\055 - ほら これ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\056 - もう.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\082 - もしかして 音楽の授業で一緒だったか.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\084 - まだ一回しかやってない授業だぞ どんな記憶力だ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\085 - あ それで千反田さん なぜこの部屋に？.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\092 - 姉貴 喜べ 古典部はめでたく存続したぞ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\099 - はい.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\149 - しかもその千反田家の長女は成績優秀 眉目秀麗.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\151 - 中学時代県内模試の成績優秀者で よく名前を見かけたよ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\152 - ほほ そんなに.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\164 - 千反田さんが中から鍵をかけることは不可能ってことだよ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\193 - 千反田さん 耳いいねえ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\194 - なんかわかったの 奉太郎.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\235 - （千反田さん それは誤解だよ）.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\252 - 音色に誘われ 音楽室に入ると.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\259 - そう この神山高校にはかつて.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\264 - それにしても意外だね 奉太郎が宿題を忘れて居残りなんて.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\266 - 持ってくるのを忘れたんだ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\268 - なるほどね.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\271 - 後はこの噂がどう広がっていくか これが重要なんだ.wav,D:\\Project Waifu\\Project-Waifu\\Project Waifu\\chunks\\Hyouka - 01\\307 - 女郎蜘蛛の会.wav")
-        
+        sys.stderr.write('Usage: SpeakerVerificationTrain.py <learning rate> <drop out keep rate> <epoches> <batch number> <adam beta 1> <adam beta 2> <true paths> <false paths>\n')
+        sys.exit(1)
 
     #args:
     # [0] = Learning rate
@@ -85,12 +75,14 @@ def main(args):
     # [4] = batch number ("s" for stochastic)
     # [5] = Adam Beta 1
     # [6] = Adam Beta 2
-    # [7] = Marked true wavs
-    # [8] = Marked false wavs
+    # [7] = Marked true wavs stored in a text file
+    # [8] = Marked false wavs stored in a text file
     # [9] = WaifuGUI
 
-    TrainTruePaths = args[7].split(",")
-    TrainFalsePaths = args[8].split(",")
+
+    TrainTruePaths = [line.strip() for line in open(args[7], encoding = 'utf-8')]
+    
+    TrainFalsePaths = [line.strip() for line in open(args[8], encoding = 'utf-8')]
 
     train_x, train_y = getData(TrainTruePaths, TrainFalsePaths)
 

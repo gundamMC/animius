@@ -13,10 +13,8 @@ def main(args):
     if len(args) < 1:
         sys.stderr.write(
             'Usage: SpeakerPredict.py <paths to predict>\n')
-
-        args.append("D:\Project Waifu\Project-Waifu\Project Waifu\chunks\Hyouka - 01")
-
-        #sys.exit(1)
+            
+        sys.exit(1)
 
     paths = []
 
