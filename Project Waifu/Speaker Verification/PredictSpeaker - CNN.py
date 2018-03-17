@@ -5,7 +5,7 @@ import math
 
 import sys
 
-import MFCC
+from .MFCC import getData
 
 
 def main(args):
@@ -27,25 +27,24 @@ def main(args):
     if len(args) > 1 and args[1] == "WaifuGUI":
         WaifuGUI = True
 
-    print('MFCC got')
-
+    print('Parameters parsed!')
 
     # Network hyperparameters
-    #10x39x1
+    # Input : 10x39x1
 
     filter_size_1 = 3
     num_filter_1 = 10
     padding_1 = "SAME"
-    #10x39x10
+    # 10x39x10
     
     max_pool_size_1 = 2
     padding_pool = 'SAME'
-    #5x20x10
+    # 5x20x10
     
     filter_size_2 = 5
     num_filter_2 = 15
     padding_2 = "SAME"
-    #5x20x15
+    # 5x20x15
 
     fully_connected_1 = 128
 
@@ -57,21 +56,21 @@ def main(args):
 
     weights = {
         # 3x3 conv filter, 1 input layers, 10 output layers
-        'wc1' : tf.Variable(tf.random_normal([filter_size_1, filter_size_1, 1, num_filter_1])),
+        'wc1': tf.Variable(tf.random_normal([filter_size_1, filter_size_1, 1, num_filter_1])),
         # 5x5 conv filter, 10 input layers, 15 output layers
-        'wc2' : tf.Variable(tf.random_normal([filter_size_2, filter_size_2, num_filter_1, num_filter_2])),
+        'wc2': tf.Variable(tf.random_normal([filter_size_2, filter_size_2, num_filter_1, num_filter_2])),
         # fully connected 1, 15 input layers, 128 outpute nodes
-        'wd1' : tf.Variable(tf.random_normal([5*20*15, fully_connected_1])),
+        'wd1': tf.Variable(tf.random_normal([5*20*15, fully_connected_1])),
         # output, 128 input nodes, 2 output nodes
-        'out' : tf.Variable(tf.random_normal([128, softmax_output]))
+        'out': tf.Variable(tf.random_normal([128, softmax_output]))
 
         }
 
     biases = {
-        'bc1' : tf.Variable(tf.random_normal([num_filter_1])),
-        'bc2' : tf.Variable(tf.random_normal([num_filter_2])),
-        'bd3' : tf.Variable(tf.random_normal([fully_connected_1])),
-        'out' : tf.Variable(tf.random_normal([softmax_output]))
+        'bc1': tf.Variable(tf.random_normal([num_filter_1])),
+        'bc2': tf.Variable(tf.random_normal([num_filter_2])),
+        'bd3': tf.Variable(tf.random_normal([fully_connected_1])),
+        'out': tf.Variable(tf.random_normal([softmax_output]))
         }
 
     # Create model
@@ -110,7 +109,7 @@ def main(args):
         file = open("./PredictedClips.waifu", "w")
 
         for path in paths:
-            data = MFCC.getData(path, False)
+            data = getData(path, False)
 
             data = data[... , np.newaxis]
 
@@ -123,7 +122,9 @@ def main(args):
             if WaifuGUI:
                     print("WaifuGUI: " + path + "-" + str(result))
 
-            predictvar = np.ones((1,1))
+            predictvar = np.ones((1, 1))
 
+
+# main
 if __name__ == '__main__':
     main(sys.argv[1:])
