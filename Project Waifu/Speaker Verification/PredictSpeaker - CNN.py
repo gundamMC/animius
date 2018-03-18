@@ -1,11 +1,10 @@
 import tensorflow as tf
 import os
 import numpy as np
-import math
 
 import sys
 
-from .MFCC import getData
+from .MFCC import getMFCC
 
 
 def main(args):
@@ -18,10 +17,10 @@ def main(args):
 
     paths = []
 
-    for root, directories, filenames in os.walk(args[0]):
-        for filename in filenames: 
-            print(os.path.join(root, filename))
-            paths.append(os.path.join(root, filename))
+    for root, directories, file_names in os.walk(args[0]):
+        for file in file_names:
+            print(os.path.join(root, file))
+            paths.append(os.path.join(root, file))
 
     WaifuGUI = False
     if len(args) > 1 and args[1] == "WaifuGUI":
@@ -76,10 +75,11 @@ def main(args):
     # Create model
     def conv_net(input_x):
         
-        conv1 = tf.nn.conv2d(input_x, weights["wc1"], strides = [1,1,1,1], padding = padding_1)
-        conv1 = tf.nn.max_pool(conv1, ksize = [1,max_pool_size_1,max_pool_size_1,1], strides = [1,2,2,1], padding = padding_pool)
+        conv1 = tf.nn.conv2d(input_x, weights["wc1"], strides=[1, 1, 1, 1], padding=padding_1)
+        conv1 = tf.nn.max_pool(conv1, ksize=[1, max_pool_size_1, max_pool_size_1, 1],
+                               strides=[1, 2, 2, 1], padding=padding_pool)
 
-        conv2 = tf.nn.conv2d(conv1, weights["wc2"], strides = [1,1,1,1], padding = padding_2)
+        conv2 = tf.nn.conv2d(conv1, weights["wc2"], strides=[1, 1, 1, 1], padding=padding_2)
 
         fc1 = tf.reshape(conv2, [-1, 5*20*15])
         fc1 = tf.add(tf.matmul(fc1, weights["wd1"]), biases["bd3"])
@@ -98,20 +98,20 @@ def main(args):
     config.gpu_options.allow_growth = True
 
     # Start training
-    with tf.Session(config = config) as sess:
+    with tf.Session(config=config) as sess:
 
         sess.run(tf.global_variables_initializer())
 
         saver.restore(sess, "./model/model.ckpt")
 
-        print ("\nModel restored")
+        print("\nModel restored")
 
         file = open("./PredictedClips.waifu", "w")
 
         for path in paths:
-            data = getData(path, False)
+            data = getMFCC(path, False)
 
-            data = data[... , np.newaxis]
+            data = data[..., np.newaxis]
 
             predicted = sess.run(prediction, feed_dict = { x:data })
 
@@ -121,8 +121,6 @@ def main(args):
 
             if WaifuGUI:
                     print("WaifuGUI: " + path + "-" + str(result))
-
-            predictvar = np.ones((1, 1))
 
 
 # main

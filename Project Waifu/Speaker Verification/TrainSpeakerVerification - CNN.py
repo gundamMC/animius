@@ -8,6 +8,7 @@ from .MFCC import getMFCC
 
 np.random.seed(0)
 
+
 def getData(TruePaths, FalsePaths):
     x0 = np.empty(shape=[0, 10, 39])
     x1 = np.empty(shape=[0, 10, 39])
@@ -30,7 +31,7 @@ def getData(TruePaths, FalsePaths):
     return datax, datay
 
 
-def shuffle(X ,Y):
+def shuffle(X, Y):
     permutation = list(np.random.permutation(X.shape[0]))
     shuffled_X = X[permutation]
     shuffled_Y = Y[permutation]
