@@ -3,7 +3,7 @@ import os
 import numpy as np
 import sys
 
-from .MFCC import getData
+from .MFCC import getMFCC
 
 # Network hyperparameters
 num_input = 390
@@ -92,7 +92,7 @@ def main(args):
 
         for path in paths:
 
-            data = getData(path)
+            data = getMFCC(path)
 
             predictvar = sess.run(predict, feed_dict ={ x: data })
             # not to override predict
