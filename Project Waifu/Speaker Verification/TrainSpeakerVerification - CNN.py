@@ -43,19 +43,19 @@ def random_mini_batches(X, Y, mini_batch_number):
     mini_batches_X = []
     mini_batches_Y = []
     
-    shuffled_X, shuffled_Y = shuffle(X,Y)
+    shuffled_X, shuffled_Y = shuffle(X, Y)
 
     mini_batch_size = math.floor(m / mini_batch_number)
 
     for batch in range(0, mini_batch_number):
-        mini_batch_X = shuffled_X[batch * mini_batch_size : (batch + 1) * mini_batch_size]
-        mini_batch_Y = shuffled_Y[batch * mini_batch_size : (batch + 1) * mini_batch_size]
+        mini_batch_X = shuffled_X[batch * mini_batch_size: (batch + 1) * mini_batch_size]
+        mini_batch_Y = shuffled_Y[batch * mini_batch_size: (batch + 1) * mini_batch_size]
         mini_batches_X.append(mini_batch_X)
         mini_batches_Y.append(mini_batch_Y)
 
     if m % mini_batch_size != 0:
-        mini_batch_X = shuffled_X[mini_batch_number * mini_batch_size :]
-        mini_batch_Y = shuffled_Y[mini_batch_number * mini_batch_size :]
+        mini_batch_X = shuffled_X[mini_batch_number * mini_batch_size:]
+        mini_batch_Y = shuffled_Y[mini_batch_number * mini_batch_size:]
         mini_batches_X.append(mini_batch_X)
         mini_batches_Y.append(mini_batch_Y)
 
