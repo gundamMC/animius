@@ -1,17 +1,7 @@
 import json
-
-from pprint import pprint
+from numpy import eye
 
 entity_to_index = dict(object_name=1, object_type=2, time=3, location_name=4, condition=5, question=6, number=7)
-
-
-data = json.load(open(".\\data\\SearchCreativeWork.json"))
-
-
-data = data["SearchCreativeWork"]
-# data is now a list of dictionaries with the name "data"
-
-print(len(data))
 
 
 def get_ner_data(json_text):
@@ -29,8 +19,16 @@ def get_ner_data(json_text):
     return input_data, output_data
 
 
-for i in data:
-    print(get_ner_data(i["data"]))
+def get_data(intent):
+    data = json.load(open(".\\data\\" + intent + ".json"))
+    data = data[intent]
+    result_in = []
+    result_out = []
+    for i in data:
+        input_data, output_data = get_ner_data(i["data"])
+        input_data.extend(["<end>"] * (30 - len(input_data)))
+        output_data.extend([0] * (30 - len(output_data)))
+        result_in.append(input_data)
+        result_out.append(eye(8)[output_data])
 
-
-
+    return result_in, result_out

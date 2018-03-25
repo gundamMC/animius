@@ -1,5 +1,19 @@
 import tensorflow as tf
 import numpy as np
+from ParseData import get_data
+
+
+def loadGloveModel(gloveFile):
+    print ("Loading Glove Model")
+    f = open(gloveFile, 'r', encoding='utf8')
+    model = {}
+    for line in f:
+        splitLine = line.split()
+        word = splitLine[0]
+        embedding = np.array([float(val) for val in splitLine[1:]])
+        model[word] = embedding
+    print("Done.", len(model), " words loaded!")
+    return model
 
 
 def shuffle(X, Y1, Y2):
@@ -36,26 +50,57 @@ def random_mini_batches(X, Y1, Y2, mini_batch_number):
         mini_batches_Y1.append(mini_batch_Y1)
         mini_batches_Y2.append(mini_batch_Y2)
 
-    return mini_batches_X, mini_batches_Y1, mini_batch_Y2
+    return mini_batches_X, mini_batches_Y1, mini_batches_Y2
 
+
+tf.set_random_seed(1)
 
 # hyperparameters
-learning_rate = 0.01
+learning_rate = 0.1
 epochs = 1000
-batch_size = 128
-display_step = 100
+batch_size = 198
+display_step = 50
 
 # Network hyperparameters
-n_input = 250           # word vector size
+n_input = 50            # word vector size
 max_sequence = 30       # maximum number of words allowed
-n_hidden = 64           # hidden nodes inside LSTM
+n_hidden = 128           # hidden nodes inside LSTM
 n_intent_output = 15    # the number of intent classes
 n_entities_output = 8   # the number of entity classes (7 classes + 1 none)
 
+# get data
+
+input_GetWeather, ner_data_GetWeather = get_data("GetWeather")
+intent_data_GetWeather = np.zeros((len(ner_data_GetWeather), n_intent_output))
+intent_data_GetWeather[:, 5] = 1
+
+input_SearchCreativeWork, ner_data_SearchCreativeWork = get_data("SearchCreativeWork")
+intent_data_SearchCreativeWork = np.zeros((len(ner_data_SearchCreativeWork), n_intent_output))
+intent_data_SearchCreativeWork[:, 3] = 1
+
+input_data = np.concatenate([input_GetWeather, input_SearchCreativeWork], 0).tolist()
+intent_data = np.concatenate([intent_data_GetWeather, intent_data_SearchCreativeWork], 0)
+ner_data = np.concatenate([ner_data_GetWeather, ner_data_SearchCreativeWork], 0)
+
+glove = loadGloveModel(".\\data\\glove.twitter.27B.50d.txt")
+
+for batch in range(len(input_data)):  # [batch, word]
+    for index in range(len(input_data[batch])):
+        word = input_data[batch][index].lower()
+        if word in glove:
+            input_data[batch][index] = glove[word]
+        elif word == "<end>":
+            input_data[batch][index] = [0] * 50
+        else:
+            input_data[batch][index] = glove["<unknown>"]
+
+input_data = np.asarray(input_data)
+
+
 # Tensorflow placeholders
 x = tf.placeholder("float", [None, max_sequence, n_input])  # [batch size, sequence length, input length]
-y_intent = tf.placeholder("float", [None, 1])               # [batch size, intent]
-y_entities = tf.placeholder("float", [None, max_sequence, n_input])
+y_intent = tf.placeholder("float", [None, n_intent_output])               # [batch size, intent]
+y_entities = tf.placeholder("float", [None, max_sequence, n_entities_output])
 
 # Network parameters
 weights = {  # LSTM weights are created automatically by tensorflow
@@ -70,12 +115,12 @@ biases = {
 
 
 def get_length(sequence):
-    used = tf.sign(tf.reduce_max(tf.abs(sequence)))
+    used = tf.sign(tf.reduce_max(tf.abs(sequence), 2))
     # reducing the features to scalars of the maximum
     # and then converting them to "1"s to create a sequence mask
     # i.e. all "sequence length" with "input length" values are converted to a scalar of 1
 
-    length = tf.reduce_sum(used, 1)  # get length by counting how many "1"s there are in the sequence
+    length = tf.reduce_sum(used, reduction_indices=1)  # get length by counting how many "1"s there are in the sequence
     length = tf.cast(length, tf.int32)
     return length
 
@@ -84,33 +129,41 @@ def network(X):
     # X has shape of x ([batch size, sequence length, input length])
     cell_fw = tf.contrib.rnn.BasicLSTMCell(n_hidden)
     cell_bw = tf.contrib.rnn.BasicLSTMCell(n_hidden)
-    initial_state_fw = cell_fw.zero_state(batch_size)
-    initial_state_bw = cell_bw.zero_state(batch_size)
 
-    outputs, states = tf.nn.bidirectional_dynamic_rnn(cell_fw, cell_bw, inputs=X,
-                                                      sequence_length=get_length(X),
-                                                      initial_state_fw=initial_state_fw,
-                                                      initial_state_bw=initial_state_bw,
-                                                      swap_memory=True)
+    seqlen = get_length(X)
+    input_size = tf.shape(X)[0]
+
+    outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
+                                                 cell_bw,
+                                                 inputs=X,
+                                                 dtype=tf.float32,
+                                                 sequence_length=seqlen,
+                                                 swap_memory=True)
     # see https://www.tensorflow.org/api_docs/python/tf/nn/bidirectional_dynamic_rnn
     # swap_memory is optional.
 
     outputs_fw, output_bw = outputs  # outputs is a tuple (output_fw, output_bw)
 
+    # get last time steps
+    indexes = tf.reshape(tf.range(0, input_size), [input_size, 1])
+    last_time_steps = tf.reshape(tf.add(seqlen, -1), [input_size, 1])
+    last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
+
     # apply linear
-    outputs_intent = tf.matmul(outputs_fw[:, -1, :], weights["out_intent"])  # [:, -1, :] gets the last time step
-    outputs_entities = tf.matmul(output_bw, weights["out_entities"])  # not sure if this will work...
+    outputs_intent = tf.matmul(tf.gather_nd(outputs_fw, last_time_step_indexes), weights["out_intent"]) + biases["out_intent"]
+    outputs_entities = tf.einsum('ijk,kl->ijl', output_bw, weights["out_entities"]) + biases["out_entities"]
 
     return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
 
-logits = network(x)
+logits_intent, logits_ner = network(x)
 
-prediction = tf.nn.softmax(network(x))
+prediction_intent = tf.nn.softmax(logits_intent)
+prediction_ner = tf.nn.softmax(logits_ner)
 
 # optimize
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits[0], labels=y_intent)) + \
-       tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits[1], labels=y_entities))
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=y_intent)) + \
+       tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=y_entities))
 
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 train_op = optimizer.minimize(cost)
@@ -129,7 +182,8 @@ with tf.Session(config=config) as sess:
 
     for epoch in range(epochs + 1):  # since range is exclusive
 
-        mini_batches_X, mini_batches_Y_intent, mini_batches_Y_entities = random_mini_batches(None, None, None)
+        mini_batches_X, mini_batches_Y_intent, mini_batches_Y_entities \
+            = random_mini_batches(input_data, intent_data, ner_data, int(len(input_data) / batch_size))
 
         for i in range(0, len(mini_batches_X)):
 
@@ -137,7 +191,7 @@ with tf.Session(config=config) as sess:
             batch_y_intent = mini_batches_Y_intent[i]
             batch_y_entities = mini_batches_Y_entities[i]
 
-            _ = sess.run([optimizer], feed_dict={x: batch_x, y_intent: batch_y_intent, y_entities: batch_y_entities})
+            sess.run(train_op, feed_dict={x: batch_x, y_intent: batch_y_intent, y_entities: batch_y_entities})
 
             if epoch % display_step == 0:
                 cost_value = sess.run([cost],
@@ -145,3 +199,19 @@ with tf.Session(config=config) as sess:
 
                 print('epoch', epoch, '- cost', cost_value)
 
+    print("Testing output:")
+
+    test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:10], axis=1)],
+                    feed_dict={x: np.expand_dims(input_data[0], 0)})
+    print(test)
+    print(np.argmax(np.reshape(ner_data[0, :10], [10, 8]), axis=1))
+
+    test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:7], axis=1)],
+                    feed_dict={x: np.expand_dims(input_data[1], 0)})
+    print(test)
+    print(np.argmax(np.reshape(ner_data[1, :7], [7, 8]), axis=1))
+
+    test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:8], axis=1)],
+                    feed_dict={x: np.expand_dims(input_data[2], 0)})
+    print(test)
+    print(np.argmax(np.reshape(ner_data[2, :8], [8, 8]), axis=1))
