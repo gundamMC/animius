@@ -69,18 +69,9 @@ n_intent_output = 15    # the number of intent classes
 n_entities_output = 8   # the number of entity classes (7 classes + 1 none)
 
 # get data
+input_data, ner_data, intent_data = get_data()
 
-input_GetWeather, ner_data_GetWeather = get_data("GetWeather")
-intent_data_GetWeather = np.zeros((len(ner_data_GetWeather), n_intent_output))
-intent_data_GetWeather[:, 5] = 1
-
-input_SearchCreativeWork, ner_data_SearchCreativeWork = get_data("SearchCreativeWork")
-intent_data_SearchCreativeWork = np.zeros((len(ner_data_SearchCreativeWork), n_intent_output))
-intent_data_SearchCreativeWork[:, 3] = 1
-
-input_data = np.concatenate([input_GetWeather, input_SearchCreativeWork], 0).tolist()
-intent_data = np.concatenate([intent_data_GetWeather, intent_data_SearchCreativeWork], 0)
-ner_data = np.concatenate([ner_data_GetWeather, ner_data_SearchCreativeWork], 0)
+input_data = input_data.tolist()
 
 glove = loadGloveModel(".\\data\\glove.twitter.27B.50d.txt")
 
@@ -199,19 +190,19 @@ with tf.Session(config=config) as sess:
 
                 print('epoch', epoch, '- cost', cost_value)
 
-    print("Testing output:")
-
-    test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:10], axis=1)],
-                    feed_dict={x: np.expand_dims(input_data[0], 0)})
-    print(test)
-    print(np.argmax(np.reshape(ner_data[0, :10], [10, 8]), axis=1))
-
-    test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:7], axis=1)],
-                    feed_dict={x: np.expand_dims(input_data[1], 0)})
-    print(test)
-    print(np.argmax(np.reshape(ner_data[1, :7], [7, 8]), axis=1))
-
-    test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:8], axis=1)],
-                    feed_dict={x: np.expand_dims(input_data[2], 0)})
-    print(test)
-    print(np.argmax(np.reshape(ner_data[2, :8], [8, 8]), axis=1))
+    # print("Testing output:")
+    #
+    # test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:10], axis=1)],
+    #                 feed_dict={x: np.expand_dims(input_data[0], 0)})
+    # print(test)
+    # print(np.argmax(np.reshape(ner_data[0, :10], [10, 8]), axis=1))
+    #
+    # test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:7], axis=1)],
+    #                 feed_dict={x: np.expand_dims(input_data[1], 0)})
+    # print(test)
+    # print(np.argmax(np.reshape(ner_data[1, :7], [7, 8]), axis=1))
+    #
+    # test = sess.run([tf.argmax(tf.reshape(prediction_ner, [30, 8])[:8], axis=1)],
+    #                 feed_dict={x: np.expand_dims(input_data[2], 0)})
+    # print(test)
+    # print(np.argmax(np.reshape(ner_data[2, :8], [8, 8]), axis=1))
