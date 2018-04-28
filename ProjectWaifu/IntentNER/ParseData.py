@@ -1,5 +1,5 @@
 import json
-from numpy import eye, zeros, vstack, array
+from numpy import eye, zeros, vstack
 import os
 
 entity_to_index = dict(person_name=1, object_name=2, object_type=3, time=4, location_name=5, condition=6, info=7)
@@ -14,7 +14,7 @@ def get_ner_data(json_text):
     output_data = []  # indexes of the classes of each word
 
     for text in json_text:
-        input_data.extend(str.split(text["text"]))
+        input_data.extend(str.split(str.lower(text["text"])))
         if "entity" in text:
             output_data.extend([entity_to_index[text["entity"]]] * len(str.split(text["text"])))
         else:
@@ -23,14 +23,14 @@ def get_ner_data(json_text):
     return input_data, output_data
 
 
-def get_intent_data(intent):
+def get_intent_data(intent, word_vec):
     data = json.load(open(".\\data\\intents\\" + intent + ".json"))
     data = data[intent]
     result_in = []
     ner_out = []
     for i in data:
         input_data, output_data = get_ner_data(i["data"])
-        input_data.extend(["<end>"] * (30 - len(input_data)))
+        input_data = sentence_to_vec(word_vec, input_data)
         output_data.extend([0] * (30 - len(output_data)))
         result_in.append(input_data)
         ner_out.append(eye(8)[output_data])
@@ -38,14 +38,14 @@ def get_intent_data(intent):
     return result_in, ner_out
 
 
-def get_data():
+def get_data(word_vec):
     input = []
     output_ner = []
     output_intent = []
     for filename in os.listdir(".\\data\\intents\\"):
         filename = filename.split('.')[0]
         if filename in intent_to_index:
-            result_in, ner_out = get_intent_data(filename)
+            result_in, ner_out = get_intent_data(filename, word_vec)
             intent_out = zeros((len(ner_out), len(intent_to_index)))
             intent_out[:, intent_to_index[filename]] = 1
 
@@ -58,3 +58,19 @@ def get_data():
         exit()
 
     return vstack([i for i in input]), vstack([i for i in output_ner]), vstack([i for i in output_intent])
+
+
+def sentence_to_vec(word_vec, sentence):
+
+    result = []
+
+    for word in sentence:
+        if word in word_vec:
+            result.append(word_vec[word])
+        else:
+            result.append(word_vec["<unknown>"])
+
+    for i in range(30 - len(result)):
+        result.append([0] * 50)
+
+    return result
