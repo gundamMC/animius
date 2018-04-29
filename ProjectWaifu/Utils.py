@@ -2,7 +2,7 @@ import numpy as np
 
 
 def loadGloveModel(gloveFile):
-    print ("Loading Glove Model")
+    print("Loading Glove Model")
     f = open(gloveFile, 'r', encoding='utf8')
     model = {}
     for line in f:
@@ -14,41 +14,30 @@ def loadGloveModel(gloveFile):
     return model
 
 
-glove = loadGloveModel(".\\data\\glove.twitter.27B.50d.txt")
+def shuffle(data_lists):
+    permutation = list(np.random.permutation(data_lists[0].shape[0]))
+    result = []
+    for data in data_lists:
+        result.append(data[permutation])
+    return result
 
 
-def shuffle(X, Y1, Y2):
-    permutation = list(np.random.permutation(X.shape[0]))
-    shuffled_X = X[permutation]
-    shuffled_Y1 = Y1[permutation]
-    shuffled_Y2 = Y2[permutation]
-    return shuffled_X, shuffled_Y1, shuffled_Y2
+def random_mini_batches(data_lists, mini_batch_number):
+    m = data_lists[0].shape[0]
+    mini_batches = []
 
-
-def random_mini_batches(X, Y1, Y2, mini_batch_number):
-    m = X.shape[0]
-    mini_batches_X = []
-    mini_batches_Y1 = []
-    mini_batches_Y2 = []
-
-    shuffled_X, shuffled_Y1, shuffled_Y2 = shuffle(X, Y1, Y2)
+    shuffled = shuffle(data_lists)
 
     mini_batch_size = np.math.floor(m / mini_batch_number)
 
-    for batch in range(0, mini_batch_number):
-        mini_batch_X = shuffled_X[batch * mini_batch_size: (batch + 1) * mini_batch_size]
-        mini_batch_Y1 = shuffled_Y1[batch * mini_batch_size: (batch + 1) * mini_batch_size]
-        mini_batch_Y2 = shuffled_Y2[batch * mini_batch_size: (batch + 1) * mini_batch_size]
-        mini_batches_X.append(mini_batch_X)
-        mini_batches_Y1.append(mini_batch_Y1)
-        mini_batches_Y2.append(mini_batch_Y2)
+    for data in shuffled:
+        tmp = []
+        for batch in range(0, mini_batch_number):
+            tmp.append(data[batch * mini_batch_size: (batch + 1) * mini_batch_size])
 
-    if m % mini_batch_size != 0:
-        mini_batch_X = shuffled_X[mini_batch_number * mini_batch_size:]
-        mini_batch_Y1 = shuffled_Y1[mini_batch_number * mini_batch_size:]
-        mini_batch_Y2 = shuffled_Y2[mini_batch_number * mini_batch_size:]
-        mini_batches_X.append(mini_batch_X)
-        mini_batches_Y1.append(mini_batch_Y1)
-        mini_batches_Y2.append(mini_batch_Y2)
+        if m % mini_batch_size != 0:
+            tmp.append(data[mini_batch_number * mini_batch_size:])
 
-    return mini_batches_X, mini_batches_Y1, mini_batches_Y2
+        mini_batches.append(tmp)
+
+    return mini_batches

@@ -7,7 +7,7 @@ from ProjectWaifu.Network import Network
 
 class IntentNERNetwork(Network):
 
-    def __init__(self, learning_rate=0.1, batch_size=128):
+    def __init__(self, learning_rate=0.01, batch_size=128):
         # hyperparameters
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -38,6 +38,7 @@ class IntentNERNetwork(Network):
         self.cell_fw = tf.contrib.rnn.BasicLSTMCell(self.n_hidden)
         self.cell_bw = tf.contrib.rnn.BasicLSTMCell(self.n_hidden)
 
+        # Optimization
         self.logits_intent, self.logits_ner = self.network(self.x)
 
         self.prediction_intent = tf.nn.softmax(self.logits_intent)
@@ -48,9 +49,12 @@ class IntentNERNetwork(Network):
 
         self.train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
 
+        # Tensorflow initialization
         self.sess = tf.Session(config=self.config)
 
         self.sess.run(tf.global_variables_initializer())
+
+        self.glove = Utils.loadGloveModel(".\\data\\glove.twitter.27B.50d.txt")
 
     @staticmethod
     def get_length(sequence):
@@ -95,16 +99,14 @@ class IntentNERNetwork(Network):
     def train(self, epochs=50, display_step=10):
 
         # get data
-        input_data, ner_data, intent_data = get_data(Utils.glove)
+        input_data, ner_data, intent_data = get_data(self.glove)
 
         # Start training
-
         print("start training")
-
         for epoch in range(epochs + 1):  # since range is exclusive
 
             mini_batches_X, mini_batches_Y_intent, mini_batches_Y_entities \
-                = Utils.random_mini_batches(input_data, intent_data, ner_data, int(len(input_data) / self.batch_size))
+                = Utils.random_mini_batches([input_data, intent_data, ner_data], int(len(input_data) / self.batch_size))
 
             for i in range(0, len(mini_batches_X)):
 
@@ -122,11 +124,11 @@ class IntentNERNetwork(Network):
                                                           self.y_intent: batch_y_intent,
                                                           self.y_entities: batch_y_entities})
 
-                    print('epoch', epoch, '- cost', cost_value)
+                    print('epoch', epoch, '(', i, '/', len(mini_batches_X), ') - cost', cost_value)
 
     def predict(self, sentence):
 
-        response_data = sentence_to_vec(Utils.glove, sentence.lower().split())
+        response_data = sentence_to_vec(self.glove, sentence.lower().split())
 
         intent, ner = self.sess.run([tf.argmax(tf.reshape(self.prediction_intent, [self.n_intent_output])),
                                      tf.argmax(tf.reshape(self.prediction_ner, [self.max_sequence,
@@ -135,15 +137,3 @@ class IntentNERNetwork(Network):
                                     feed_dict={self.x: np.expand_dims(response_data, 0)})
 
         return intent, ner
-
-
-# testing
-test = IntentNERNetwork()
-test.train(10, 5)
-intent, ner = test.predict("Play Sparkle from RADWIMPS")
-print(intent)
-print(ner)
-test.train(20)
-intent, ner = test.predict("Play Sparkle from RADWIMPS")
-print(intent)
-print(ner)
