@@ -3,7 +3,7 @@ import os
 import numpy as np
 import sys
 
-from .MFCC import getMFCC
+from ProjectWaifu.SpeakerVerification.MFCC import getMFCC
 
 # Network hyperparameters
 num_input = 390
