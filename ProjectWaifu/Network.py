@@ -16,6 +16,10 @@ class Network(ABC):
     @abstractmethod
     def network(self):
         pass
+    
+    @abstractmethod
+    def setTrainingData(self):
+        pass
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
