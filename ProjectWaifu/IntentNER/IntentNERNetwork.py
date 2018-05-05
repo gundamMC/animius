@@ -54,7 +54,10 @@ class IntentNERNetwork(Network):
 
         self.sess.run(tf.global_variables_initializer())
 
-        self.glove = Utils.loadGloveModel(".\\data\\glove.twitter.27B.50d.txt")
+        self.glove = None
+        self.intents_folder = None
+
+        self.data_set = False
 
     @staticmethod
     def get_length(sequence):
@@ -97,12 +100,15 @@ class IntentNERNetwork(Network):
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
     def train(self, epochs=50, display_step=10):
+        if not self.data_set:
+            print("Error: Training data not set")
+            return
 
         # get data
-        input_data, ner_data, intent_data = get_data(self.glove)
+        input_data, ner_data, intent_data = get_data(self.glove, self.intents_folder)
 
         # Start training
-        print("start training")
+        print("Starting training")
         for epoch in range(epochs + 1):  # since range is exclusive
 
             mini_batches_X, mini_batches_Y_intent, mini_batches_Y_entities \
@@ -137,3 +143,7 @@ class IntentNERNetwork(Network):
                                     feed_dict={self.x: np.expand_dims(response_data, 0)})
 
         return intent, ner
+
+    def setTrainingData(self, intents_folder, glove):
+        self.glove = Utils.loadGloveModel(glove)
+        self.intents_folder = intents_folder

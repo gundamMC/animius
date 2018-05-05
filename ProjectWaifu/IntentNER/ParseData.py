@@ -23,8 +23,8 @@ def get_ner_data(json_text):
     return input_data, output_data
 
 
-def get_intent_data(intent, word_vec):
-    data = json.load(open(".\\data\\intents\\" + intent + ".json"))
+def get_intent_data(intent, word_vec, data_folder):
+    data = json.load(open(data_folder + intent + ".json"))
     data = data[intent]
     result_in = []
     ner_out = []
@@ -38,14 +38,14 @@ def get_intent_data(intent, word_vec):
     return result_in, ner_out
 
 
-def get_data(word_vec):
+def get_data(word_vec, data_folder):
     input = []
     output_ner = []
     output_intent = []
-    for filename in os.listdir(".\\data\\intents\\"):
+    for filename in os.listdir(data_folder):
         filename = filename.split('.')[0]
         if filename in intent_to_index:
-            result_in, ner_out = get_intent_data(filename, word_vec)
+            result_in, ner_out = get_intent_data(filename, word_vec, data_folder)
             intent_out = zeros((len(ner_out), len(intent_to_index)))
             intent_out[:, intent_to_index[filename]] = 1
 

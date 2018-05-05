@@ -7,7 +7,7 @@ from ProjectWaifu import Utils
 
 class SpeakerVerificationNetwork(Network):
 
-    def __init__(self, learning_rate=0.01, batch_size=128):
+    def __init__(self, learning_rate=0.01, batch_size=1024):
         # hyperparameters
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -62,6 +62,7 @@ class SpeakerVerificationNetwork(Network):
 
         self.sess.run(tf.global_variables_initializer())
 
+        self.data_set = False
         self.train_x = None
         self.train_y = None
 
@@ -112,8 +113,12 @@ class SpeakerVerificationNetwork(Network):
         return out
 
     def train(self, epochs=50, display_step=10):
+        if not self.data_set:
+            print("Error: Training data not set")
+            return
+
         # Start training
-        print("start training")
+        print("starting training")
         for epoch in range(epochs + 1):  # since range is exclusive
 
             mini_batches_X, mini_batches_Y =\
