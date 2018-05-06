@@ -77,3 +77,22 @@ def Train(args):
         SelectedNetwork.train(epochs=int(args[0]))
     else:
         SelectedNetwork.train(epochs=int(args[0]), display_step=int(args[1]))
+
+
+def Predict(args):
+    if len(args) != 1:
+        print("Usage: Predict <Network input>")
+        return
+    output = SelectedNetwork.predict(args[0])
+    print(output)
+
+
+def PredictAll(args):
+    if len(args) == 1:
+        output = SelectedNetwork.predictAll(args[0])
+    elif len(args) == 2:
+        output = SelectedNetwork.predictAll(args[0], args[1])
+    else:
+        print("Usage: Predict <Path of file containing network input>")
+        return
+    print(output)

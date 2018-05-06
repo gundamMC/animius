@@ -3,6 +3,7 @@ import numpy as np
 from ProjectWaifu.IntentNER.ParseData import get_data, sentence_to_vec
 from ProjectWaifu import Utils
 from ProjectWaifu.Network import Network
+import os
 
 
 class IntentNERNetwork(Network):
@@ -99,7 +100,7 @@ class IntentNERNetwork(Network):
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
-    def train(self, epochs=50, display_step=10):
+    def train(self, epochs=100, display_step=10):
         if not self.data_set:
             print("Error: Training data not set")
             return
@@ -143,6 +144,28 @@ class IntentNERNetwork(Network):
                                     feed_dict={self.x: np.expand_dims(response_data, 0)})
 
         return intent, ner
+
+    def predictAll(self, path, savePath=None):
+        result = []
+
+        if os.path.isdir(path):
+            paths = []
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    paths.append(os.path.join(root, file))
+        else:
+            with open(path) as file:
+                paths = file.read().splitlines()
+
+        for path in paths:
+            result.append(self.predict(path))
+
+        if savePath is not None:
+            with open(savePath, "a") as file:
+                for i in range(len(paths)):
+                    file.write(str(result[i][0]) + " " + str(result[i][1]) + " " + paths[i] + "\n")
+
+        return result
 
     def setTrainingData(self, intents_folder, glove):
         self.glove = Utils.loadGloveModel(glove)

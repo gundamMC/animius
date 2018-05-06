@@ -1,11 +1,11 @@
-import shlex
+from shlex import split
 import ProjectWaifu.Console as Console
 
 print("Welcome to Project Waifu")
 
 
 def ParseArgs(InputString):
-    return shlex.split(InputString)
+    return split(InputString)
 
 
 while True:
