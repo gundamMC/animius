@@ -3,11 +3,12 @@ import numpy as np
 from ProjectWaifu.SpeakerVerification.MFCC import getMFCC
 from ProjectWaifu.Network import Network
 from ProjectWaifu import Utils
+import os
 
 
 class SpeakerVerificationNetwork(Network):
 
-    def __init__(self, learning_rate=0.01, batch_size=1024):
+    def __init__(self, learning_rate=0.005, batch_size=2048):
         # hyperparameters
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -94,6 +95,7 @@ class SpeakerVerificationNetwork(Network):
         TrainTruePaths = [line.strip() for line in open(TruePath, encoding='utf-8')]
         TrainFalsePaths = [line.strip() for line in open(FalsePath, encoding='utf-8')]
         self.train_x, self.train_y = self.getData(TrainTruePaths, TrainFalsePaths)
+        self.data_set = True
 
     def network(self, X):
 
@@ -112,7 +114,7 @@ class SpeakerVerificationNetwork(Network):
         # softmax is applied during tf.nn.softmax_cross_entropy_with_logits
         return out
 
-    def train(self, epochs=50, display_step=10):
+    def train(self, epochs=800, display_step=10):
         if not self.data_set:
             print("Error: Training data not set")
             return
@@ -140,4 +142,26 @@ class SpeakerVerificationNetwork(Network):
     def predict(self, path):
         X = self.getData([path])
         result = self.sess.run(self.prediction, feed_dict={self.x: X})
-        return np.sum(result, axis=0) / result.shape[0]
+        return (np.sum(result, axis=0) / result.shape[0])[0] > 0.5
+
+    def predictAll(self, path, savePath=None):
+        result = []
+
+        if os.path.isdir(path):
+            paths = []
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    paths.append(os.path.join(root, file))
+        else:
+            with open(path) as file:
+                paths = file.read().splitlines()
+
+        for path in paths:
+            result.append(self.predict(path))
+
+        if savePath is not None:
+            with open(savePath, "a") as file:
+                for i in range(len(paths)):
+                    file.write(str(result[i]) + " " + paths[i] + "\n")
+
+        return result
