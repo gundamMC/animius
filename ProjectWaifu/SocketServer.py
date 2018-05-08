@@ -1,25 +1,43 @@
-import socketserver
-import threading
+import socket
+import ProjectWaifu.Console as Console
+import sys
 
+s = socket.socket()
+host = "localhost"
+port = 8089
+s.bind((host, port))
+s.listen(1)
 
-# Used to interact with other clients based on other languages
-# E.g. WaifuGUI (gundamMC/WaifuGUI)
-class MyTCPHandler(socketserver.BaseRequestHandler):
+file = s.makefile('wb', buffering=None, encoding="utf-8")
+sys.stdout = file
 
-    def handle(self):
-        while True:
-            data = self.request.recv(1024)
-            if not data:
+while True:
+    conn, addr = s.accept()
+
+    #print('New connection from %s:%d' % (addr[0], addr[1]))
+
+    while True:
+        try:
+            data = conn.recv(1024)
+            data = data.decode("utf-8").strip()
+            if not data or data == "":
+                continue
+            elif data == 'exit':
+                conn.close()
                 break
-            data = data.decode("UTF-8").strip()
-            if data == "exit":
-                print("Socket exited")
-                break
-            print(data)
-            # self.request.send("Test")
+            else:
+                InputArgs = Console.ParseArgs(data)
+                Command = InputArgs[0]
+                InputArgs = InputArgs[1:]
 
+                method_to_call = getattr(Console, Command, None)
 
-server = socketserver.TCPServer(("localhost", 8089), MyTCPHandler)
-server_thread = threading.Thread(target=server.serve_forever)
-server_thread.start()
-# server.shutdown()
+                if method_to_call is None:
+                    print("Invalid command")
+                    # TODO: TypeError: a bytes-like object is required, not 'str'
+                else:
+                    method_to_call(InputArgs)
+
+        except socket.timeout:
+            # print('server timeout!!' + '\n')
+            continue

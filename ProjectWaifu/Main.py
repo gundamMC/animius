@@ -1,12 +1,6 @@
-from shlex import split
 import ProjectWaifu.Console as Console
 
 print("Welcome to Project Waifu")
-
-
-def ParseArgs(InputString):
-    return split(InputString)
-
 
 while True:
     UserInput = input("Input: ")
@@ -14,7 +8,7 @@ while True:
     if UserInput == "Exit":
         break
 
-    InputArgs = ParseArgs(UserInput)
+    InputArgs = Console.ParseArgs(UserInput)
     Command = InputArgs[0]
     InputArgs = InputArgs[1:]
 

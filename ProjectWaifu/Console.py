@@ -1,8 +1,13 @@
 from ProjectWaifu.SpeakerVerification.SpeakerVerificationNetwork import SpeakerVerificationNetwork
 from ProjectWaifu.IntentNER.IntentNERNetwork import IntentNERNetwork
+from shlex import split
 
 Networks = {}
 SelectedNetwork = None
+
+
+def ParseArgs(InputString):
+    return split(InputString)
 
 
 def GetNetworks(args):
