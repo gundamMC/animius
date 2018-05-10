@@ -2,7 +2,7 @@ import numpy as np
 
 
 def loadGloveModel(gloveFile):
-    print("Loading Glove Model")
+    printMessage("Loading Glove Model")
     f = open(gloveFile, 'r', encoding='utf8')
     model = {}
     for line in f:
@@ -10,7 +10,7 @@ def loadGloveModel(gloveFile):
         word = splitLine[0]
         embedding = np.array([float(val) for val in splitLine[1:]])
         model[word] = embedding
-    print("Done.", len(model), " words loaded!")
+        printMessage("Done. " + str(len(model)) + " words loaded!")
     return model
 
 
@@ -41,3 +41,18 @@ def random_mini_batches(data_lists, mini_batch_number):
         mini_batches.append(tmp)
 
     return mini_batches
+
+
+socket = None
+
+
+def setSocket(inputSocket):
+    global socket
+    socket = inputSocket
+
+
+def printMessage(message):
+    if socket is not None:
+        socket.send(message.encode("UTF-8"))
+    else:
+        print(message)

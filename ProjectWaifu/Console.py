@@ -1,6 +1,7 @@
 from ProjectWaifu.SpeakerVerification.SpeakerVerificationNetwork import SpeakerVerificationNetwork
 from ProjectWaifu.IntentNER.IntentNERNetwork import IntentNERNetwork
 from shlex import split
+import ProjectWaifu.Utils as Utils
 
 Networks = {}
 SelectedNetwork = None
@@ -11,17 +12,17 @@ def ParseArgs(InputString):
 
 
 def GetNetworks(args):
-    print("Current networks:")
+    Utils.printMessage("Current networks:")
     for name, value in Networks.items():
-        print(name, '-', type(value).__name__)
+        Utils.printMessage(name, '-', type(value).__name__)
 
 
 def Select(args):
     if len(args) != 1:
-        print("Usage: Select <Network Name>")
+        Utils.printMessage("Usage: Select <Network Name>")
         return
     if args[0] not in Networks:
-        print("Error: Network \"" + args[0] + "\" does not exist")
+        Utils.printMessage("Error: Network \"" + args[0] + "\" does not exist")
         return
     global SelectedNetwork
     SelectedNetwork = Networks[args[0]]
@@ -34,19 +35,19 @@ def GetSelected(args):
 def AddNetwork(args):
 
     if len(args) != 2:
-        print("Usage: AddNetwork <Network Type> <Network Name>")
+        Utils.printMessage("Usage: AddNetwork <Network Type> <Network Name>")
         return
 
     if args[0].lower() == "speakerverification":
         Networks[args[1]] = SpeakerVerificationNetwork()
-        print("Speaker verification network \"" + args[1] + "\" added and selected!")
+        Utils.printMessage("Speaker verification network \"" + args[1] + "\" added and selected!")
 
     elif args[0].lower() == "intentandner":
         Networks[args[1]] = IntentNERNetwork()
-        print("Intent and NER network \"" + args[1] + "\" added and selected!")
+        Utils.printMessage("Intent and NER network \"" + args[1] + "\" added and selected!")
 
     else:
-        print("Invalid type")
+        Utils.printMessage("Invalid type")
         return
 
     Select([args[1]])
@@ -55,25 +56,25 @@ def AddNetwork(args):
 def SetTrainingData(args):
 
     if len(args) < 1:
-        print("Usage: SetTrainingData {<Network Arguments>}")
+        Utils.printMessage("Usage: SetTrainingData {<Network Arguments>}")
         return
 
     if isinstance(SelectedNetwork, SpeakerVerificationNetwork):
 
         if len(args) != 2:
-            print("Usage: SetTrainingData <True Paths> <False Paths>")
+            Utils.printMessage("Usage: SetTrainingData <True Paths> <False Paths>")
             return
 
         TruePaths = args[0]
         FalsePaths = args[1]
         SelectedNetwork.setTrainingData(TruePaths, FalsePaths)
-        print("Training data set!")
+        Utils.printMessage("Training data set!")
 
 
 def Train(args):
 
     if len(args) > 2:
-        print("Usage: Train [Epochs] [Display step]")
+        Utils.printMessage("Usage: Train [Epochs] [Display step]")
         return
 
     if len(args) == 0:
@@ -86,10 +87,10 @@ def Train(args):
 
 def Predict(args):
     if len(args) != 1:
-        print("Usage: Predict <Network input>")
+        Utils.printMessage("Usage: Predict <Network input>")
         return
     output = SelectedNetwork.predict(args[0])
-    print(output)
+    Utils.printMessage(output)
 
 
 def PredictAll(args):
@@ -98,6 +99,6 @@ def PredictAll(args):
     elif len(args) == 2:
         output = SelectedNetwork.predictAll(args[0], args[1])
     else:
-        print("Usage: Predict <Path of file containing network input>")
+        Utils.printMessage("Usage: Predict <Path of file containing network input>")
         return
-    print(output)
+        Utils.printMessage(output)
