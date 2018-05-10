@@ -1,6 +1,7 @@
 import json
 from numpy import eye, zeros, vstack
 import os
+import ProjectWaifu.Utils as Utils
 
 entity_to_index = dict(person_name=1, object_name=2, object_type=3, time=4, location_name=5, condition=6, info=7)
 intent_to_index = dict(Chat=0, Positive=1, Negative=2, GetCreativeWork=3, GetPlace=4, GetWeather=5, PlayMusic=6,
@@ -54,7 +55,7 @@ def get_data(word_vec, data_folder):
             output_intent.append(intent_out)
 
     if len(input) == 0:
-        print("No intent found")
+        Utils.printMessage("Error: No intent found")
         exit()
 
     return vstack([i for i in input]), vstack([i for i in output_ner]), vstack([i for i in output_intent])

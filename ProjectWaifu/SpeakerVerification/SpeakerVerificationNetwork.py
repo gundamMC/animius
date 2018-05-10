@@ -116,11 +116,11 @@ class SpeakerVerificationNetwork(Network):
 
     def train(self, epochs=800, display_step=10):
         if not self.data_set:
-            print("Error: Training data not set")
+            Utils.printMessage("Error: Training data not set")
             return
 
         # Start training
-        print("starting training")
+        Utils.printMessage("starting training")
         for epoch in range(epochs + 1):  # since range is exclusive
 
             mini_batches_X, mini_batches_Y =\
@@ -137,7 +137,9 @@ class SpeakerVerificationNetwork(Network):
                     cost_value = self.sess.run([self.cost],
                                                feed_dict={self.x: batch_x,
                                                           self.y: batch_y})
-                    print('epoch', epoch, '(', i, '/', len(mini_batches_X), ') - cost', cost_value)
+                    Utils.printMessage(
+                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(mini_batches_X) + ') - cost' + str(
+                            cost_value))
 
     def predict(self, path):
         X = self.getData([path])

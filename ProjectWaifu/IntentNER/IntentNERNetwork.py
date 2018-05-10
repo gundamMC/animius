@@ -102,14 +102,14 @@ class IntentNERNetwork(Network):
 
     def train(self, epochs=100, display_step=10):
         if not self.data_set:
-            print("Error: Training data not set")
+            Utils.printMessage("Error: Training data not set")
             return
 
         # get data
         input_data, ner_data, intent_data = get_data(self.glove, self.intents_folder)
 
         # Start training
-        print("Starting training")
+        Utils.printMessage("Starting training")
         for epoch in range(epochs + 1):  # since range is exclusive
 
             mini_batches_X, mini_batches_Y_intent, mini_batches_Y_entities \
@@ -131,7 +131,9 @@ class IntentNERNetwork(Network):
                                                           self.y_intent: batch_y_intent,
                                                           self.y_entities: batch_y_entities})
 
-                    print('epoch', epoch, '(', i, '/', len(mini_batches_X), ') - cost', cost_value)
+                    Utils.printMessage(
+                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(mini_batches_X) + ') - cost' + str(
+                            cost_value))
 
     def predict(self, sentence):
 
