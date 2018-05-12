@@ -20,7 +20,7 @@ class Parser:
             os.mkdir(savePath)
         index = 0
         for sub in self.SSAFile:
-            if sub.duration < 40:  # shorter than 40 ms
+            if sub.duration < 200:  # skip ones that are shorter than 0.2 seconds
                 continue
             segment = audio[sub.start:sub.end]
             segment.export(savePath + str(index).zfill(4) + ".wav", format="wav")
@@ -50,5 +50,27 @@ class Parser:
                 else:
                     FalseCount += 1
             if TrueCount > 0 and FalseCount > 0:
-                conversation.append({i, i + window + 1})
-        return conversation
+                conversation.append([i, i + window])
+
+        result = []
+        startingIndex = 0
+        while startingIndex < len(conversation) - 1:
+            for i in range(startingIndex + 1, len(conversation)):
+                if conversation[i][0] != conversation[i-1][1]:  # if the ending does not follow the previous start
+                    result.append([conversation[startingIndex][0], conversation[i-1][1]])
+                    break
+                elif i == len(conversation) - 1:
+                    result.append([conversation[startingIndex][0], conversation[i - 1][1]])
+                    break
+            startingIndex = i
+
+        return result
+
+    def getConversation(self, conversations):
+        sentences = []
+        for conv in conversations:
+            conv_sentences = []
+            for i in range(conv[0], conv[1] + 1):
+                conv_sentences.append(self.SSAFile[i].plaintext)
+            sentences.append(conv_sentences)
+        return sentences
