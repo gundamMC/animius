@@ -20,10 +20,10 @@ class Parser:
             os.mkdir(savePath)
         index = 0
         for sub in self.SSAFile:
-            if "\\" in sub.text:  # no weird characters
+            if sub.duration < 40:  # shorter than 40 ms
                 continue
             segment = audio[sub.start:sub.end]
-            segment.export(savePath + str(index).zfill(4) + "-" + sub.text + ".wav", format="wav")
+            segment.export(savePath + str(index).zfill(4) + ".wav", format="wav")
             index += 1
 
         print("Done!")
@@ -49,5 +49,6 @@ class Parser:
                     TrueCount += 1
                 else:
                     FalseCount += 1
-            conversation.extend([TrueCount > 0 and FalseCount > 0] * window)
+            if TrueCount > 0 and FalseCount > 0:
+                conversation.append({i, i + window + 1})
         return conversation

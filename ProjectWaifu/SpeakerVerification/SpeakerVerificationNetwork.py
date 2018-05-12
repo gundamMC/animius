@@ -138,7 +138,7 @@ class SpeakerVerificationNetwork(Network):
                                                feed_dict={self.x: batch_x,
                                                           self.y: batch_y})
                     Utils.printMessage(
-                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(mini_batches_X) + ') - cost' + str(
+                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(len(mini_batches_X)) + ') - cost' + str(
                             cost_value))
 
     def predict(self, path):
