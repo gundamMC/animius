@@ -132,7 +132,7 @@ class IntentNERNetwork(Network):
                                                           self.y_entities: batch_y_entities})
 
                     Utils.printMessage(
-                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(mini_batches_X) + ') - cost' + str(
+                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(len(mini_batches_X)) + ') - cost' + str(
                             cost_value))
 
     def predict(self, sentence):
