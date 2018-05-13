@@ -5,20 +5,19 @@ import tensorflow as tf
 class Network(ABC):
 
     @abstractmethod
-    def train(self):
+    def train(self, epochs, display_step):
         pass
 
     @abstractmethod
-    def predict(self):
+    def predict(self, x):
         pass
 
-    # returns the result of the network without sigmoid
     @abstractmethod
-    def network(self):
+    def predictAll(self, path, savePath=None):
         pass
     
     @abstractmethod
-    def setTrainingData(self):
+    def setTrainingData(self, data):
         pass
 
     config = tf.ConfigProto()

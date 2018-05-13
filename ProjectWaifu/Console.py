@@ -14,7 +14,7 @@ def ParseArgs(InputString):
 def GetNetworks(args):
     Utils.printMessage("Current networks:")
     for name, value in Networks.items():
-        Utils.printMessage(name, '-', type(value).__name__)
+        Utils.printMessage(name + ' - ' + type(value).__name__)
 
 
 def Select(args):
@@ -59,16 +59,8 @@ def SetTrainingData(args):
         Utils.printMessage("Usage: SetTrainingData {<Network Arguments>}")
         return
 
-    if isinstance(SelectedNetwork, SpeakerVerificationNetwork):
-
-        if len(args) != 2:
-            Utils.printMessage("Usage: SetTrainingData <True Paths> <False Paths>")
-            return
-
-        TruePaths = args[0]
-        FalsePaths = args[1]
-        SelectedNetwork.setTrainingData(TruePaths, FalsePaths)
-        Utils.printMessage("Training data set!")
+    SelectedNetwork.setTrainingData(args)
+    Utils.printMessage("Training data set!")
 
 
 def Train(args):
@@ -100,5 +92,14 @@ def PredictAll(args):
         output = SelectedNetwork.predictAll(args[0], args[1])
     else:
         Utils.printMessage("Usage: Predict <Path of file containing network input>")
+        return
+    Utils.printMessage(output)
+
+
+def LoadWordVector(args):
+    if len(args) == 1:
+        Utils.createEmbedding(args[0])
+    else:
+        Utils.printMessage("Usage: LoadWordVector <Path of word vector>")
         return
         Utils.printMessage(output)
