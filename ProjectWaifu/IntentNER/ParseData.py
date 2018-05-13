@@ -24,14 +24,14 @@ def get_ner_data(json_text):
     return input_data, output_data
 
 
-def get_intent_data(intent, word_vec, data_folder):
-    data = json.load(open(data_folder + intent + ".json"))
+def get_intent_data(intent, wordsToIndex, data_folder):
+    data = json.load(open(data_folder + "\\" + intent + ".json"))
     data = data[intent]
     result_in = []
     ner_out = []
     for i in data:
         input_data, output_data = get_ner_data(i["data"])
-        input_data = sentence_to_vec(word_vec, input_data)
+        input_data = sentence_to_vec(wordsToIndex, input_data)
         output_data.extend([0] * (30 - len(output_data)))
         result_in.append(input_data)
         ner_out.append(eye(8)[output_data])
@@ -39,14 +39,14 @@ def get_intent_data(intent, word_vec, data_folder):
     return result_in, ner_out
 
 
-def get_data(word_vec, data_folder):
+def get_data(data_folder, wordsToIndex):
     input = []
     output_ner = []
     output_intent = []
     for filename in os.listdir(data_folder):
         filename = filename.split('.')[0]
         if filename in intent_to_index:
-            result_in, ner_out = get_intent_data(filename, word_vec, data_folder)
+            result_in, ner_out = get_intent_data(filename, wordsToIndex, data_folder)
             intent_out = zeros((len(ner_out), len(intent_to_index)))
             intent_out[:, intent_to_index[filename]] = 1
 
@@ -61,17 +61,17 @@ def get_data(word_vec, data_folder):
     return vstack([i for i in input]), vstack([i for i in output_ner]), vstack([i for i in output_intent])
 
 
-def sentence_to_vec(word_vec, sentence):
+def sentence_to_vec(wordsToIndex, sentence):
 
     result = []
 
     for word in sentence:
-        if word in word_vec:
-            result.append(word_vec[word])
+        if word in wordsToIndex:
+            result.append(wordsToIndex[word])
         else:
-            result.append(word_vec["<unknown>"])
+            result.append(wordsToIndex["<UKN>"])
 
     for i in range(30 - len(result)):
-        result.append([0] * 50)
+        result.append(wordsToIndex["<EOS>"])
 
     return result

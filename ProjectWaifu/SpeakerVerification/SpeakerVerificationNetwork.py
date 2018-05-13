@@ -91,9 +91,11 @@ class SpeakerVerificationNetwork(Network):
 
         return datax, datay
 
-    def setTrainingData(self, TruePath, FalsePath):
-        TrainTruePaths = [line.strip() for line in open(TruePath, encoding='utf-8')]
-        TrainFalsePaths = [line.strip() for line in open(FalsePath, encoding='utf-8')]
+    def setTrainingData(self, dataPaths):
+        # dataPaths[0] = True Path
+        # dataPaths[1] = False Path
+        TrainTruePaths = [line.strip() for line in open(dataPaths[0], encoding='utf-8')]
+        TrainFalsePaths = [line.strip() for line in open(dataPaths[1], encoding='utf-8')]
         self.train_x, self.train_y = self.getData(TrainTruePaths, TrainFalsePaths)
         self.data_set = True
 
@@ -114,7 +116,7 @@ class SpeakerVerificationNetwork(Network):
         # softmax is applied during tf.nn.softmax_cross_entropy_with_logits
         return out
 
-    def train(self, epochs=800, display_step=10):
+    def train(self, epochs=800, display_step=80):
         if not self.data_set:
             Utils.printMessage("Error: Training data not set")
             return
