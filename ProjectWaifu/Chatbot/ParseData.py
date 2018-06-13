@@ -72,6 +72,24 @@ def load_cornell(path_conversations, path_lines):
     return questions, responses
 
 
+def load_twitter(path):
+    lines_x = []
+    lines_y = []
+
+    lines = open(path, 'r', encoding='utf-8')
+
+    is_x = True
+
+    for line in lines:
+        if is_x:
+            lines_x.append(line)
+        else:
+            lines_y.append(line)
+        is_x = not is_x
+
+    return lines_x, lines_y
+
+
 def split_sentence(sentence):
     # collect independent words
     result = re.findall(r"[\w]+|[.,!?;'\"]+", sentence)

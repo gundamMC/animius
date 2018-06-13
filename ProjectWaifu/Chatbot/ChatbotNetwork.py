@@ -8,7 +8,7 @@ from ProjectWaifu.Utils import random_mini_batches
 
 class ChatbotNetwork(Network):
 
-    def __init__(self, learning_rate=0.003, batch_size=16):
+    def __init__(self, learning_rate=0.01, batch_size=16):
         # hyperparameters
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -17,7 +17,7 @@ class ChatbotNetwork(Network):
         self.n_vector = 50
         self.word_count = len(WordEmbedding.words)
         self.max_sequence = 20
-        self.n_hidden = 256
+        self.n_hidden = 128
 
         # Tensorflow placeholders
         self.x = tf.placeholder(tf.int32, [None, self.max_sequence])
@@ -27,8 +27,11 @@ class ChatbotNetwork(Network):
         self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
 
         # Network parameters
-        self.cell_encode = tf.contrib.rnn.BasicLSTMCell(self.n_hidden)
-        self.cell_decode = tf.contrib.rnn.BasicLSTMCell(self.n_hidden)
+        def get_gru_cell():
+            return tf.contrib.rnn.GRUCell(self.n_hidden)
+
+        self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(3)])
+        self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(3)])
         self.projection_layer = tf.layers.Dense(self.word_count)
 
         # Optimization
@@ -39,6 +42,7 @@ class ChatbotNetwork(Network):
         # self.cost = tf.reduce_sum(crossent * mask)
         self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y[:, :dynamic_max_sequence], weights=mask)
         self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
+        self.infer = self.network(mode="infer")
 
         # Tensorflow initialization
         self.sess = tf.Session()
@@ -58,26 +62,30 @@ class ChatbotNetwork(Network):
             dtype=tf.float32,
             sequence_length=self.x_length)
 
-        if mode == "train":
-            with tf.variable_scope("decode"):
-                attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                    num_units=self.n_hidden, memory=encoder_outputs,
-                    memory_sequence_length=self.x_length)
+        attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+            num_units=self.n_hidden, memory=encoder_outputs,
+            memory_sequence_length=self.x_length)
 
-                attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-                    self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
+        attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
+            self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
+
+        decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32, batch_size=tf.shape(self.x)[0]).clone(cell_state=encoder_state)
+
+        if mode == "train":
+
+            with tf.variable_scope('decode'):
 
                 embedded_y = tf.nn.embedding_lookup(self.word_embedding, self.y)
 
-                helper = tf.contrib.seq2seq.TrainingHelper(
+                train_helper = tf.contrib.seq2seq.TrainingHelper(
                     inputs=embedded_y,
                     sequence_length=self.y_length
                 )
 
                 decoder = tf.contrib.seq2seq.BasicDecoder(
                     attn_decoder_cell,
-                    helper,
-                    attn_decoder_cell.zero_state(dtype=tf.float32, batch_size=tf.shape(self.x)[0]),
+                    train_helper,
+                    decoder_initial_state,
                     output_layer=self.projection_layer
                 )
 
@@ -86,35 +94,49 @@ class ChatbotNetwork(Network):
                 return outputs.rnn_output
         else:
 
-            beam_width = 3
+            with tf.variable_scope('decode', reuse=True):
 
-            with tf.variable_scope("decode", reuse=True):
-                # Beam search
-                encoder_outputs_beam = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
-                encoder_state_beam = tf.contrib.seq2seq.tile_batch(encoder_state, beam_width)
-                batch_size_beam = tf.shape(encoder_outputs_beam)[0]
+                infer_helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(self.word_embedding, tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]), WordEmbedding.end)
 
-                attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                    num_units=self.n_hidden, memory=encoder_outputs_beam)
-
-                attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-                    self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
-
-                decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32, batch_size=batch_size_beam)
-
-                decoder = tf.contrib.seq2seq.BeamSearchDecoder(
-                            cell=attn_decoder_cell,
-                            embedding=self.word_embedding,
-                            start_tokens=tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]),
-                            end_token=WordEmbedding.end,
-                            initial_state=decoder_initial_state,
-                            beam_width=beam_width,
-                            output_layer=self.projection_layer
+                decoder = tf.contrib.seq2seq.BasicDecoder(
+                    attn_decoder_cell,
+                    infer_helper,
+                    decoder_initial_state,
+                    output_layer=self.projection_layer
                 )
 
-                outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence)
+                outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence,
+                                                                  impute_finished=True)
 
-                return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])  # [batch size, beam width, sequence length]
+                return outputs.sample_id
+
+            # Beam search
+            # beam_width = 3
+            # encoder_outputs_beam = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
+            # encoder_state_beam = tf.contrib.seq2seq.tile_batch(encoder_state, beam_width)
+            # batch_size_beam = tf.shape(encoder_outputs_beam)[0]
+            #
+            # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+            #     num_units=self.n_hidden, memory=encoder_outputs_beam)
+            #
+            # attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
+            #     self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
+            #
+            # decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32, batch_size=batch_size_beam)
+            #
+            # decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+            #             cell=attn_decoder_cell,
+            #             embedding=self.word_embedding,
+            #             start_tokens=tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]),
+            #             end_token=WordEmbedding.end,
+            #             initial_state=decoder_initial_state,
+            #             beam_width=beam_width,
+            #             output_layer=self.projection_layer
+            # )
+            #
+            # outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence)
+            #
+            # return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])  # [batch size, beam width, sequence length]
 
     def setTrainingData(self, train_x, train_y):
         train_x = ParseData.split_data(train_x)
@@ -173,26 +195,34 @@ class ChatbotNetwork(Network):
         input_x, x_length, _ = ParseData.sentence_to_index(ParseData.split_sentence(sentence),
                                                            WordEmbedding.words_to_index)
 
-        test_output = self.sess.run(self.network(mode="infer")[0],
+        test_output = self.sess.run(self.infer[0],
                                     feed_dict={
                                         self.x: np.array([input_x]),
                                         self.x_length: np.array([x_length])
                                     })
-        list_res = []
-        for index in range(len(test_output)):
-            result = ""
-            for i in range(len(test_output[index])):
-                result = result + WordEmbedding.words[int(test_output[index][i])] + " "
-            list_res.append(result)
 
-        return list_res
+        result = ""
+        for i in range(len(test_output)):
+            result = result + WordEmbedding.words[int(test_output[i])] + "(" + str(test_output[i]) + ") "
+        return result
+
+        # list_res = []
+        # for index in range(len(test_output)):
+        #     result = ""
+        #     for i in range(len(test_output[index])):
+        #         result = result + WordEmbedding.words[int(test_output[index][i])] + " "
+        #     list_res.append(result)
+        #
+        # return list_res
 
     def predictAll(self, path, savePath=None):
         pass
 
 
 # test
-question, response = ParseData.load_cornell(".\\Data\\movie_conversations.txt", ".\\Data\\movie_lines.txt")
+# question, response = ParseData.load_cornell(".\\Data\\movie_conversations.txt", ".\\Data\\movie_lines.txt")
+
+question, response = ParseData.load_twitter("./Data/chat.txt")
 
 WordEmbedding.create_embedding(".\\Data\\glove.twitter.27B.50d.txt")
 
