@@ -2,46 +2,6 @@ import numpy as np
 import tensorflow as tf
 
 
-words = []
-wordsToIndex = []
-embeddings = None
-
-
-def createEmbedding(gloveFile):
-    global words
-    words = []
-    global wordsToIndex
-    wordsToIndex = {}
-    global embeddings
-    embeddings = []
-    printMessage("Loading word vector")
-    f = open(gloveFile, 'r', encoding='utf8')
-    for index, line in enumerate(f):
-        splitLine = line.split(' ')
-        word = splitLine[0]
-        embedding = [float(val) for val in splitLine[1:]]
-        words.append(word)
-        embeddings.append(embedding)
-        wordsToIndex[word] = index
-    printMessage("Done. " + str(len(words)) + " words loaded!")
-
-    embeddings = np.array(embeddings)
-
-    print(embeddings.shape)
-
-    wordsToIndex["<UKN>"] = len(words)
-    words.append("<UKN>")
-    wordsToIndex["<EOS>"] = len(words)
-    words.append("<EOS>")
-
-    np.vstack((embeddings,
-               np.random.uniform(low=-1, high=1, size=embeddings.shape[1]),
-               np.zeros(embeddings.shape[1])
-               ))
-
-    print(embeddings.shape)
-
-
 def shuffle(data_lists):
     permutation = list(np.random.permutation(data_lists[0].shape[0]))
     result = []
@@ -56,7 +16,7 @@ def random_mini_batches(data_lists, mini_batch_size):
 
     shuffled = shuffle(data_lists)
 
-    mini_batch_number = np.math.floor(m / float(mini_batch_size))
+    mini_batch_number = int(m / float(mini_batch_size))
 
     for data in shuffled:
         tmp = []
