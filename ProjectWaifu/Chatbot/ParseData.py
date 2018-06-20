@@ -144,7 +144,7 @@ def data_to_index(data_x, data_y, word_to_index):
 
         index += 1
 
-        if x_unk > 0 or y_unk > 0:
+        if x_unk > 1 or y_unk > 0:
             continue
 
         result_x.append(x)
