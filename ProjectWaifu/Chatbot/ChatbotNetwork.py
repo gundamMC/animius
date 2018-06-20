@@ -8,13 +8,13 @@ from ProjectWaifu.Utils import random_mini_batches
 
 class ChatbotNetwork(Network):
 
-    def __init__(self, learning_rate=0.01, batch_size=16):
+    def __init__(self, learning_rate=0.001, batch_size=16):
         # hyperparameters
         self.learning_rate = learning_rate
         self.batch_size = batch_size
 
         # Network hyperparameters
-        self.n_vector = 50
+        self.n_vector = len(WordEmbedding.embeddings[0])
         self.word_count = len(WordEmbedding.words)
         self.max_sequence = 20
         self.n_hidden = 128
@@ -45,6 +45,7 @@ class ChatbotNetwork(Network):
         self.infer = self.network(mode="infer")
 
         # Tensorflow initialization
+        self.saver = tf.train.Saver()
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
 
@@ -142,14 +143,11 @@ class ChatbotNetwork(Network):
         train_x = ParseData.split_data(train_x)
         train_y = ParseData.split_data(train_y)
 
-        start_index = 0
-        end_index = 256
-
         train_x, train_y, x_length, y_length = \
-            ParseData.data_to_index(train_x[start_index:end_index], train_y[start_index:end_index],
+            ParseData.data_to_index(train_x, train_y,
                                     WordEmbedding.words_to_index)
 
-        print(len(train_x))
+        print("Training data :", len(train_x))
 
         self.train_x = np.array(train_x)
         self.train_y = np.array(train_y)
@@ -172,7 +170,7 @@ class ChatbotNetwork(Network):
                 batch_y = mini_batches_y[batch]
                 batch_y_length = mini_batches_y_length[batch]
 
-                if display_step == 0 or epoch % display_step == 0:
+                if epoch % display_step == 0 or display_step == 0:
                     _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
                                         self.x: batch_x,
                                         self.x_length: batch_x_length,
@@ -218,6 +216,9 @@ class ChatbotNetwork(Network):
     def predictAll(self, path, savePath=None):
         pass
 
+    def save(self, step=None, meta=True):
+        self.saver.save(self.sess, './model/model', global_step=step, write_meta_graph=meta)
+
 
 # test
 # question, response = ParseData.load_cornell(".\\Data\\movie_conversations.txt", ".\\Data\\movie_lines.txt")
@@ -226,16 +227,25 @@ question, response = ParseData.load_twitter("./Data/chat.txt")
 
 WordEmbedding.create_embedding(".\\Data\\glove.twitter.27B.50d.txt")
 
-# question = ["hello how are you", "are you OK", "what's your name"]
-# response = ["hi hi hi hi", "no i am not", "user not found"]
-
 test = ChatbotNetwork()
 
 test.setTrainingData(question, response)
 
-while(True):
+question = None
+response = None
 
-    test.train(2, 1)
+step = 0
+
+while True:
+
+    test.train(1, 1)
+
+    if step > 0:
+        test.save(step, False)
+    else:
+        test.save(step, True)
+
+    step += 1
 
     print(test.predict("Hello how are you"))
 
