@@ -82,9 +82,9 @@ def load_twitter(path):
 
     for line in lines:
         if is_x:
-            lines_x.append(line)
+            lines_x.append(line.lower())
         else:
-            lines_y.append(line)
+            lines_y.append(line.lower())
         is_x = not is_x
 
     return lines_x, lines_y

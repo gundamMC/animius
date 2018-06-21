@@ -9,7 +9,7 @@ start = 0
 end = 0
 
 
-def create_embedding(glove_path, save_embedding=True, vocab_size=200000):
+def create_embedding(glove_path, save_embedding=True, vocab_size=100000):
     global words
     words = []
     global words_to_index
@@ -51,10 +51,10 @@ def create_embedding(glove_path, save_embedding=True, vocab_size=200000):
 
     if save_embedding:
         # add special tokens
-        zeros = np.zeros((3, 53))
-        zeros[0, 50] = 1
-        zeros[1, 51] = 1
-        zeros[2, 52] = 1
+        zeros = np.zeros((3, 103))
+        zeros[0, 100] = 1
+        zeros[1, 101] = 1
+        zeros[2, 102] = 1
 
         embeddings = np.array(embeddings)
         embeddings = np.vstack((zeros, embeddings))

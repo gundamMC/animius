@@ -10,15 +10,13 @@ def shuffle(data_lists):
     return result
 
 
-def random_mini_batches(data_lists, mini_batch_size):
+def get_mini_batches(data_lists, mini_batch_size):
     m = data_lists[0].shape[0]
     mini_batches = []
 
-    shuffled = shuffle(data_lists)
-
     mini_batch_number = int(m / float(mini_batch_size))
 
-    for data in shuffled:
+    for data in data_lists:
         tmp = []
         for batch in range(0, mini_batch_number):
             tmp.append(data[batch * mini_batch_size: (batch + 1) * mini_batch_size])
