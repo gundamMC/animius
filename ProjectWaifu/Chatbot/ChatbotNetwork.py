@@ -3,7 +3,7 @@ import numpy as np
 from ProjectWaifu.Network import Network
 import ProjectWaifu.Chatbot.ParseData as ParseData
 import ProjectWaifu.WordEmbedding as WordEmbedding
-from ProjectWaifu.Utils import random_mini_batches
+from ProjectWaifu.Utils import get_mini_batches
 
 
 class ChatbotNetwork(Network):
@@ -153,15 +153,15 @@ class ChatbotNetwork(Network):
 
         print("Training data :", len(train_x))
 
-        self.train_x = np.array(train_x[:1000])
-        self.train_y = np.array(train_y[:1000])
-        self.train_x_length = np.array(x_length[:1000])
-        self.train_y_length = np.array(y_length[:1000])
+        self.train_x = np.array(train_x)
+        self.train_y = np.array(train_y)
+        self.train_x_length = np.array(x_length)
+        self.train_y_length = np.array(y_length)
 
     def train(self, epochs=800, display_step=10):
         for epoch in range(epochs):
             mini_batches_x, mini_batches_x_length, mini_batches_y, mini_batches_y_length \
-                = random_mini_batches([self.train_x, self.train_x_length, self.train_y, self.train_y_length], self.batch_size)
+                = get_mini_batches([self.train_x, self.train_x_length, self.train_y, self.train_y_length], self.batch_size)
 
             # mini_batches_x = [self.train_x]
             # mini_batches_x_length = [self.train_x_length]
@@ -194,7 +194,7 @@ class ChatbotNetwork(Network):
 
     def predict(self, sentence):
 
-        input_x, x_length, _ = ParseData.sentence_to_index(ParseData.split_sentence(sentence),
+        input_x, x_length, _ = ParseData.sentence_to_index(ParseData.split_sentence(sentence.lower()),
                                                            WordEmbedding.words_to_index)
 
         test_output = self.sess.run(self.infer[0],
@@ -229,16 +229,16 @@ class ChatbotNetwork(Network):
 
 question, response = ParseData.load_twitter("./Data/chat.txt")
 
-WordEmbedding.create_embedding(".\\Data\\glove.twitter.27B.50d.txt")
+WordEmbedding.create_embedding(".\\Data\\glove.twitter.27B.100d.txt")
 
-test = ChatbotNetwork(learning_rate=0.00001, restore=True)
+test = ChatbotNetwork(learning_rate=0.0001, restore=True)
 
 test.setTrainingData(question, response)
 
 question = None
 response = None
 
-step = 2
+step = 1
 
 while True:
 
@@ -251,8 +251,8 @@ while True:
 
     step += 1
 
-    print(test.predict("Hello how are you"))
+    print(test.predict("hello"))
 
-    print(test.predict("What's your name"))
+    print(test.predict("what's your name"))
 
-    print(test.predict("Fuck you"))
+    print(test.predict("fuck you"))
