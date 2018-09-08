@@ -103,9 +103,13 @@ def split_data(data):
     return result
 
 
-def sentence_to_index(sentence, word_to_index):
-    result = [word_to_index["<GO>"]]
-    length = 1
+def sentence_to_index(sentence, word_to_index, target=False):
+    if not target:
+        result = [word_to_index["<GO>"]]
+        length = 1
+    else:
+        result = []
+        length = 0
     unk = 0
     for word in sentence:
         length += 1
@@ -136,6 +140,7 @@ def data_to_index(data_x, data_y, word_to_index):
     result_y = []
     lengths_x = []
     lengths_y = []
+    result_y_target = []
     index = 0
 
     while index < len(data_x):
@@ -152,4 +157,8 @@ def data_to_index(data_x, data_y, word_to_index):
         lengths_x.append(x_length)
         lengths_y.append(y_length)
 
-    return result_x, result_y, lengths_x, lengths_y
+        y_target = y[1:]
+        y_target.append(word_to_index["<EOS>"])
+        result_y_target.append(y_target)
+
+    return result_x, result_y, lengths_x, lengths_y, result_y_target
