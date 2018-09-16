@@ -92,7 +92,7 @@ def load_twitter(path):
 
 def split_sentence(sentence):
     # collect independent words
-    result = re.findall(r"[\w]+|[.,!?;'\"]+", sentence)
+    result = re.findall(r"[\w]+|[.,!?;\"]+", sentence.replace('\'', ''))
     return result
 
 

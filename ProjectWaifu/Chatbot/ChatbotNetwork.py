@@ -21,7 +21,7 @@ class ChatbotNetwork(Network):
         self.n_vector = len(WordEmbedding.embeddings[0])
         self.word_count = len(WordEmbedding.words)
         self.max_sequence = 20
-        self.n_hidden = 128
+        self.n_hidden = 512
 
         # Tensorflow placeholders
         self.x = tf.placeholder(tf.int32, [None, self.max_sequence])
@@ -29,7 +29,6 @@ class ChatbotNetwork(Network):
         self.y = tf.placeholder(tf.int32, [None, self.max_sequence])
         self.y_length = tf.placeholder(tf.int32, [None])
         self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
-
         self.y_target = tf.placeholder(tf.int32, [None, self.max_sequence])
         # this is w/o <GO>
 
@@ -37,8 +36,8 @@ class ChatbotNetwork(Network):
         def get_gru_cell():
             return tf.contrib.rnn.GRUCell(self.n_hidden)
 
-        self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(2)])
-        self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(2)])
+        self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(3)])
+        self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(3)])
         self.projection_layer = tf.layers.Dense(self.word_count)
 
         # Optimization
@@ -51,25 +50,35 @@ class ChatbotNetwork(Network):
         #                      lambda: tf.concat([tf.squeeze(pred_network[:, 0]),
         #                                         tf.zeros(
         #                                             [tf.shape(pred_network)[0],
-        #                                              self.max_sequence - tf.shape(pred_network)[-1]],
+        #                                              self.max_sequence - tf.shape(pred_network)[1],
+        #                                              tf.shape(pred_network)[2]],
         #                                             tf.float32)], 1),
         #                      lambda: pred_network[:, 20]
         #                      )
 
-        crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=self.y_target[:, :dynamic_max_sequence], logits=self.network())
-        self.cost = tf.reduce_sum(crossent * mask) / tf.cast(tf.shape(self.y)[0], tf.float32)
-        # self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y, weights=mask)
+        # crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        #     labels=self.y_target[:, :dynamic_max_sequence], logits=self.network())
+        # self.cost = tf.reduce_sum(crossent * mask) / tf.cast(tf.shape(self.y)[0], tf.float32)
+        self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y_target[:, :dynamic_max_sequence], weights=mask)
         self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.cost)
         self.infer = self.network(mode="infer")
 
-        pred_infer = tf.cond(tf.less(tf.shape(self.infer)[2], self.max_sequence),
-                             lambda: tf.concat([tf.squeeze(self.infer[:, 0]),
+        # pred_infer = tf.cond(tf.less(tf.shape(self.infer)[2], self.max_sequence),
+        #                      lambda: tf.concat([tf.squeeze(self.infer[:, 0]),
+        #                                         tf.zeros(
+        #                                             [tf.shape(self.infer)[0],
+        #                                              self.max_sequence - tf.shape(self.infer)[-1]],
+        #                                             tf.int32)], 1),
+        #                      lambda: tf.squeeze(self.infer[:, 0, :20])
+        #                      )
+
+        pred_infer = tf.cond(tf.less(tf.shape(self.infer)[1], self.max_sequence),
+                             lambda: tf.concat([self.infer,
                                                 tf.zeros(
                                                     [tf.shape(self.infer)[0],
-                                                     self.max_sequence - tf.shape(self.infer)[-1]],
+                                                     self.max_sequence - tf.shape(self.infer)[1]],
                                                     tf.int32)], 1),
-                             lambda: tf.squeeze(self.infer[:, 0, :20])
+                             lambda: tf.squeeze(self.infer[:, :20])
                              )
 
         correct_pred = tf.equal(
@@ -84,7 +93,9 @@ class ChatbotNetwork(Network):
 
         # Tensorflow initialization
         self.saver = tf.train.Saver()
-        self.sess = tf.Session()
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        self.sess = tf.Session(config=config)
 
         if restore:
             self.tensorboard_writer = tf.summary.FileWriter('/tmp')
@@ -146,47 +157,47 @@ class ChatbotNetwork(Network):
             with tf.variable_scope('decode', reuse=tf.AUTO_REUSE):
 
                 # Greedy search
-                # infer_helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(self.word_embedding, tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]), WordEmbedding.end)
-                #
-                # decoder = tf.contrib.seq2seq.BasicDecoder(
-                #     attn_decoder_cell,
-                #     infer_helper,
-                #     decoder_initial_state,
-                #     output_layer=self.projection_layer
-                # )
-                #
-                # outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence,
-                #                                                   impute_finished=True)
-                #
-                # return outputs.sample_id
+                infer_helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(self.word_embedding, tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]), WordEmbedding.end)
 
-                # Beam search
-                beam_width = 3
-                encoder_outputs_beam = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
-                encoder_state_beam = tf.contrib.seq2seq.tile_batch(encoder_state, beam_width)
-                batch_size_beam = tf.shape(encoder_outputs_beam)[0]
-
-                attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                    num_units=self.n_hidden, memory=encoder_outputs_beam)
-
-                attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-                    self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
-
-                decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32, batch_size=batch_size_beam)
-
-                decoder = tf.contrib.seq2seq.BeamSearchDecoder(
-                            cell=attn_decoder_cell,
-                            embedding=self.word_embedding,
-                            start_tokens=tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]),
-                            end_token=WordEmbedding.end,
-                            initial_state=decoder_initial_state,
-                            beam_width=beam_width,
-                            output_layer=self.projection_layer
+                decoder = tf.contrib.seq2seq.BasicDecoder(
+                    attn_decoder_cell,
+                    infer_helper,
+                    decoder_initial_state,
+                    output_layer=self.projection_layer
                 )
 
-                outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence)
+                outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence,
+                                                                  impute_finished=True)
 
-                return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])  # [batch size, beam width, sequence length]
+                return outputs.sample_id
+
+                # Beam search
+                # beam_width = 3
+                # encoder_outputs_beam = tf.contrib.seq2seq.tile_batch(encoder_outputs, beam_width)
+                # encoder_state_beam = tf.contrib.seq2seq.tile_batch(encoder_state, beam_width)
+                # batch_size_beam = tf.shape(encoder_outputs_beam)[0]
+                #
+                # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+                #     num_units=self.n_hidden, memory=encoder_outputs_beam)
+                #
+                # attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
+                #     self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
+                #
+                # decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32, batch_size=batch_size_beam)
+                #
+                # decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+                #             cell=attn_decoder_cell,
+                #             embedding=self.word_embedding,
+                #             start_tokens=tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]),
+                #             end_token=WordEmbedding.end,
+                #             initial_state=decoder_initial_state,
+                #             beam_width=beam_width,
+                #             output_layer=self.projection_layer
+                # )
+                #
+                # outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence)
+                #
+                # return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])  # [batch size, beam width, sequence length]
 
     def setTrainingData(self, train_x, train_y):
         train_x = ParseData.split_data(train_x)
@@ -243,11 +254,11 @@ class ChatbotNetwork(Network):
                     })
 
             summary = self.sess.run(self.merged, feed_dict={
-                self.x: self.train_x,
-                self.x_length: self.train_x_length,
-                self.y: self.train_y,
-                self.y_length: self.train_y_length,
-                self.y_target: self.train_y_target
+                self.x: mini_batches_x[0],
+                self.x_length: mini_batches_x_length[0],
+                self.y: mini_batches_y[0],
+                self.y_length: mini_batches_y_length[0],
+                self.y_target: mini_batches_y_target[0]
             })
 
             self.tensorboard_writer.add_summary(summary, epoch_offset + epoch)
@@ -263,19 +274,19 @@ class ChatbotNetwork(Network):
                                         self.x_length: np.array([x_length])
                                     })
 
-        # result = ""
-        # for i in range(len(test_output)):
-        #     result = result + WordEmbedding.words[int(test_output[i])] + "(" + str(test_output[i]) + ") "
-        # return result
+        result = ""
+        for i in range(len(test_output)):
+            result = result + WordEmbedding.words[int(test_output[i])] + "(" + str(test_output[i]) + ") "
+        return result
 
-        list_res = []
-        for index in range(len(test_output)):
-            result = ""
-            for i in range(len(test_output[index])):
-                result = result + WordEmbedding.words[int(test_output[index][i])] + " "
-            list_res.append(result)
-
-        return list_res
+        # list_res = []
+        # for index in range(len(test_output)):
+        #     result = ""
+        #     for i in range(len(test_output[index])):
+        #         result = result + WordEmbedding.words[int(test_output[index][i])] + " "
+        #     list_res.append(result)
+        #
+        # return list_res
 
     def predictAll(self, path, save_path=None):
         pass
@@ -291,19 +302,19 @@ question, response = ParseData.load_twitter("./Data/chat.txt")
 
 WordEmbedding.create_embedding("./Data/glove.twitter.27B.100d.txt")
 
-test = ChatbotNetwork(learning_rate=0.00001, batch_size=4, restore=True)
+test = ChatbotNetwork(learning_rate=0.005, batch_size=8, restore=True)
 
-test.setTrainingData(question[0:500], response[0:500])
+test.setTrainingData(question, response)
 
 # clear reference (for gc)
 question = None
 response = None
 
-step = 55
+step = 33
 
 while True:
 
-    test.train(5, 1, 5 * step)
+    test.train(1, 1, 5 * step)
 
     if step > 0:
         test.save(step, False)
