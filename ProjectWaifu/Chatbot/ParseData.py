@@ -72,6 +72,8 @@ def load_cornell(path_conversations, path_lines):
     return questions, responses
 
 
+# Used for Marsan-Ma-zz/chat_corpus
+# can also be adopted for any other file w/ a sentence on each line
 def load_twitter(path):
     lines_x = []
     lines_y = []

@@ -313,19 +313,15 @@ class ChatbotNetwork(Network):
 # test
 question, response = ParseData.load_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt")
 
-# question, response = ParseData.load_twitter("./Data/chat.txt")
+question_twitter, response_twitter = ParseData.load_twitter("./Data/chat.txt")
 
 WordEmbedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
 
-test = ChatbotNetwork(learning_rate=0.00008, batch_size=16, restore=True)
+test = ChatbotNetwork(learning_rate=0.00015, batch_size=16, restore=True)
 
-test.setTrainingData(question[:100000], response[:100000])
+test.setTrainingData(question[:50000] + question_twitter[:50000] + question_twitter[200000:250000], response[:50000] + response_twitter[:50000] + response_twitter[200000:250000])
 
-# clear reference (for gc)
-question = None
-response = None
-
-step = 50
+step = 55
 
 while True:
 
