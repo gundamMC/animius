@@ -3,12 +3,10 @@ import numpy as np
 
 
 class ModelConfig:
+    # may be used in the future
 
     def __init__(self, config):
-        self.hyperparameters = config['hyperparameters']
-        self.model_structure = config['model_structure']
-        self.display_step = config['display_step']
-        self.tensorboard = config['tensorboard']
+        self.config = config
 
 
 class Data:
@@ -38,6 +36,27 @@ class ChatbotData(Data):
         self.values['y_length'] = np.concatenate([self.values['x_length'], output_length])
         self.values['y_target'] = np.concatenate([output_data[:, 1:], np.full([output_data.shape[0], 1], self.values['embedding'].EOS)], axis=1)
 
+    def parse_input(self, input_x):
+        x, x_length, _ = ChatbotParse.sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
+                                                        self.values['embedding'].words_to_index)
+
+        self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
+        self.values['x_length'] = np.concatenate([self.values['x'], np.array(x_length)])
+
+    def parse_input_file(self, path):
+        x = []
+        x_length = []
+
+        f = open(path, 'r', encoding='utf8')
+        for line in f:
+            x_tmp, length_tmp, _ = ChatbotParse.sentence_to_index(ChatbotParse.split_sentence(line.lower()),
+                                                                  self.values['embedding'].words_to_index)
+            x.append(x_tmp)
+            x_length.append(length_tmp)
+
+        self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
+        self.values['x_length'] = np.concatenate([self.values['x'], np.array(x_length)])
+
     def parse_sentence_data(self, x, y):
         x = ChatbotParse.split_data(x)
         y = ChatbotParse.split_data(y)
@@ -45,11 +64,11 @@ class ChatbotData(Data):
         x, y, x_length, y_length, y_target = \
             ChatbotParse.data_to_index(x, y, self.values['embedding'].words_to_index)
 
-        self.values['x'] = np.array(x)
-        self.values['y'] = np.array(y)
-        self.values['x_length'] = np.array(x_length)
-        self.values['y_length'] = np.array(y_length)
-        self.values['y_target'] = np.array(y_target)
+        self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
+        self.values['y'] = np.concatenate([self.values['x'], np.array(y)])
+        self.values['x_length'] = np.concatenate([self.values['x'], np.array(x_length)])
+        self.values['y_length'] = np.concatenate([self.values['x'], np.array(y_length)])
+        self.values['y_target'] = np.concatenate([self.values['x'], np.array(y_target)])
 
     def add_cornell(self, conversations_path, movie_lines_path, lower_bound=None, upper_bound=None):
         x, y = ChatbotParse.load_cornell(conversations_path, movie_lines_path)

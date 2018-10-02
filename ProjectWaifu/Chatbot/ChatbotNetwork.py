@@ -1,31 +1,50 @@
 import tensorflow as tf
 import numpy as np
-from ProjectWaifu.Network import Network
-import ProjectWaifu.Chatbot.ParseData as ParseData
-import ProjectWaifu.WordEmbedding as WordEmbedding
+from ProjectWaifu.Model import Model
+from ProjectWaifu.WordEmbedding import WordEmbedding
 from ProjectWaifu.Utils import get_mini_batches, shuffle
-from hyperdash import Experiment
+import ProjectWaifu.ModelClasses as ModelClasses
 
 # tmp
 import shutil
 
+# default values
+DEFAULT_HYPERPARAMETERS = {
+    'learning_rate': 0.0001,
+    'batch_size': 8,
+    'optimizer': 'adam'
+}
 
-exp = Experiment("Chatbot")
+DEFAULT_MODEL_STRUCTURE = {
+    'max_sequence': 20,
+    'n_hidden': 512,
+    'gradient_clip': 5.0,
+    'node': 'gru',
+    'layer': 2,
+    'beam_width': 3
+}
 
 
-class ChatbotNetwork(Network):
+class ChatbotModel(Model):
 
-    def __init__(self, learning_rate=0.001, batch_size=8, restore=False):
-        # hyperparameters
-        self.learning_rate = learning_rate
-        self.batch_size = batch_size
+    def __init__(self, model_config):
+
+        super().__init__(model_config)
+
+        # check for unspecified values
+        for key, default_value in DEFAULT_HYPERPARAMETERS:
+            if key not in self.hyperparameters:
+                self.hyperparameters[key] = default_value
+
+        for key, default_value in DEFAULT_MODEL_STRUCTURE:
+            if key not in self.model_structure:
+                self.model_structure[key] = default_value
 
         # Network hyperparameters
-        self.n_vector = len(WordEmbedding.embeddings[0])
-        self.word_count = len(WordEmbedding.words)
-        self.max_sequence = 20
-        self.n_hidden = 512
-        self.gradient_clip = 5.0
+        self.n_vector = len(self.data.values["embedding"].embedding[0])
+        self.word_count = len(self.data.values["embedding"].words)
+        # just to make it easier to refer to
+        self.max_sequence = self.model_structure['max_sequence']
 
         # Tensorflow placeholders
         self.x = tf.placeholder(tf.int32, [None, self.max_sequence])
@@ -38,10 +57,10 @@ class ChatbotNetwork(Network):
 
         # Network parameters
         def get_gru_cell():
-            return tf.contrib.rnn.GRUCell(self.n_hidden)
+            return tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
 
-        self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(2)])
-        self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(2)])
+        self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
+        self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
         self.projection_layer = tf.layers.Dense(self.word_count)
 
         # Optimization
@@ -56,9 +75,9 @@ class ChatbotNetwork(Network):
         # Built-in cost
         self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y_target[:, :dynamic_max_sequence], weights=mask)
 
-        optimizer = tf.train.AdamOptimizer(self.learning_rate)
+        optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
         gradients, variables = zip(*optimizer.compute_gradients(self.cost))
-        gradients, _ = tf.clip_by_global_norm(gradients, 5.0)
+        gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
         self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
         self.infer = self.network(mode="infer")
@@ -80,7 +99,7 @@ class ChatbotNetwork(Network):
                                                     [tf.shape(self.infer)[0],
                                                      self.max_sequence - tf.shape(self.infer)[-1]],
                                                     tf.int32)], 1),
-                             lambda: tf.squeeze(self.infer[:, 0, :20])
+                             lambda: tf.squeeze(self.infer[:, 0, :self.max_sequence])
                              )
 
         correct_pred = tf.equal(
@@ -89,30 +108,26 @@ class ChatbotNetwork(Network):
         self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
         # Tensorboard
-        tf.summary.scalar('cost', self.cost)
-        tf.summary.scalar('accuracy', self.accuracy)
-        self.merged = tf.summary.merge_all()
-
-        # Tensorflow initialization
-        self.saver = tf.train.Saver()
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config)
-
-        if restore:
-            self.tensorboard_writer = tf.summary.FileWriter('/tmp')
-        else:
-            self.tensorboard_writer = tf.summary.FileWriter('/tmp', self.sess.graph)
+        if self.config['tensorboard'] is not None:
+            tf.summary.scalar('cost', self.cost)
+            tf.summary.scalar('accuracy', self.accuracy)
+            self.merged = tf.summary.merge_all()
 
         self.sess.run(tf.global_variables_initializer())
 
-        if restore is False:
-            embedding_placeholder = tf.placeholder(tf.float32, shape=WordEmbedding.embeddings.shape)
+        # Do not include word embedding when restoring models
+        if 'embedding' in self.data:
+            embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
             self.sess.run(self.word_embedding.assign(embedding_placeholder),
-                          feed_dict={embedding_placeholder: WordEmbedding.embeddings})
+                          feed_dict={embedding_placeholder: self.data['embedding'].embedding})
 
-        else:
-            self.saver.restore(self.sess, tf.train.latest_checkpoint('./model'))
+        if self.config['hyperdash']:
+            from hyperdash import Experiment
+            # hyperdash - to be removed
+            self.exp = Experiment("Chatbot")
+
+    def restore(self, path):
+        self.saver.restore(self.sess, tf.train.latest_checkpoint(path))
 
     def network(self, mode="train"):
 
@@ -134,7 +149,7 @@ class ChatbotNetwork(Network):
                     memory_sequence_length=self.x_length)
 
                 attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-                    self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
+                    self.cell_decode, attention_mechanism, attention_layer_size=self.model_structure['n_hidden'])
                 decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32,
                                                                      batch_size=tf.shape(self.x)[0]).clone(cell_state=encoder_state)
 
@@ -183,7 +198,7 @@ class ChatbotNetwork(Network):
                 # return outputs.sample_id
 
                 # Beam search
-                beam_width = 3
+                beam_width = self.model_structure['beam_width']
 
                 # attention
                 encoder_outputs_beam = tf.contrib.seq2seq.tile_batch(encoder_outputs, multiplier=beam_width)
@@ -195,16 +210,18 @@ class ChatbotNetwork(Network):
                     memory_sequence_length=x_length_beam)
 
                 attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-                    self.cell_decode, attention_mechanism, attention_layer_size=self.n_hidden)
+                    self.cell_decode, attention_mechanism, attention_layer_size=self.model_structure['n_hidden'])
 
                 decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32,
-                                                                     batch_size=tf.shape(self.x)[0] * beam_width).clone(cell_state=encoder_state_beam)
+                                                                     batch_size=tf.shape(self.x)[0] * beam_width
+                                                                     ).clone(cell_state=encoder_state_beam)
 
                 decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                     cell=attn_decoder_cell,
                     embedding=self.word_embedding,
-                    start_tokens=tf.tile(tf.constant([WordEmbedding.start], dtype=tf.int32), [tf.shape(self.x)[0]]),
-                    end_token=WordEmbedding.end,
+                    start_tokens=tf.tile(tf.constant([self.config.data['embedding'].GO], dtype=tf.int32),
+                                         [tf.shape(self.x)[0]]),
+                    end_token=self.config.data['embedding'].EOS,
                     initial_state=decoder_initial_state,
                     beam_width=beam_width,
                     output_layer=self.projection_layer,
@@ -215,28 +232,19 @@ class ChatbotNetwork(Network):
 
                 return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])  # [batch size, beam width, sequence length]
 
-    def setTrainingData(self, train_x, train_y):
-        train_x = ParseData.split_data(train_x)
-        train_y = ParseData.split_data(train_y)
-
-        train_x, train_y, x_length, y_length, y_target = \
-            ParseData.data_to_index(train_x, train_y,
-                                    WordEmbedding.words_to_index)
-
-        print("Training data :", len(train_x))
-
-        self.train_x = np.array(train_x)
-        self.train_y = np.array(train_y)
-        self.train_x_length = np.array(x_length)
-        self.train_y_length = np.array(y_length)
-        self.train_y_target = np.array(y_target)
-
-    def train(self, epochs=800, display_step=10, epoch_offset=0):
+    def train(self, epochs=10):
         for epoch in range(epochs):
             mini_batches_x, mini_batches_x_length, mini_batches_y, mini_batches_y_length, mini_batches_y_target \
                 = get_mini_batches(
-                shuffle([self.train_x, self.train_x_length, self.train_y, self.train_y_length, self.train_y_target])
-                , self.batch_size)
+                    shuffle([
+                        self.data['x'],
+                        self.data['x_length'],
+                        self.data['y'],
+                        self.data['y_length'],
+                        self.data['y_target']]),
+                    self.hyperparameters['batch_size'])
+
+            self.epoch += 1
 
             for batch in range(len(mini_batches_x)):
                 batch_x = mini_batches_x[batch]
@@ -245,7 +253,8 @@ class ChatbotNetwork(Network):
                 batch_y_length = mini_batches_y_length[batch]
                 batch_y_target = mini_batches_y_target[batch]
 
-                if (epoch % display_step == 0 or display_step == 0) and (batch % 100 == 0 or batch == 0):
+                if (self.epoch % self.config['display_step'] == 0 or self.config['display_step'] == 0)\
+                        and (batch % 100 == 0 or batch == 0):
                     _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
                         self.x: batch_x,
                         self.x_length: batch_x_length,
@@ -254,8 +263,10 @@ class ChatbotNetwork(Network):
                         self.y_target: batch_y_target
                     })
 
-                    print("epoch:", epoch_offset + epoch, "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
-                    exp.metric("cost", cost_value)
+                    print("epoch:", self.epoch, "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
+
+                    if self.config['hyperdash']:
+                        self.exp.metric("cost", cost_value)
 
                 else:
                     self.sess.run([self.train_op], feed_dict={
@@ -266,78 +277,83 @@ class ChatbotNetwork(Network):
                         self.y_target: batch_y_target
                     })
 
-            summary = self.sess.run(self.merged, feed_dict={
-                self.x: mini_batches_x[0],
-                self.x_length: mini_batches_x_length[0],
-                self.y: mini_batches_y[0],
-                self.y_length: mini_batches_y_length[0],
-                self.y_target: mini_batches_y_target[0]
-            })
+            if self.config['tensorboard'] is not None:
+                summary = self.sess.run(self.merged, feed_dict={
+                    self.x: mini_batches_x[0],
+                    self.x_length: mini_batches_x_length[0],
+                    self.y: mini_batches_y[0],
+                    self.y_length: mini_batches_y_length[0],
+                    self.y_target: mini_batches_y_target[0]
+                })
+                self.tensorboard_writer.add_summary(summary, self.epoch)
 
-            self.tensorboard_writer.add_summary(summary, epoch_offset + epoch)
-
-    def predict(self, sentence):
-
-        input_x, x_length, _ = ParseData.sentence_to_index(ParseData.split_sentence(sentence.lower()),
-                                                           WordEmbedding.words_to_index)
-
-        test_output = self.sess.run(self.infer[0],
+    def predict(self, input_data, save_path=None):
+        test_output = self.sess.run(self.infer,
                                     feed_dict={
-                                        self.x: np.array([input_x]),
-                                        self.x_length: np.array([x_length])
+                                        self.x: np.array([input_data.values['x']]),
+                                        self.x_length: np.array([input_data.values['x_length']])
                                     })
-
-        # Greedy
-        # result = ""
-        # for i in range(len(test_output)):
-        #     result = result + WordEmbedding.words[int(test_output[i])] + "(" + str(test_output[i]) + ") "
-        # return result
-
         # Beam
         list_res = []
-        for index in range(len(test_output)):
-            result = ""
-            for i in range(len(test_output[index])):
-                result = result + WordEmbedding.words[int(test_output[index][i])] + " "
+        for batch in test_output:
+            result = []
+            # take only the first beam
+            for beam in batch:
+                beam_res = ''
+                for index in beam:
+                    # if test_output is a numpy array, use np.take
+                    beam_res = beam_res + self.data['embedding'].words[int(index)] + " "
+                result.append(beam_res)
             list_res.append(result)
+
+        if save_path is not None:
+            with open(save_path, "a") as file:
+                for i in range(len(list_res)):
+                    file.write(list_res[i] + "\n")
 
         return list_res
 
-    def predictAll(self, path, save_path=None):
-        pass
-
-    def save(self, step=None, meta=True):
-        self.saver.save(self.sess, './model/model', global_step=step, write_meta_graph=meta)
-
 
 # test
-question, response = ParseData.load_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt")
 
-question_twitter, response_twitter = ParseData.load_twitter("./Data/chat.txt")
+data = ModelClasses.ChatbotData()
+data.add_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt", upper_bound=5000)
+data.add_twitter('./Data/chat.txt', upper_bound=5000)
 
-WordEmbedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
+embedding = WordEmbedding()
+embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
 
-test = ChatbotNetwork(learning_rate=0.00015, batch_size=16, restore=True)
+data.add_embedding_class(embedding)
 
-test.setTrainingData(question[:50000] + question_twitter[:50000] + question_twitter[200000:250000], response[:50000] + response_twitter[:50000] + response_twitter[200000:250000])
+modelConfig = ModelClasses.ModelConfig({
+    'display_step': 1,
+    'tensorboard': './tensorboard',
+    'hyperdash': True,
+    'hyperparameters': {
+        'learning_rate': 0.00015,
+        'batch_size': 8,
+        'optimizer': 'adam'
+    },
+    'model_structure': {
+        'max_sequence': 20,
+        'n_hidden': 512
+    }
+})
 
-step = 55
+model = ChatbotModel(modelConfig)
+model.load_data(data)
+
+test = ModelClasses.ChatbotData()
+test.parse_input("hello")
+test.parse_input("what's your name?")
+test.parse_input("fuck you")
+test.parse_input("how has your day been?")
 
 while True:
+    model.train(5)
+    model.save()
 
-    test.train(5, 1, step)
+    if model.epoch % 25 == 0:
+        shutil.copy('./model/model-' + str(model.epoch) + '.data-00000-of-00001', './backup')
 
-    step += 5
-    test.save(step, step == 0)
-
-    if step % 25 == 0:
-        shutil.copy('./model/model-' + str(step) + '.data-00000-of-00001', './backup')
-
-    print(test.predict("hello"))
-
-    print(test.predict("what's your name"))
-
-    print(test.predict("fuck you"))
-
-    print(test.predict("how has your day been?"))
-
+    print(model.predict(test))
