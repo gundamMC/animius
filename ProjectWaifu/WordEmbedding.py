@@ -1,64 +1,55 @@
 import numpy as np
 
 
-words = None
-words_to_index = None
-embeddings = None
+class WordEmbedding:
 
-start = 0
-end = 0
+    UNK = 0
+    GO = 1
+    EOS = 2
 
+    def __init__(self):
+        self.embedding = None
+        self.words = []
+        self.words_to_index = []
 
-def create_embedding(glove_path, save_embedding=True, vocab_size=100000):
-    global words
-    words = []
-    global words_to_index
-    words_to_index = {}
-    global embeddings
-    embeddings = []
+        self.words_to_index["<UNK>"] = 0
+        self.words.append("<UNK>")
 
-    print("Loading word vector")
+        self.words_to_index["<GO>"] = 1
+        self.words.append("<GO>")
 
-    words_to_index["<UNK>"] = 0
-    words.append("<UNK>")
+        self.words_to_index["<EOS>"] = 2
+        self.words.append("<EOS>")
 
-    words_to_index["<GO>"] = 1
-    global start
-    start = 1
-    words.append("<GO>")
+    def create_embedding(self, glove_path, vocab_size=100000):
 
-    words_to_index["<EOS>"] = 2
-    global end
-    end = 2
-    words.append("<EOS>")
+        self.embedding = []
 
-    f = open(glove_path, 'r', encoding='utf8')
-    index = 3
-    for line in f:
+        f = open(glove_path, 'r', encoding='utf8')
+        index = 3
+        for line in f:
 
-        if index > vocab_size:
-            break
+            if index > vocab_size:
+                break
 
-        split_line = line.split(' ')
-        word = split_line[0]
-        if save_embedding:
-            embedding = [float(val) for val in split_line[1:]]
-            embedding.extend([0, 0, 0])
-            embeddings.append(embedding)
-        words.append(word)
-        words_to_index[word] = index  # 3 special tokens before
-        index += 1
+            split_line = line.split(' ')
+            word = split_line[0]
 
-    if save_embedding:
+            vector = [float(val) for val in split_line[1:]]
+            vector.extend([0, 0, 0])
+            self.embedding.append(vector)
+
+            self.words.append(word)
+            self.words_to_index[word] = index  # 3 special tokens
+            index += 1
+
         # add special tokens
         zeros = np.zeros((3, 103))
         zeros[0, 100] = 1
         zeros[1, 101] = 1
         zeros[2, 102] = 1
 
-        embeddings = np.array(embeddings)
-        embeddings = np.vstack((zeros, embeddings))
+        self.embedding = np.array(self.embedding)
+        self.embedding = np.vstack((zeros, self.embedding))
 
-        assert embeddings.shape[0] == len(words_to_index)
-
-    print("Word vector loaded")
+        assert self.embedding.shape[0] == len(self.words_to_index)
