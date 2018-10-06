@@ -10,7 +10,7 @@ class WordEmbedding:
     def __init__(self):
         self.embedding = None
         self.words = []
-        self.words_to_index = []
+        self.words_to_index = {}
 
         self.words_to_index["<UNK>"] = 0
         self.words.append("<UNK>")
