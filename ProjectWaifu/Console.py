@@ -1,5 +1,5 @@
-from ProjectWaifu.SpeakerVerification.SpeakerVerificationNetwork import SpeakerVerificationNetwork
-from ProjectWaifu.IntentNER.IntentNERNetwork import IntentNERNetwork
+from ProjectWaifu.SpeakerVerification.SpeakerVerificationNetwork import SpeakerVerificationModel
+from ProjectWaifu.IntentNER.IntentNERNetwork import IntentNERModel
 from shlex import split
 import ProjectWaifu.Utils as Utils
 
@@ -39,11 +39,11 @@ def AddNetwork(args):
         return
 
     if args[0].lower() == "speakerverification":
-        Networks[args[1]] = SpeakerVerificationNetwork()
+        Networks[args[1]] = SpeakerVerificationModel()
         Utils.printMessage("Speaker verification network \"" + args[1] + "\" added and selected!")
 
     elif args[0].lower() == "intentandner":
-        Networks[args[1]] = IntentNERNetwork()
+        Networks[args[1]] = IntentNERModel()
         Utils.printMessage("Intent and NER network \"" + args[1] + "\" added and selected!")
 
     else:

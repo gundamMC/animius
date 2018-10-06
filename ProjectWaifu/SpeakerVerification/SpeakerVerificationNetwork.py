@@ -1,12 +1,12 @@
 import tensorflow as tf
 import numpy as np
 from ProjectWaifu.SpeakerVerification.MFCC import getMFCC
-from ProjectWaifu.Network import Network
+from ProjectWaifu.Model import Model
 from ProjectWaifu import Utils
 import os
 
 
-class SpeakerVerificationNetwork(Network):
+class SpeakerVerificationModel(Model):
 
     def __init__(self, learning_rate=0.005, batch_size=2048):
         # hyperparameters
