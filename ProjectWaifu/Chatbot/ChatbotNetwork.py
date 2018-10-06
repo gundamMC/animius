@@ -1,48 +1,48 @@
 import tensorflow as tf
-import numpy as np
 from ProjectWaifu.Model import Model
 from ProjectWaifu.WordEmbedding import WordEmbedding
 from ProjectWaifu.Utils import get_mini_batches, shuffle
 import ProjectWaifu.ModelClasses as ModelClasses
 
-# tmp
-import shutil
-
-# default values
-DEFAULT_HYPERPARAMETERS = {
-    'learning_rate': 0.0001,
-    'batch_size': 8,
-    'optimizer': 'adam'
-}
-
-DEFAULT_MODEL_STRUCTURE = {
-    'max_sequence': 20,
-    'n_hidden': 512,
-    'gradient_clip': 5.0,
-    'node': 'gru',
-    'layer': 2,
-    'beam_width': 3
-}
-
 
 class ChatbotModel(Model):
 
-    def __init__(self, model_config):
+    # default values
+    def DEFAULT_HYPERPARAMETERS(self):
+        return {
+            'learning_rate': 0.0001,
+            'batch_size': 8,
+            'optimizer': 'adam'
+        }
 
-        super().__init__(model_config)
+    def DEFAULT_MODEL_STRUCTURE(self):
+        return {
+            'max_sequence': 20,
+            'n_hidden': 512,
+            'gradient_clip': 5.0,
+            'node': 'gru',
+            'layer': 2,
+            'beam_width': 3
+        }
 
-        # check for unspecified values
-        for key, default_value in DEFAULT_HYPERPARAMETERS:
-            if key not in self.hyperparameters:
-                self.hyperparameters[key] = default_value
+    def __init__(self, model_config, data, restore_path=None):
 
-        for key, default_value in DEFAULT_MODEL_STRUCTURE:
-            if key not in self.model_structure:
-                self.model_structure[key] = default_value
+        super().__init__(model_config, data, restore_path=restore_path)
 
-        # Network hyperparameters
-        self.n_vector = len(self.data.values["embedding"].embedding[0])
-        self.word_count = len(self.data.values["embedding"].words)
+        # Embedding data
+
+        def test_model_structure(key, lambda_value):
+            if key in self.model_structure:
+                return self.model_structure[key]
+            else:
+                if self.data is None or 'embedding' not in self.data.values:
+                    raise ValueError('When creating a new model, data must contain a word embedding')
+                self.model_structure[key] = lambda_value()
+                return lambda_value()
+
+        self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
+        self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+
         # just to make it easier to refer to
         self.max_sequence = self.model_structure['max_sequence']
 
@@ -113,21 +113,25 @@ class ChatbotModel(Model):
             tf.summary.scalar('accuracy', self.accuracy)
             self.merged = tf.summary.merge_all()
 
-        self.sess.run(tf.global_variables_initializer())
+        self.init_tensorflow()
 
-        # Do not include word embedding when restoring models
-        if 'embedding' in self.data:
-            embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
-            self.sess.run(self.word_embedding.assign(embedding_placeholder),
-                          feed_dict={embedding_placeholder: self.data['embedding'].embedding})
+        self.sess.run(tf.global_variables_initializer())
 
         if self.config['hyperdash']:
             from hyperdash import Experiment
             # hyperdash - to be removed
             self.exp = Experiment("Chatbot")
 
-    def restore(self, path):
-        self.saver.restore(self.sess, tf.train.latest_checkpoint(path))
+        # restore model data values
+        if restore_path is not None:
+            self.restore_model(restore_path)
+            return  # do not restore word embedding
+
+        # Do not include word embedding when restoring models
+        if 'embedding' in self.data.values:
+            embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
+            self.sess.run(self.word_embedding.assign(embedding_placeholder),
+                          feed_dict={embedding_placeholder: self.data['embedding'].embedding})
 
     def network(self, mode="train"):
 
@@ -145,7 +149,7 @@ class ChatbotModel(Model):
 
                 # attention
                 attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                    num_units=self.n_hidden, memory=encoder_outputs,
+                    num_units=self.model_structure['n_hidden'], memory=encoder_outputs,
                     memory_sequence_length=self.x_length)
 
                 attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
@@ -206,7 +210,7 @@ class ChatbotModel(Model):
                 x_length_beam = tf.contrib.seq2seq.tile_batch(self.x_length, multiplier=beam_width)
 
                 attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                    num_units=self.n_hidden, memory=encoder_outputs_beam,
+                    num_units=self.model_structure['n_hidden'], memory=encoder_outputs_beam,
                     memory_sequence_length=x_length_beam)
 
                 attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
@@ -219,9 +223,9 @@ class ChatbotModel(Model):
                 decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                     cell=attn_decoder_cell,
                     embedding=self.word_embedding,
-                    start_tokens=tf.tile(tf.constant([self.config.data['embedding'].GO], dtype=tf.int32),
+                    start_tokens=tf.tile(tf.constant([WordEmbedding.GO], dtype=tf.int32),
                                          [tf.shape(self.x)[0]]),
-                    end_token=self.config.data['embedding'].EOS,
+                    end_token=WordEmbedding.EOS,
                     initial_state=decoder_initial_state,
                     beam_width=beam_width,
                     output_layer=self.projection_layer,
@@ -244,7 +248,7 @@ class ChatbotModel(Model):
                         self.data['y_target']]),
                     self.hyperparameters['batch_size'])
 
-            self.epoch += 1
+            self.config['epoch'] += 1
 
             for batch in range(len(mini_batches_x)):
                 batch_x = mini_batches_x[batch]
@@ -253,7 +257,7 @@ class ChatbotModel(Model):
                 batch_y_length = mini_batches_y_length[batch]
                 batch_y_target = mini_batches_y_target[batch]
 
-                if (self.epoch % self.config['display_step'] == 0 or self.config['display_step'] == 0)\
+                if (self.config['epoch'] % self.config['display_step'] == 0 or self.config['display_step'] == 0)\
                         and (batch % 100 == 0 or batch == 0):
                     _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
                         self.x: batch_x,
@@ -263,7 +267,7 @@ class ChatbotModel(Model):
                         self.y_target: batch_y_target
                     })
 
-                    print("epoch:", self.epoch, "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
+                    print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
 
                     if self.config['hyperdash']:
                         self.exp.metric("cost", cost_value)
@@ -285,13 +289,13 @@ class ChatbotModel(Model):
                     self.y_length: mini_batches_y_length[0],
                     self.y_target: mini_batches_y_target[0]
                 })
-                self.tensorboard_writer.add_summary(summary, self.epoch)
+                self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
     def predict(self, input_data, save_path=None):
         test_output = self.sess.run(self.infer,
                                     feed_dict={
-                                        self.x: np.array([input_data.values['x']]),
-                                        self.x_length: np.array([input_data.values['x_length']])
+                                        self.x: input_data.values['x'],
+                                        self.x_length: input_data.values['x_length']
                                     })
         # Beam
         list_res = []
@@ -302,58 +306,67 @@ class ChatbotModel(Model):
                 beam_res = ''
                 for index in beam:
                     # if test_output is a numpy array, use np.take
-                    beam_res = beam_res + self.data['embedding'].words[int(index)] + " "
+                    beam_res = beam_res + input_data['embedding'].words[int(index)] + " "
                 result.append(beam_res)
             list_res.append(result)
 
         if save_path is not None:
-            with open(save_path, "a") as file:
+            with open(save_path, "w") as file:
                 for i in range(len(list_res)):
-                    file.write(list_res[i] + "\n")
+                    file.write(str(list_res[i][0]) + '\n')
 
         return list_res
 
 
 # test
 
-data = ModelClasses.ChatbotData()
-data.add_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt", upper_bound=5000)
-data.add_twitter('./Data/chat.txt', upper_bound=5000)
+# Creating a model
+modelConfig = ModelClasses.ModelConfig(
+    config={
+        'display_step': 1,
+        'tensorboard': './tensorboard',
+        'hyperdash': True
+    },
+    hyperparameters={
+        'learning_rate': 0.00015,
+        'batch_size': 8,
+        'optimizer': 'adam'
+    },
+    model_structure={
+        'max_sequence': 20,
+        'n_hidden': 128
+    })
 
+data = ModelClasses.ChatbotData(modelConfig)
 embedding = WordEmbedding()
 embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
 
 data.add_embedding_class(embedding)
 
-modelConfig = ModelClasses.ModelConfig({
-    'display_step': 1,
-    'tensorboard': './tensorboard',
-    'hyperdash': True,
-    'hyperparameters': {
-        'learning_rate': 0.00015,
-        'batch_size': 8,
-        'optimizer': 'adam'
-    },
-    'model_structure': {
-        'max_sequence': 20,
-        'n_hidden': 512
-    }
-})
+data.add_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt", upper_bound=100)
+data.add_twitter('./Data/chat.txt', upper_bound=100)
 
-model = ChatbotModel(modelConfig)
-model.load_data(data)
+model = ChatbotModel(modelConfig, data)
 
-test = ModelClasses.ChatbotData()
+test = ModelClasses.ChatbotData(modelConfig)
+test.add_embedding_class(embedding)
 test.parse_input("hello")
 test.parse_input("what's your name?")
 test.parse_input("fuck you")
 test.parse_input("how has your day been?")
 
-while True:
-    model.train(5)
-    model.save()
+model.train(5)
+model.save()
 
-    if model.epoch % 25 == 0:
-        shutil.copy('./model/model-' + str(model.epoch) + '.data-00000-of-00001', './backup')
+model.close()
 
-    print(model.predict(test))
+# restoring the model
+# model = ChatbotModel(None, None, restore_path='./model')
+#
+# embedding = WordEmbedding()
+# embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
+# test = ModelClasses.ChatbotData(model.model_structure['max_sequence'])
+# test.add_embedding_class(embedding)
+# test.parse_input("hello")
+#
+# print(model.predict(test))
