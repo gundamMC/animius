@@ -2,11 +2,11 @@ import tensorflow as tf
 import numpy as np
 from ProjectWaifu.IntentNER.ParseData import get_data, sentence_to_vec
 from ProjectWaifu import Utils
-from ProjectWaifu.Network import Network
+from ProjectWaifu.Model import Model
 import os
 
 
-class IntentNERNetwork(Network):
+class IntentNERModel(Model):
 
     def __init__(self, learning_rate=0.001, batch_size=1024):
         # hyperparameters
