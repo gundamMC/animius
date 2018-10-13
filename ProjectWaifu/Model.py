@@ -7,7 +7,8 @@ from os.path import isdir, join
 
 class Model(ABC):
 
-    def DEFAULT_CONFIG(self):
+    @staticmethod
+    def DEFAULT_CONFIG():
         return {
             'epoch': 0,
             'display_step': 1,
@@ -15,12 +16,12 @@ class Model(ABC):
             'hyperdash': False
         }
 
-    @abstractmethod
-    def DEFAULT_MODEL_STRUCTURE(self):
+    @staticmethod
+    def DEFAULT_MODEL_STRUCTURE():
         return {}
 
-    @abstractmethod
-    def DEFAULT_HYPERPARAMETERS(self):
+    @staticmethod
+    def DEFAULT_HYPERPARAMETERS():
         return {}
 
     @staticmethod
@@ -39,12 +40,13 @@ class Model(ABC):
         if not isinstance(model_config, ModelConfig):
             raise TypeError('model_config must be a ModelConfig object')
 
+        # apply values
         self.config = model_config.config
         Model.apply_default(self.config, self.DEFAULT_CONFIG())
         self.model_structure = model_config.model_structure
         Model.apply_default(self.model_structure, self.DEFAULT_MODEL_STRUCTURE())
         self.hyperparameters = model_config.hyperparameters
-        Model.apply_default(self.config, self.DEFAULT_HYPERPARAMETERS())
+        Model.apply_default(self.hyperparameters, self.DEFAULT_HYPERPARAMETERS())
         self.data = data
 
         # prep for tensorflow
@@ -74,7 +76,7 @@ class Model(ABC):
         if not isdir(path):
             raise NotADirectoryError('Save path must be a directory')
 
-        with open(join(path, 'model_config.wmc'), 'r') as f:
+        with open(join(path, 'model_config.modelconfig'), 'r') as f:
             stored = json.load(f)
             self.config = stored['config']
             self.model_structure = stored['model_structure']
@@ -95,13 +97,15 @@ class Model(ABC):
             raise NotADirectoryError('Save path must be a directory')
 
         self.saver.save(self.sess, join(path + 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
-        with open(join(path, 'model_config.wmc'), 'w') as f:
-            json.dump(
-                {
-                    'config': self.config,
-                    'model_structure': self.model_structure,
-                    'hyperparameters': self.hyperparameters
-                }, f)
+        with open(join(path, 'model_config.modelconfig'), 'w') as f:
+            f.write(
+                json.dumps(
+                    {
+                        'config': self.config,
+                        'model_structure': self.model_structure,
+                        'hyperparameters': self.hyperparameters
+                    }, indent=4)
+            )
 
     def close(self):
         self.sess.close()
