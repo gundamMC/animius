@@ -8,14 +8,16 @@ import ProjectWaifu.ModelClasses as ModelClasses
 class ChatbotModel(Model):
 
     # default values
-    def DEFAULT_HYPERPARAMETERS(self):
+    @staticmethod
+    def DEFAULT_HYPERPARAMETERS():
         return {
             'learning_rate': 0.0001,
             'batch_size': 8,
             'optimizer': 'adam'
         }
 
-    def DEFAULT_MODEL_STRUCTURE(self):
+    @staticmethod
+    def DEFAULT_MODEL_STRUCTURE():
         return {
             'max_sequence': 20,
             'n_hidden': 512,

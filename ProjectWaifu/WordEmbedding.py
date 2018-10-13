@@ -29,7 +29,7 @@ class WordEmbedding:
         index = 3
         for line in f:
 
-            if index > vocab_size:
+            if index == vocab_size:
                 break
 
             split_line = line.split(' ')
