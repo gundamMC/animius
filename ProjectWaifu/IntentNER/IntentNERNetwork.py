@@ -8,76 +8,88 @@ import os
 
 class IntentNERModel(Model):
 
-    def __init__(self, learning_rate=0.001, batch_size=1024):
-        # hyperparameters
-        self.learning_rate = learning_rate
-        self.batch_size = batch_size
+    # default values
+    @staticmethod
+    def DEFAULT_HYPERPARAMETERS():
+        return {
+            'learning_rate': 0.001,
+            'batch_size': 1024,
+            'optimizer': 'adam'
+        }
 
-        # Network hyperparameters
-        self.n_input = 50            # word vector size
-        self.max_sequence = 30       # maximum number of words allowed
-        self.n_hidden = 128          # hidden nodes inside LSTM
-        self.n_intent_output = 15    # the number of intent classes
-        self.n_entities_output = 8   # the number of entity classes (7 classes + 1 none)
+    @staticmethod
+    def DEFAULT_MODEL_STRUCTURE():
+        return {
+            'max_sequence': 20,
+            'n_hidden': 128,
+            'gradient_clip': 5.0,
+            'node': 'gru',
+            'n_intent_output': 15,
+            'n_entities_output': 8
+        }
+
+    def __init__(self, model_config, data, restore_path=None):
+
+        super().__init__(model_config, data, restore_path=restore_path)
+
+        def test_model_structure(key, lambda_value):
+            if key in self.model_structure:
+                return self.model_structure[key]
+            else:
+                if self.data is None or 'embedding' not in self.data.values:
+                    raise ValueError('When creating a new model, data must contain a word embedding')
+                self.model_structure[key] = lambda_value()
+                return lambda_value()
+
+        self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
+        self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
 
         # Tensorflow placeholders
-        self.x = tf.placeholder(tf.int32, [None, self.max_sequence])  # [batch size, sequence length]
-        self.y_intent = tf.placeholder("float", [None, self.n_intent_output])               # [batch size, intent]
-        self.y_entities = tf.placeholder("float", [None, self.max_sequence, self.n_entities_output])
+        self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']])  # [batch size, sequence length]
+        self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
+        self.y_entities = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_entities_output']])
+        self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
 
         # Network parameters
         self.weights = {  # LSTM weights are created automatically by tensorflow
-            "out_intent": tf.Variable(tf.random_normal([self.n_hidden, self.n_intent_output])),
-            "out_entities": tf.Variable(tf.random_normal([self.n_hidden + self.n_intent_output, self.n_entities_output]))
+            "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_hidden'], self.model_structure['n_intent_output']])),
+            "out_entities": tf.Variable(tf.random_normal([self.model_structure['n_hidden'] + self.model_structure['n_intent_output'], self.model_structure['n_entities_output']]))
         }
 
         self.biases = {
-            "out_intent": tf.Variable(tf.random_normal([self.n_intent_output])),
-            "out_entities": tf.Variable(tf.random_normal([self.n_entities_output]))
+            "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_intent_output']])),
+            "out_entities": tf.Variable(tf.random_normal([[self.model_structure['n_entities_output']]]))
         }
 
-        self.cell_fw = tf.contrib.rnn.BasicLSTMCell(self.n_hidden)
-        self.cell_bw = tf.contrib.rnn.BasicLSTMCell(self.n_hidden)
-
-        self.word_embedding = tf.Variable(tf.constant(0.0, shape=Utils.embeddings.shape), trainable=False)
-        embedding_placeholder = tf.placeholder(tf.float32, shape=Utils.embeddings.shape)
-        embedding_init = self.word_embedding.assign(embedding_placeholder)
-
-        self.intents_folder = None
+        self.cell_fw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+        self.cell_bw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
 
         # Optimization
-        self.logits_intent, self.logits_ner = self.network(self.x)
+        logits_intent, logits_ner = self.network()
+        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=self.y_intent)) + \
+        tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_entities))
 
-        self.prediction_intent = tf.nn.softmax(self.logits_intent)
-        self.prediction_ner = tf.nn.softmax(self.logits_ner)
-
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits_intent, labels=self.y_intent)) + \
-        tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.logits_ner, labels=self.y_entities))
-
-        self.train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
+        optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
+        gradients, variables = zip(*optimizer.compute_gradients(self.cost))
+        gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
+        self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
         # Tensorflow initialization
-        self.sess = tf.Session(config=self.config)
-
         self.sess.run(tf.global_variables_initializer())
-
-        self.sess.run(embedding_init, feed_dict={embedding_placeholder: Utils.embeddings})
 
         self.data_set = False
 
-    def network(self, X):
-        X_emb = tf.nn.embedding_lookup(self.word_embedding, X)
-        print(self.word_embedding.shape)
-        print(X.shape)
-        print(X_emb.shape)
+    def network(self):
+
+        embedded_x = tf.nn.embedding_lookup(self.word_embedding, self.x)
+
         # X has shape of x ([batch size, sequence length, input length])
-        seqlen = Utils.get_length(X)
-        print(seqlen.shape)
-        input_size = tf.shape(X_emb)[0]
+        seqlen = Utils.get_length(self.x)
+        batch_size = tf.shape(self.x)[0]
 
         outputs, _ = tf.nn.bidirectional_dynamic_rnn(self.cell_fw,
                                                      self.cell_bw,
-                                                     inputs=X_emb,
+                                                     inputs=embedded_x,
                                                      dtype=tf.float32,
                                                      sequence_length=seqlen,
                                                      swap_memory=True)
@@ -87,19 +99,27 @@ class IntentNERModel(Model):
         outputs_fw, output_bw = outputs  # outputs is a tuple (output_fw, output_bw)
 
         # get last time steps
-        indexes = tf.reshape(tf.range(0, input_size), [input_size, 1])
-        last_time_steps = tf.reshape(tf.add(seqlen, -1), [input_size, 1])
+        indexes = tf.reshape(tf.range(0, batch_size), [batch_size, 1])
+        last_time_steps = tf.reshape(tf.add(seqlen, -1), [tf.range, 1])
         last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
 
         # apply linear
-        outputs_intent = tf.matmul(tf.gather_nd(outputs_fw, last_time_step_indexes), self.weights["out_intent"]) + self.biases["out_intent"]
+        outputs_intent = tf.matmul(
+            tf.gather_nd(outputs_fw, last_time_step_indexes),
+            self.weights["out_intent"]) + self.biases["out_intent"]
 
-        entities = tf.concat([output_bw, tf.tile(tf.expand_dims(outputs_intent, 1), [1, 30, 1])], -1)
+        entities = tf.concat(
+            [output_bw, tf.tile(tf.expand_dims(outputs_intent, 1), [1, 30, 1])], -1
+        )
         outputs_entities = tf.einsum('ijk,kl->ijl', entities, self.weights["out_entities"]) + self.biases["out_entities"]
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
-    def train(self, epochs=200, display_step=10):
+    ###############################
+    # refactored up to this point #
+    ###############################
+
+    def train(self, epochs=200):
         if not self.data_set:
             Utils.printMessage("Error: Training data not set")
             return
@@ -164,9 +184,3 @@ class IntentNERModel(Model):
                     file.write(str(result[i][0]) + " " + str(result[i][1]) + " " + lines[i] + "\n")
 
         return result
-
-    def setTrainingData(self, dataPaths):
-        # dataPaths[0] = folder containing intents
-        self.intents_folder = dataPaths[0]
-
-        self.data_set = True
