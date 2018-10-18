@@ -43,6 +43,38 @@ def get_length(sequence):
     return length
 
 
+def sentence_to_index(sentence, word_to_index, target=False):
+    if not target:
+        result = [word_to_index["<GO>"]]
+        length = 1
+    else:
+        result = []
+        length = 0
+    unk = 0
+    for word in sentence:
+        length += 1
+        if word in word_to_index:
+            result.append(word_to_index[word])
+        else:
+            result.append(word_to_index["<UNK>"])
+            unk += 1
+
+    # max sequence length of 20
+    if length < 20:
+        result.append(word_to_index["<EOS>"])
+        length += 1
+        # EOS also used as padding
+        result.extend([word_to_index["<EOS>"]] * (20 - length))
+    else:
+        # result = result[:19]
+        # result.append(word_to_index["<EOS>"])
+        # length = 19
+        result = result[:20]
+        length = 20
+
+    return result, length, unk
+
+
 def setSocket(inputSocket):
     global socket
     socket = inputSocket

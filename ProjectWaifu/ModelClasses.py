@@ -1,5 +1,6 @@
 import ProjectWaifu.Chatbot.ParseData as ChatbotParse
-import ProjectWaifu.Model as Model
+import ProjectWaifu.IntentNER.ParseData as IntentNERParse
+from ProjectWaifu.Utils import sentence_to_index
 import numpy as np
 
 
@@ -52,14 +53,12 @@ class Data:
 
 class ChatbotData(Data):
 
-    def __init__(self, sequence_length):
+    def __init__(self, model_config):
 
-        super(ChatbotData, self).__init__()
+        super().__init__()
 
-        if isinstance(sequence_length, ModelConfig) and 'max_sequence' in sequence_length.model_structure:
-            max_seq = sequence_length.model_structure['max_sequence']
-        elif isinstance(sequence_length, int):
-            max_seq = sequence_length
+        if isinstance(model_config, ModelConfig):
+            max_seq = model_config.model_structure['max_sequence']
         else:
             raise TypeError('sequence_length must be either an integer or a ModelConfig object')
 
@@ -88,8 +87,8 @@ class ChatbotData(Data):
         ])
 
     def parse_input(self, input_x):
-        x, x_length, _ = ChatbotParse.sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
-                                                        self.values['embedding'].words_to_index)
+        x, x_length, _ = sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
+                                           self.values['embedding'].words_to_index)
 
         self.values['x'] = np.concatenate([self.values['x'], np.array(x).reshape((1, len(x)))], axis=0)
         self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length).reshape(1,)], axis=0)
@@ -100,8 +99,8 @@ class ChatbotData(Data):
 
         f = open(path, 'r', encoding='utf8')
         for line in f:
-            x_tmp, length_tmp, _ = ChatbotParse.sentence_to_index(ChatbotParse.split_sentence(line.lower()),
-                                                                  self.values['embedding'].words_to_index)
+            x_tmp, length_tmp, _ = sentence_to_index(ChatbotParse.split_sentence(line.lower()),
+                                                     self.values['embedding'].words_to_index)
             x.append(x_tmp)
             x_length.append(length_tmp)
 
@@ -129,4 +128,42 @@ class ChatbotData(Data):
         x, y = ChatbotParse.load_twitter(chat_path)
         self.parse_sentence_data(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
-    # TODO: Add IntentNERData
+
+class IntentNERData(Data):
+
+    def __init__(self, model_config):
+
+        super().__init__()
+
+        if isinstance(model_config, ModelConfig):
+            self.max_seq = model_config.model_structure['max_sequence']
+        else:
+            raise TypeError('model_config must be either a ModelConfig object')
+
+        self.values['x'] = np.zeros((0, self.max_seq))
+        self.values['x_length'] = np.zeros((0,))
+        self.values['y_intent'] = np.zeros((0, model_config.model_structure['n_intent_output']))
+        self.values['y_ner'] = np.zeros((0, self.max_seq, model_config.model_structure['n_entities_output']))
+
+    def add_input_data(self, input_data, input_length):
+        assert(isinstance(input_data, np.ndarray))
+        assert (isinstance(input_length, np.ndarray))
+        self.values['x'] = np.concatenate([self.values['x'], input_data])
+        self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+
+    def add_data_folder(self, folder_directory):
+
+        x, x_length, y_intent, y_ner = IntentNERParse.get_data(folder_directory, self.values['embedding'], self.max_seq)
+
+        self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
+        self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length)])
+        self.values['y_intent'] = np.concatenate([self.values['y_intent'], np.array(y_intent)])
+        self.values['y_ner'] = np.concatenate([self.values['y_ner'], np.array(y_ner)])
+
+    def parse_input(self, input_x):
+
+        x, x_length, _ = sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
+                                           self.values['embedding'].words_to_index)
+
+        self.values['x'] = np.concatenate([self.values['x'], np.array(x).reshape((1, len(x)))], axis=0)
+        self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length).reshape(1,)], axis=0)
