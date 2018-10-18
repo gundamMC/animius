@@ -117,23 +117,10 @@ class ChatbotModel(Model):
 
         self.init_tensorflow()
 
-        self.sess.run(tf.global_variables_initializer())
-
-        if self.config['hyperdash']:
-            from hyperdash import Experiment
-            # hyperdash - to be removed
-            self.exp = Experiment("Chatbot")
+        self.init_hyerdash(self.config['hyperdash'])
 
         # restore model data values
-        if restore_path is not None:
-            self.restore_model(restore_path)
-            return  # do not restore word embedding
-
-        # Do not include word embedding when restoring models
-        if 'embedding' in self.data.values:
-            embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
-            self.sess.run(self.word_embedding.assign(embedding_placeholder),
-                          feed_dict={embedding_placeholder: self.data['embedding'].embedding})
+        self.init_restore(restore_path, self.word_embedding)
 
     def network(self, mode="train"):
 
@@ -271,8 +258,8 @@ class ChatbotModel(Model):
 
                     print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
 
-                    if self.config['hyperdash']:
-                        self.exp.metric("cost", cost_value)
+                    if self.config['hyperdash'] is not None:
+                        self.hyperdash.metric("cost", cost_value)
 
                 else:
                     self.sess.run([self.train_op], feed_dict={
@@ -327,7 +314,7 @@ modelConfig = ModelClasses.ModelConfig(
     config={
         'display_step': 1,
         'tensorboard': './tensorboard',
-        'hyperdash': True
+        'hyperdash': 'Project Waifu Chatbot Model'
     },
     hyperparameters={
         'learning_rate': 0.00015,

@@ -1,12 +1,38 @@
 import ProjectWaifu.Chatbot.ParseData as ChatbotParse
+import ProjectWaifu.Model as Model
 import numpy as np
 
 
 class ModelConfig:
-    def __init__(self, config, hyperparameters, model_structure):
-        self.config = config
-        self.hyperparameters = hyperparameters
-        self.model_structure = model_structure
+    def __init__(self, config=None, hyperparameters=None, model_structure=None):
+        if config is None:
+            self.config = {}
+        else:
+            self.config = config
+
+        if hyperparameters is None:
+            self.hyperparameters = {}
+        else:
+            self.hyperparameters = hyperparameters
+
+        if model_structure is None:
+            self.model_structure = {}
+        else:
+            self.model_structure = model_structure
+
+    def apply_defaults(self, DEFAULT_CONFIG, DEFAULT_HYPERPARAMETERS, DEFAULT_MODEL_STRUCTURE):
+
+        for key, default_value in DEFAULT_CONFIG.items():
+            if key not in self.config:
+                self.config[key] = default_value
+
+        for key, default_value in DEFAULT_HYPERPARAMETERS.items():
+            if key not in self.hyperparameters:
+                self.hyperparameters[key] = default_value
+
+        for key, default_value in DEFAULT_MODEL_STRUCTURE.items():
+            if key not in self.model_structure:
+                self.model_structure[key] = default_value
 
 
 class Data:
@@ -102,3 +128,5 @@ class ChatbotData(Data):
     def add_twitter(self, chat_path, lower_bound=None, upper_bound=None):
         x, y = ChatbotParse.load_twitter(chat_path)
         self.parse_sentence_data(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+
+    # TODO: Add IntentNERData

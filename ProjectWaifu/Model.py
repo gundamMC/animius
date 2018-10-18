@@ -13,7 +13,7 @@ class Model(ABC):
             'epoch': 0,
             'display_step': 1,
             'tensorboard': './model/tensorboard',
-            'hyperdash': False
+            'hyperdash': 'Project Waifu Model'
         }
 
     @staticmethod
@@ -23,12 +23,6 @@ class Model(ABC):
     @staticmethod
     def DEFAULT_HYPERPARAMETERS():
         return {}
-
-    @staticmethod
-    def apply_default(user_values, default_values):
-        for key, default_value in default_values.items():
-            if key not in user_values:
-                user_values[key] = default_value
 
     def __init__(self, model_config, data, restore_path=None):
 
@@ -42,17 +36,17 @@ class Model(ABC):
 
         # apply values
         self.config = model_config.config
-        Model.apply_default(self.config, self.DEFAULT_CONFIG())
         self.model_structure = model_config.model_structure
-        Model.apply_default(self.model_structure, self.DEFAULT_MODEL_STRUCTURE())
         self.hyperparameters = model_config.hyperparameters
-        Model.apply_default(self.hyperparameters, self.DEFAULT_HYPERPARAMETERS())
         self.data = data
 
         # prep for tensorflow
         self.saver = None
         self.tensorboard_writer = None
         self.sess = None
+
+        # prep for hyperdash
+        self.hyperdash = None
 
     def init_tensorflow(self):
         # Tensorflow initialization
@@ -62,6 +56,25 @@ class Model(ABC):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=config)
+
+        self.sess.run(tf.global_variables_initializer())
+
+    def init_hyerdash(self, name):
+        if name is not None:
+            from hyperdash import Experiment
+            self.hyperdash = Experiment(name)
+
+    def init_restore(self, restore_path, word_embedding_placeholder=None):
+        # restore model data values
+        if restore_path is not None:
+            self.restore_model(restore_path)
+            return  # do not restore word embedding
+
+        # Do not include word embedding when restoring models
+        if word_embedding_placeholder is not None and 'embedding' in self.data.values:
+            embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
+            self.sess.run(word_embedding_placeholder.assign(embedding_placeholder),
+                          feed_dict={embedding_placeholder: self.data['embedding'].embedding})
 
     @abstractmethod
     def train(self, epochs):

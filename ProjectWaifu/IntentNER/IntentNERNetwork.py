@@ -1,9 +1,9 @@
 import tensorflow as tf
-import numpy as np
 from ProjectWaifu.IntentNER.ParseData import get_data, sentence_to_vec
-from ProjectWaifu import Utils
+from ProjectWaifu.WordEmbedding import WordEmbedding
+from ProjectWaifu.Utils import get_mini_batches, shuffle
 from ProjectWaifu.Model import Model
-import os
+import ProjectWaifu.ModelClasses as ModelClasses
 
 
 class IntentNERModel(Model):
@@ -46,6 +46,7 @@ class IntentNERModel(Model):
 
         # Tensorflow placeholders
         self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']])  # [batch size, sequence length]
+        self.x_length = tf.placeholder(tf.int32, [None])
         self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
         self.y_entities = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_entities_output']])
         self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
@@ -74,24 +75,36 @@ class IntentNERModel(Model):
         gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
         self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
-        # Tensorflow initialization
-        self.sess.run(tf.global_variables_initializer())
+        predict_intent = tf.argmax(
+            tf.reshape(logits_intent, [self.model_structure['n_intent_output']])
+        )
+        predict_ner = tf.argmax(
+            tf.reshape(logits_ner, [self.model_structure['max_sequence'], self.model_structure['n_entities_output']]
+                       ), axis=1)
+        self.prediction = predict_intent, predict_ner
 
-        self.data_set = False
+        # Tensorboard
+        if self.config['tensorboard'] is not None:
+            tf.summary.scalar('cost', self.cost)
+            self.merged = tf.summary.merge_all()
+
+        self.init_tensorflow()
+
+        self.init_hyerdash(self.config['hyperdash'])
+
+        # restore model data values
+        self.init_restore(restore_path, self.word_embedding)
 
     def network(self):
 
         embedded_x = tf.nn.embedding_lookup(self.word_embedding, self.x)
-
-        # X has shape of x ([batch size, sequence length, input length])
-        seqlen = Utils.get_length(self.x)
         batch_size = tf.shape(self.x)[0]
 
         outputs, _ = tf.nn.bidirectional_dynamic_rnn(self.cell_fw,
                                                      self.cell_bw,
                                                      inputs=embedded_x,
                                                      dtype=tf.float32,
-                                                     sequence_length=seqlen,
+                                                     sequence_length=self.x_length,
                                                      swap_memory=True)
         # see https://www.tensorflow.org/api_docs/python/tf/nn/bidirectional_dynamic_rnn
         # swap_memory is optional.
@@ -100,7 +113,7 @@ class IntentNERModel(Model):
 
         # get last time steps
         indexes = tf.reshape(tf.range(0, batch_size), [batch_size, 1])
-        last_time_steps = tf.reshape(tf.add(seqlen, -1), [tf.range, 1])
+        last_time_steps = tf.reshape(tf.add(self.x_length, -1), [tf.range, 1])
         last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
 
         # apply linear
@@ -120,67 +133,79 @@ class IntentNERModel(Model):
     ###############################
 
     def train(self, epochs=200):
-        if not self.data_set:
-            Utils.printMessage("Error: Training data not set")
-            return
+        for epoch in range(epochs):
 
-        # get data
-        input_data, ner_data, intent_data = get_data(self.intents_folder, Utils.wordsToIndex)
+            mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_entities \
+                = get_mini_batches(
+                    shuffle([
+                        self.data['x'],
+                        self.data['x_length'],
+                        self.data['y_entities'],
+                        self.data['y_intent']
+                    ]),
+                    self.hyperparameters['batch_size'])
 
-        # Start training
-        Utils.printMessage("Starting training")
-        for epoch in range(epochs + 1):  # since range is exclusive
+            self.config['epoch'] += 1
 
-            mini_batches_X, mini_batches_Y_intent, mini_batches_Y_entities \
-                = Utils.random_mini_batches([input_data, intent_data, ner_data], self.batch_size)
+            for batch in range(len(mini_batches_x)):
 
-            for i in range(0, len(mini_batches_X)):
+                batch_x = mini_batches_x[batch]
+                batch_x_length = mini_batches_x_length[batch]
+                batch_y_intent = mini_batches_y_intent[batch]
+                batch_y_entities = mini_batches_y_entities[batch]
 
-                batch_x = mini_batches_X[i]
-                batch_y_intent = mini_batches_Y_intent[i]
-                batch_y_entities = mini_batches_Y_entities[i]
+                if (self.config['epoch'] % self.config['display_step'] == 0 or self.config['display_step'] == 0) \
+                        and (batch % 100 == 0 or batch == 0):
+                    _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
+                        self.x: batch_x,
+                        self.x_length: batch_x_length,
+                        self.y_intent: batch_y_intent,
+                        self.y_entities: batch_y_entities
+                    })
 
-                self.sess.run(self.train_op, feed_dict={self.x: batch_x,
-                                                                self.y_intent: batch_y_intent,
-                                                                self.y_entities: batch_y_entities})
+                    print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
 
-                if epoch % display_step == 0:
-                    cost_value = self.sess.run([self.cost],
-                                               feed_dict={self.x: batch_x,
-                                                          self.y_intent: batch_y_intent,
-                                                          self.y_entities: batch_y_entities})
+                    if self.config['hyperdash']:
+                        self.hyperdash.metric("cost", cost_value)
 
-                    Utils.printMessage(
-                        'epoch ' + str(epoch) + ' (' + str(i + 1) + '/' + str(len(mini_batches_X)) + ') - cost' + str(
-                            cost_value))
+                else:
+                    self.sess.run([self.train_op], feed_dict={
+                        self.x: batch_x,
+                        self.x_length: batch_x_length,
+                        self.y_intent: batch_y_intent,
+                        self.y_entities: batch_y_entities
+                    })
 
-    def predict(self, sentence):
+            if self.config['tensorboard'] is not None:
+                summary = self.sess.run(self.merged, feed_dict={
+                    self.x: mini_batches_x[0],
+                    self.x_length: mini_batches_x_length[0],
+                    self.y_intent: mini_batches_y_intent[0],
+                    self.y_entities: mini_batches_y_entities[0]
+                })
+                self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
-        response_data = sentence_to_vec(Utils.wordsToIndex, sentence.lower().split())
+    def predict(self, input_data, save_path=None):
 
-        intent, ner = self.sess.run([tf.argmax(tf.reshape(self.prediction_intent, [self.n_intent_output])),
-                                     tf.argmax(tf.reshape(self.prediction_ner, [self.max_sequence,
-                                                                                self.n_entities_output]), axis=1)
-                                     [:len(str.split(sentence))]],
-                                    feed_dict={self.x: np.expand_dims(response_data, 0)})
+        intent, ner = self.sess.run(self.prediction,
+                                    feed_dict={
+                                        self.x: input_data.values['x'],
+                                        self.x_length: input_data.values['x_length']
+                                    })
+        ner = ner[:, input_data.values['x_length']]
+
+        if save_path is not None:
+            with open(save_path, "w") as file:
+                for i in range(len(intent)):
+                    file.write(str(intent[i]) + ' - ' + ', '.join(str(x) for x in ner[i]) + '\n')
 
         return intent, ner
 
-    def predictAll(self, path, savePath=None):
-        result = []
 
-        if not os.path.isfile(path):
-            Utils.printMessage("Error: path in PredictAll for Intent & NER Networks must be a single file")
-            return
-        with open(path) as file:
-            lines = file.read().splitlines()
+modelConfig = ModelClasses.ModelConfig()
+modelConfig.apply_defaults(IntentNERModel.DEFAULT_CONFIG(),
+                           IntentNERModel.DEFAULT_HYPERPARAMETERS(),
+                           IntentNERModel.DEFAULT_MODEL_STRUCTURE())
 
-        for line in lines:
-            result.append(self.predict(line))
-
-        if savePath is not None:
-            with open(savePath, "a") as file:
-                for i in range(len(lines)):
-                    file.write(str(result[i][0]) + " " + str(result[i][1]) + " " + lines[i] + "\n")
-
-        return result
+# get data
+input_data, ner_data, intent_data = get_data('intents_folder', Utils.wordsToIndex)
