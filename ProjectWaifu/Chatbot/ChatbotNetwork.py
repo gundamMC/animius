@@ -358,4 +358,5 @@ model.close()
 # test.add_embedding_class(embedding)
 # test.parse_input("hello")
 #
-# print(model.predict(test))
+
+print(model.predict(test))

@@ -1,5 +1,4 @@
 import tensorflow as tf
-from ProjectWaifu.IntentNER.ParseData import get_data, sentence_to_vec
 from ProjectWaifu.WordEmbedding import WordEmbedding
 from ProjectWaifu.Utils import get_mini_batches, shuffle
 from ProjectWaifu.Model import Model
@@ -207,5 +206,26 @@ modelConfig.apply_defaults(IntentNERModel.DEFAULT_CONFIG(),
                            IntentNERModel.DEFAULT_HYPERPARAMETERS(),
                            IntentNERModel.DEFAULT_MODEL_STRUCTURE())
 
-# get data
-input_data, ner_data, intent_data = get_data('intents_folder', Utils.wordsToIndex)
+data = ModelClasses.IntentNERData(modelConfig)
+
+embedding = WordEmbedding()
+embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
+
+data.add_embedding_class(embedding)
+
+data.add_data_folder('./Data/IntentNER')
+
+model = IntentNERModel(modelConfig, data)
+
+test = ModelClasses.IntentNERData(modelConfig)
+test.add_embedding_class(embedding)
+test.parse_input("hello")
+test.parse_input("what time is it?")
+test.parse_input("how is the weather outside")
+
+model.train(5)
+model.save()
+
+print(model.predict(test))
+
+model.close()
