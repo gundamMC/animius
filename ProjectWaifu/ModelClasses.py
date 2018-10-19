@@ -143,7 +143,7 @@ class IntentNERData(Data):
         self.values['x'] = np.zeros((0, self.max_seq))
         self.values['x_length'] = np.zeros((0,))
         self.values['y_intent'] = np.zeros((0, model_config.model_structure['n_intent_output']))
-        self.values['y_ner'] = np.zeros((0, self.max_seq, model_config.model_structure['n_entities_output']))
+        self.values['y_ner'] = np.zeros((0, self.max_seq, model_config.model_structure['n_ner_output']))
 
     def add_input_data(self, input_data, input_length):
         assert(isinstance(input_data, np.ndarray))

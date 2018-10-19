@@ -24,7 +24,7 @@ class IntentNERModel(Model):
             'gradient_clip': 5.0,
             'node': 'gru',
             'n_intent_output': 15,
-            'n_entities_output': 8
+            'n_ner_output': 8
         }
 
     def __init__(self, model_config, data, restore_path=None):
@@ -47,18 +47,18 @@ class IntentNERModel(Model):
         self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']])  # [batch size, sequence length]
         self.x_length = tf.placeholder(tf.int32, [None])
         self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
-        self.y_entities = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_entities_output']])
+        self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_ner_output']])
         self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
 
         # Network parameters
         self.weights = {  # LSTM weights are created automatically by tensorflow
             "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_hidden'], self.model_structure['n_intent_output']])),
-            "out_entities": tf.Variable(tf.random_normal([self.model_structure['n_hidden'] + self.model_structure['n_intent_output'], self.model_structure['n_entities_output']]))
+            "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_hidden'] + self.model_structure['n_intent_output'], self.model_structure['n_ner_output']]))
         }
 
         self.biases = {
             "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_intent_output']])),
-            "out_entities": tf.Variable(tf.random_normal([[self.model_structure['n_entities_output']]]))
+            "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_ner_output']]))
         }
 
         self.cell_fw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
@@ -67,20 +67,14 @@ class IntentNERModel(Model):
         # Optimization
         logits_intent, logits_ner = self.network()
         self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=self.y_intent)) + \
-        tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_entities))
+        tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_ner))
 
         optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
         gradients, variables = zip(*optimizer.compute_gradients(self.cost))
         gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
         self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
-        predict_intent = tf.argmax(
-            tf.reshape(logits_intent, [self.model_structure['n_intent_output']])
-        )
-        predict_ner = tf.argmax(
-            tf.reshape(logits_ner, [self.model_structure['max_sequence'], self.model_structure['n_entities_output']]
-                       ), axis=1)
-        self.prediction = predict_intent, predict_ner
+        self.prediction = tf.nn.softmax(logits_intent), tf.nn.softmax(logits_ner)
 
         # Tensorboard
         if self.config['tensorboard'] is not None:
@@ -112,7 +106,7 @@ class IntentNERModel(Model):
 
         # get last time steps
         indexes = tf.reshape(tf.range(0, batch_size), [batch_size, 1])
-        last_time_steps = tf.reshape(tf.add(self.x_length, -1), [tf.range, 1])
+        last_time_steps = tf.reshape(tf.add(self.x_length, -1), [batch_size, 1])
         last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
 
         # apply linear
@@ -121,9 +115,9 @@ class IntentNERModel(Model):
             self.weights["out_intent"]) + self.biases["out_intent"]
 
         entities = tf.concat(
-            [output_bw, tf.tile(tf.expand_dims(outputs_intent, 1), [1, 30, 1])], -1
+            [output_bw, tf.tile(tf.expand_dims(outputs_intent, 1), [1, self.model_structure['max_sequence'], 1])], -1
         )
-        outputs_entities = tf.einsum('ijk,kl->ijl', entities, self.weights["out_entities"]) + self.biases["out_entities"]
+        outputs_entities = tf.einsum('ijk,kl->ijl', entities, self.weights["out_ner"]) + self.biases["out_ner"]
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
@@ -134,13 +128,13 @@ class IntentNERModel(Model):
     def train(self, epochs=200):
         for epoch in range(epochs):
 
-            mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_entities \
+            mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
                 = get_mini_batches(
                     shuffle([
                         self.data['x'],
                         self.data['x_length'],
-                        self.data['y_entities'],
-                        self.data['y_intent']
+                        self.data['y_intent'],
+                        self.data['y_ner']
                     ]),
                     self.hyperparameters['batch_size'])
 
@@ -151,7 +145,7 @@ class IntentNERModel(Model):
                 batch_x = mini_batches_x[batch]
                 batch_x_length = mini_batches_x_length[batch]
                 batch_y_intent = mini_batches_y_intent[batch]
-                batch_y_entities = mini_batches_y_entities[batch]
+                batch_y_ner = mini_batches_y_ner[batch]
 
                 if (self.config['epoch'] % self.config['display_step'] == 0 or self.config['display_step'] == 0) \
                         and (batch % 100 == 0 or batch == 0):
@@ -159,7 +153,7 @@ class IntentNERModel(Model):
                         self.x: batch_x,
                         self.x_length: batch_x_length,
                         self.y_intent: batch_y_intent,
-                        self.y_entities: batch_y_entities
+                        self.y_ner: batch_y_ner
                     })
 
                     print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
@@ -172,7 +166,7 @@ class IntentNERModel(Model):
                         self.x: batch_x,
                         self.x_length: batch_x_length,
                         self.y_intent: batch_y_intent,
-                        self.y_entities: batch_y_entities
+                        self.y_ner: batch_y_ner
                     })
 
             if self.config['tensorboard'] is not None:
@@ -180,7 +174,7 @@ class IntentNERModel(Model):
                     self.x: mini_batches_x[0],
                     self.x_length: mini_batches_x_length[0],
                     self.y_intent: mini_batches_y_intent[0],
-                    self.y_entities: mini_batches_y_entities[0]
+                    self.y_ner: mini_batches_y_ner[0]
                 })
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
@@ -191,7 +185,9 @@ class IntentNERModel(Model):
                                         self.x: input_data.values['x'],
                                         self.x_length: input_data.values['x_length']
                                     })
-        ner = ner[:, input_data.values['x_length']]
+
+        ner = [ner[i, 1:int(input_data.values['x_length'][i])] for i in range(len(ner))]
+        # excluding one since 1 is <GO>
 
         if save_path is not None:
             with open(save_path, "w") as file:
@@ -209,11 +205,11 @@ modelConfig.apply_defaults(IntentNERModel.DEFAULT_CONFIG(),
 data = ModelClasses.IntentNERData(modelConfig)
 
 embedding = WordEmbedding()
-embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
+embedding.create_embedding("./Data/glove.twitter.27B.50d.txt", vocab_size=40000)
 
 data.add_embedding_class(embedding)
 
-data.add_data_folder('./Data/IntentNER')
+data.add_data_folder('./Data/Intents')
 
 model = IntentNERModel(modelConfig, data)
 
@@ -224,7 +220,8 @@ test.parse_input("what time is it?")
 test.parse_input("how is the weather outside")
 
 model.train(5)
-model.save()
+
+a = model.predict(test)
 
 print(model.predict(test))
 
