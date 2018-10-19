@@ -1,7 +1,7 @@
 import json
-from numpy import eye, zeros, vstack
+import numpy as np
 import os
-from ProjectWaifu.Utils import sentence_to_index
+from ProjectWaifu.Utils import sentence_to_index, set_sequence_length
 import ProjectWaifu.WordEmbedding as Embedding
 
 entity_to_index = dict(person_name=1, object_name=2, object_type=3, time=4, location_name=5, condition=6, info=7)
@@ -9,20 +9,21 @@ intent_to_index = dict(Chat=0, Positive=1, Negative=2, GetCreativeWork=3, GetPla
                        GetTime=7, GetHardware=8, OpenExplorer=9, SetReminder=10, GetReminders=11, SetTimer=12,
                        SearchOnline=13, SetNote=14)
 
+# TODO: Load entities/intents dynamically
 
 def get_ner_data(json_text):
 
     input_data = []   # words
-    output_data = []  # indexes of the classes of each word
+    output_ner = []  # indexes of the classes of each word
 
     for text in json_text:
         input_data.extend(str.split(str.lower(text["text"])))
         if "entity" in text:
-            output_data.extend([entity_to_index[text["entity"]]] * len(str.split(text["text"])))
+            output_ner.extend([entity_to_index[text["entity"]]] * len(str.split(text["text"])))
         else:
-            output_data.extend([0] * len(str.split(text["text"])))
+            output_ner.extend([0] * len(str.split(text["text"])))
 
-    return input_data, output_data
+    return input_data, output_ner
 
 
 def get_file_data(intent, words_to_index, data_folder, max_seq=20):
@@ -33,13 +34,14 @@ def get_file_data(intent, words_to_index, data_folder, max_seq=20):
     ner_out = []
 
     for i in data:
-        input_data, output_data = get_ner_data(i["data"])
-        input_data, input_length = sentence_to_index(words_to_index, input_data, max_seq)
+        input_data, output_ner = get_ner_data(i["data"])
+        output_ner = set_sequence_length(output_ner, 0, max_seq=max_seq)
+        ner_out.append(np.eye(8)[output_ner])
+        input_data, input_length, _ = sentence_to_index(input_data, words_to_index, max_seq=max_seq)
         result_in.append(input_data)
         result_length.append(input_length)
-        ner_out.append(eye(8)[output_data])
 
-    intent_out = zeros((len(result_in), len(intent_to_index)))
+    intent_out = np.zeros((len(result_in), len(intent_to_index)))
     intent_out[:, intent_to_index[intent]] = 1
 
     return result_in, result_length, intent_out, ner_out
@@ -63,4 +65,5 @@ def get_data(data_folder, word_embedding, max_seq=20):
             y_intent.append(intent_out)
             y_ner.append(ner_out)
 
-    return vstack([i for i in x]), vstack([i for i in x_length]), vstack([i for i in y_intent]), vstack([i for i in y_ner])
+    return np.vstack([i for i in x]), np.hstack([i for i in x_length]), np.vstack([i for i in y_intent]), np.vstack(
+        [i for i in y_ner])

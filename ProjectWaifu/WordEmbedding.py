@@ -36,7 +36,7 @@ class WordEmbedding:
             word = split_line[0]
 
             vector = [float(val) for val in split_line[1:]]
-            vector.extend([0, 0, 0])
+            vector.extend([0] * 3)
             self.embedding.append(vector)
 
             self.words.append(word)
@@ -44,10 +44,11 @@ class WordEmbedding:
             index += 1
 
         # add special tokens
-        zeros = np.zeros((3, 103))
-        zeros[0, 100] = 1
-        zeros[1, 101] = 1
-        zeros[2, 102] = 1
+        vector_length = len(self.embedding[0])
+        zeros = np.zeros((3, vector_length))
+        zeros[0, vector_length - 3] = 1
+        zeros[1, vector_length - 2] = 1
+        zeros[2, vector_length - 1] = 1
 
         self.embedding = np.array(self.embedding)
         self.embedding = np.vstack((zeros, self.embedding))
