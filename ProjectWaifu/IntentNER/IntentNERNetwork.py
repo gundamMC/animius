@@ -121,11 +121,8 @@ class IntentNERModel(Model):
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
-    ###############################
-    # refactored up to this point #
-    ###############################
-
     def train(self, epochs=200):
+
         for epoch in range(epochs):
 
             mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
