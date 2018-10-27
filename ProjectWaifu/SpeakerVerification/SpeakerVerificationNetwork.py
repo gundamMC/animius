@@ -175,36 +175,3 @@ class SpeakerVerificationModel(Model):
                     file.write(str(result[i]) + '\n')
 
         return result
-
-    #
-    # @staticmethod
-    # def getData(TruePaths, FalsePaths=None):
-    #     x0 = np.empty(shape=[0, 10, 39])
-    #     x1 = np.empty(shape=[0, 10, 39])
-    #
-    #     for path in TruePaths:
-    #         x0 = np.append(x0, getMFCC(path, False), axis=0)
-    #
-    #     if FalsePaths is None:
-    #         return x0[..., np.newaxis]
-    #
-    #     for path in FalsePaths:
-    #         x1 = np.append(x1, getMFCC(path, False), axis=0)
-    #
-    #     y0 = np.tile([1,0], (x0.shape[0],1))
-    #     y1 = np.tile([0,1], (x1.shape[0],1))
-    #
-    #     datax = np.append(x0, x1, axis=0)
-    #     datay = np.append(y0, y1, axis=0)
-    #
-    #     datax = datax[..., np.newaxis]
-    #
-    #     return datax, datay
-
-    # def setTrainingData(self, dataPaths):
-    #     # dataPaths[0] = True Path
-    #     # dataPaths[1] = False Path
-    #     TrainTruePaths = [line.strip() for line in open(dataPaths[0], encoding='utf-8')]
-    #     TrainFalsePaths = [line.strip() for line in open(dataPaths[1], encoding='utf-8')]
-    #     self.train_x, self.train_y = self.getData(TrainTruePaths, TrainFalsePaths)
-    #     self.data_set = True

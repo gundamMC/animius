@@ -3,7 +3,7 @@ import speechpy
 import scipy.io.wavfile as wav
 
 
-def get_MFCC(path, window=10, step=3, num_cepstral=39, flatten=True):
+def get_MFCC(path, window=10, step=3, num_cepstral=39, flatten=False):
     # read wav
     sample_rate, signal = wav.read(path)
 
