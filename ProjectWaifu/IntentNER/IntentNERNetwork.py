@@ -206,7 +206,7 @@ embedding.create_embedding("./Data/glove.twitter.27B.50d.txt", vocab_size=40000)
 
 data.add_embedding_class(embedding)
 
-data.add_data_folder('./Data/Intents')
+data.parse_data_folder('./Data/Intents')
 
 model = IntentNERModel(modelConfig, data)
 

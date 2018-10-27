@@ -1,7 +1,9 @@
 import ProjectWaifu.Chatbot.ParseData as ChatbotParse
 import ProjectWaifu.IntentNER.ParseData as IntentNERParse
+import ProjectWaifu.SpeakerVerification.MFCC as MFCC
 from ProjectWaifu.Utils import sentence_to_index
 import numpy as np
+from abc import ABC, abstractmethod
 
 
 class ModelConfig:
@@ -36,7 +38,7 @@ class ModelConfig:
                 self.model_structure[key] = default_value
 
 
-class Data:
+class Data(ABC):
 
     def __init__(self):
         self.values = {}
@@ -49,6 +51,10 @@ class Data:
 
     def __str__(self):
         return str(self.values)
+
+    @abstractmethod
+    def add_data(self, data):
+        pass
 
 
 class ChatbotData(Data):
@@ -67,6 +73,10 @@ class ChatbotData(Data):
         self.values['y'] = np.zeros((0, max_seq))
         self.values['y_length'] = np.zeros((0,))
         self.values['y_target'] = np.zeros((0, max_seq))
+
+    def add_data(self, data):
+        self.add_input_data(data[0], data[1])
+        self.add_output_data(data[2], data[3])
 
     def add_input_data(self, input_data, input_length):
         assert(isinstance(input_data, np.ndarray))
@@ -145,25 +155,75 @@ class IntentNERData(Data):
         self.values['y_intent'] = np.zeros((0, model_config.model_structure['n_intent_output']))
         self.values['y_ner'] = np.zeros((0, self.max_seq, model_config.model_structure['n_ner_output']))
 
+    def add_data(self, data):
+        self.add_input_data(data[0], data[1])
+        self.add_output_data(data[2], data[3])
+
     def add_input_data(self, input_data, input_length):
         assert(isinstance(input_data, np.ndarray))
         assert (isinstance(input_length, np.ndarray))
         self.values['x'] = np.concatenate([self.values['x'], input_data])
         self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
 
-    def add_data_folder(self, folder_directory):
+    def add_output_data(self, output_intent, output_ner):
+        assert(isinstance(output_intent, np.ndarray))
+        assert (isinstance(output_ner, np.ndarray))
+        self.values['y_intent'] = np.concatenate([self.values['y_intent'], output_intent])
+        self.values['y_ner'] = np.concatenate([self.values['y_ner'], output_ner])
+
+    def parse_data_folder(self, folder_directory):
 
         x, x_length, y_intent, y_ner = IntentNERParse.get_data(folder_directory, self.values['embedding'], self.max_seq)
 
-        self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length)])
-        self.values['y_intent'] = np.concatenate([self.values['y_intent'], np.array(y_intent)])
-        self.values['y_ner'] = np.concatenate([self.values['y_ner'], np.array(y_ner)])
+        self.add_data([x, x_length, y_intent, y_ner])
 
     def parse_input(self, input_x):
 
         x, x_length, _ = sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
                                            self.values['embedding'].words_to_index)
 
-        self.values['x'] = np.concatenate([self.values['x'], np.array(x).reshape((1, len(x)))], axis=0)
-        self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length).reshape(1,)], axis=0)
+        self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1, )))
+
+
+class SpeakerVerificationData(Data):
+
+    def __init__(self, model_config):
+
+        super().__init__()
+
+        self.values['x'] = np.zeros((0,
+                                     model_config.model_structure['input_window'],
+                                     model_config.model_structure['input_cepstral'],
+                                     1))
+        self.values['y'] = np.zeros((0,))
+
+    def add_data(self, data):
+        self.add_input_data(data[0])
+        self.add_output_data(data[1])
+
+    def add_input_data(self, input_mfcc):
+        assert(isinstance(input_mfcc, np.ndarray))
+        self.values['x'] = np.concatenate([self.values['x'], input_mfcc])
+
+    def add_output_data(self, output_label):
+        assert(isinstance(output_label, np.ndarray))
+        self.values['y'] = np.concatenate([self.values['y'], output_label])
+
+    def parse_data_paths(self, paths, output=None):
+
+        count = 0
+
+        for path in paths:
+            try:
+                self.add_input_data(MFCC.get_MFCC(path, flatten=False))
+                count += 1
+            except Exception as e:
+                print(e)
+
+        if output is True:
+            self.add_output_data(np.tile([1], count))
+        elif output is False:
+            self.add_output_data(np.tile([0], count))
+
+    def parse_data_file(self, path, output=None, encoding='utf-8'):
+        self.parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
