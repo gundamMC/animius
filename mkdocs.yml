@@ -1,0 +1,5 @@
+site_name: Project Waifu Docs
+nav:
+    - Home: index.md
+    - About: about.md
+theme: 'material'
