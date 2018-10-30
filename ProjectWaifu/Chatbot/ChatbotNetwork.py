@@ -144,7 +144,8 @@ class ChatbotModel(Model):
                 attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                     self.cell_decode, attention_mechanism, attention_layer_size=self.model_structure['n_hidden'])
                 decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32,
-                                                                     batch_size=tf.shape(self.x)[0]).clone(cell_state=encoder_state)
+                                                                     batch_size=tf.shape(self.x)[0]
+                                                                     ).clone(cell_state=encoder_state)
 
                 embedded_y = tf.nn.embedding_lookup(self.word_embedding, self.y)
 
@@ -237,8 +238,6 @@ class ChatbotModel(Model):
                         self.data['y_target']]),
                     self.hyperparameters['batch_size'])
 
-            self.config['epoch'] += 1
-
             for batch in range(len(mini_batches_x)):
                 batch_x = mini_batches_x[batch]
                 batch_x_length = mini_batches_x_length[batch]
@@ -246,8 +245,10 @@ class ChatbotModel(Model):
                 batch_y_length = mini_batches_y_length[batch]
                 batch_y_target = mini_batches_y_target[batch]
 
-                if (self.config['epoch'] % self.config['display_step'] == 0 or self.config['display_step'] == 0)\
-                        and (batch % 100 == 0 or batch == 0):
+                if (self.config['display_step'] == 0 or
+                    self.config['epoch'] % self.config['display_step'] == 0 or
+                    epoch == epochs) and \
+                        (batch % 100 == 0 or batch == 0):
                     _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
                         self.x: batch_x,
                         self.x_length: batch_x_length,
@@ -279,6 +280,8 @@ class ChatbotModel(Model):
                     self.y_target: mini_batches_y_target[0]
                 })
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
+
+            self.config['epoch'] += 1
 
     def predict(self, input_data, save_path=None):
         test_output = self.sess.run(self.infer,

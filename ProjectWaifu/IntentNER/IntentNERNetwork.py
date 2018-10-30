@@ -135,8 +135,6 @@ class IntentNERModel(Model):
                     ]),
                     self.hyperparameters['batch_size'])
 
-            self.config['epoch'] += 1
-
             for batch in range(len(mini_batches_x)):
 
                 batch_x = mini_batches_x[batch]
@@ -144,8 +142,10 @@ class IntentNERModel(Model):
                 batch_y_intent = mini_batches_y_intent[batch]
                 batch_y_ner = mini_batches_y_ner[batch]
 
-                if (self.config['epoch'] % self.config['display_step'] == 0 or self.config['display_step'] == 0) \
-                        and (batch % 100 == 0 or batch == 0):
+                if (self.config['display_step'] == 0 or
+                    self.config['epoch'] % self.config['display_step'] == 0 or
+                    epoch == epochs) and \
+                        (batch % 100 == 0 or batch == 0):
                     _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
                         self.x: batch_x,
                         self.x_length: batch_x_length,
@@ -155,7 +155,7 @@ class IntentNERModel(Model):
 
                     print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
 
-                    if self.config['hyperdash']:
+                    if self.config['hyperdash'] is not None:
                         self.hyperdash.metric("cost", cost_value)
 
                 else:
@@ -174,6 +174,8 @@ class IntentNERModel(Model):
                     self.y_ner: mini_batches_y_ner[0]
                 })
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
+
+            self.config['epoch'] += 1
 
     def predict(self, input_data, save_path=None):
 
