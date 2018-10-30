@@ -1,8 +1,7 @@
 import tensorflow as tf
-import numpy as np
 from ProjectWaifu.Model import Model
 from ProjectWaifu.Utils import get_mini_batches, shuffle
-import os
+import ProjectWaifu.ModelClasses as ModelClasses
 
 
 class SpeakerVerificationModel(Model):
@@ -37,9 +36,8 @@ class SpeakerVerificationModel(Model):
         # Tensorflow placeholders
         self.x = tf.placeholder(tf.float32, [None,
                                              self.model_structure['input_window'],
-                                             self.model_structure['input_cepstral'],
-                                             1])
-        self.y = tf.placeholder(tf.float32, [None])
+                                             self.model_structure['input_cepstral']])
+        self.y = tf.placeholder(tf.float32, [None, 1])
 
         # Network parameters
         self.weights = {
@@ -56,8 +54,8 @@ class SpeakerVerificationModel(Model):
                                                  self.model_structure['num_filter_2']]
                                                 )),
             # fully connected 1, 15 input layers, 128 outpute nodes
-            'wd1': tf.Variable(tf.random_normal([int(self.model_structure['input_window']/2) *
-                                                 int(self.model_structure['input_cepstral']/2) *
+            'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window']/2) *
+                                                 round(self.model_structure['input_cepstral']/2) *
                                                  self.model_structure['num_filter_2'],
                                                  self.model_structure['fully_connected_1']]
                                                 )),
@@ -73,9 +71,8 @@ class SpeakerVerificationModel(Model):
         }
 
         # Optimization
-        self.prediction = tf.nn.sigmoid(self.network(self.x))
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.network(self.x),
-                                                                              labels=self.y))
+        self.prediction = self.network()
+        self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.network(), labels=self.y))
         self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(self.cost)
 
         # Tensorboard
@@ -91,35 +88,36 @@ class SpeakerVerificationModel(Model):
         # restore model data values
         self.init_restore(restore_path)
 
-    def network(self, X):
+    def network(self):
 
-        conv1 = tf.nn.conv2d(X, self.weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
+        conv_x = tf.expand_dims(self.x, -1)
+
+        conv1 = tf.nn.conv2d(conv_x, self.weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
 
         if self.model_structure['pool_type'] == 'max':
-            conv1 = tf.nn.max_pool(conv1,
+            conv1_pooled = tf.nn.max_pool(conv1,
                                    ksize=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
                                           1],
                                    strides=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
                                             1],
                                    padding='SAME')
 
-        elif self.model_structure['pool_type'] == 'avg':
-            conv1 = tf.nn.avg_pool(conv1,
+        else:
+            conv1_pooled = tf.nn.avg_pool(conv1,
                                    ksize=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
                                           1],
                                    strides=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
                                             1],
                                    padding='SAME')
 
-        conv2 = tf.nn.conv2d(conv1, self.weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
+        conv2 = tf.nn.conv2d(conv1_pooled, self.weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
 
-        fc1 = tf.reshape(conv2, [-1])
-        fc1 = tf.add(tf.matmul(fc1, self.weights["wd1"]), self.biases["bd3"])
+        conv2 = tf.reshape(conv2, [tf.shape(self.x)[0], -1])  # maintain batch size
+        fc1 = tf.add(tf.matmul(conv2, self.weights["wd1"]), self.biases["bd1"])
         fc1 = tf.nn.relu(fc1)
 
         out = tf.add(tf.matmul(fc1, self.weights['out']), self.biases['out'])
 
-        # softmax is applied during tf.nn.softmax_cross_entropy_with_logits
         return out
 
     def train(self, epochs=800):
@@ -129,17 +127,17 @@ class SpeakerVerificationModel(Model):
             mini_batches_x, mini_batches_y = get_mini_batches(
                 shuffle([
                     self.data['x'],
-                    self.data['x_length'],
-                    self.data['y_intent'],
-                    self.data['y_ner']]
+                    self.data['y']]
                 ), self.hyperparameters['batch_size'])
 
             for batch in range(len(mini_batches_x)):
                 batch_x = mini_batches_x[batch]
                 batch_y = mini_batches_y[batch]
 
-                if (self.config['epoch'] % self.config['display_step'] == 0 or self.config['display_step'] == 0) \
-                        and (batch % 100 == 0 or batch == 0):
+                if (self.config['display_step'] == 0 or
+                    self.config['epoch'] % self.config['display_step'] == 0 or
+                    epoch == epochs) and \
+                        (batch % 100 == 0 or batch == 0):
                     _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
                         self.x: batch_x,
                         self.y: batch_y
@@ -147,7 +145,7 @@ class SpeakerVerificationModel(Model):
 
                     print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
 
-                    if self.config['hyperdash']:
+                    if self.config['hyperdash'] is not None:
                         self.hyperdash.metric("cost", cost_value)
 
                 else:
@@ -163,6 +161,8 @@ class SpeakerVerificationModel(Model):
                 })
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
+            self.config['epoch'] += 1
+
     def predict(self, input_data, save_path=None):
         result = self.sess.run(self.prediction,
                                feed_dict={
@@ -175,3 +175,25 @@ class SpeakerVerificationModel(Model):
                     file.write(str(result[i]) + '\n')
 
         return result
+
+
+# Creating a model
+modelConfig = SpeakerVerificationModel.DEFAULT_MODEL_CONFIG()
+modelConfig.model_structure['input_window'] = 50
+modelConfig.config['display_step'] = 20
+
+data = ModelClasses.SpeakerVerificationData(modelConfig)
+
+data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\True.txt', output=True)
+data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\False.txt', output=False)
+model = SpeakerVerificationModel(modelConfig, data)
+
+test = ModelClasses.SpeakerVerificationData(modelConfig)
+test.parse_input_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\Hyouka - 01\\0020.wav')
+
+model.train(150)
+model.save()
+
+import numpy as np
+
+print(np.mean(model.predict(test)))
