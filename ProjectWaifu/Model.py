@@ -12,8 +12,8 @@ class Model(ABC):
         return {
             'epoch': 0,
             'display_step': 1,
-            'tensorboard': './model/tensorboard',
-            'hyperdash': 'Project Waifu Model'
+            'tensorboard': None,
+            'hyperdash': None
         }
 
     @staticmethod
@@ -23,6 +23,12 @@ class Model(ABC):
     @staticmethod
     def DEFAULT_HYPERPARAMETERS():
         return {}
+
+    @classmethod
+    def DEFAULT_MODEL_CONFIG(cls):
+        return ModelConfig(config=cls.DEFAULT_CONFIG(),
+                           model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
+                           hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
 
     def __init__(self, model_config, data, restore_path=None):
 

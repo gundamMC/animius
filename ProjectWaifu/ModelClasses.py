@@ -191,11 +191,13 @@ class SpeakerVerificationData(Data):
 
         super().__init__()
 
+        self.mfcc_window = model_config.model_structure['input_window']
+        self.mfcc_cepstral = model_config.model_structure['input_cepstral']
+
         self.values['x'] = np.zeros((0,
-                                     model_config.model_structure['input_window'],
-                                     model_config.model_structure['input_cepstral'],
-                                     1))
-        self.values['y'] = np.zeros((0,))
+                                     self.mfcc_window,
+                                     self.mfcc_cepstral))
+        self.values['y'] = np.zeros((0, 1))
 
     def add_data(self, data):
         self.add_input_data(data[0])
@@ -209,21 +211,26 @@ class SpeakerVerificationData(Data):
         assert(isinstance(output_label, np.ndarray))
         self.values['y'] = np.concatenate([self.values['y'], output_label])
 
+    def parse_input_file(self, path):
+        data = MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, flatten=False)
+        self.add_input_data(data)
+        return data.shape[0]
+        # return batch number
+
     def parse_data_paths(self, paths, output=None):
 
         count = 0
 
         for path in paths:
             try:
-                self.add_input_data(MFCC.get_MFCC(path, flatten=False))
-                count += 1
+                count += self.parse_input_file(path)
             except Exception as e:
                 print(e)
 
         if output is True:
-            self.add_output_data(np.tile([1], count))
+            self.add_output_data(np.expand_dims(np.tile([1], count), -1))
         elif output is False:
-            self.add_output_data(np.tile([0], count))
+            self.add_output_data(np.expand_dims(np.tile([0], count), -1))
 
     def parse_data_file(self, path, output=None, encoding='utf-8'):
         self.parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
