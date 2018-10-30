@@ -1,5 +1,13 @@
 site_name: Project Waifu Docs
 nav:
-    - Home: index.md
-    - About: about.md
+    - Home: 'index.md'
+    - About: 'about.md'
+    - Network: 
+        - Overview: 'network/overview.md'
+        - Authentication: 'network/authentication.md'
 theme: 'material'
+markdown_extensions:
+  - codehilite:
+      linenums: true
+  - pymdownx.tilde
+  - pymdownx.inlinehilite
