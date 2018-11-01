@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>None</loc>
-     <lastmod>2018-10-30</lastmod>
+     <loc>https://gundammc.github.io/Project-Waifu/</loc>
+     <lastmod>2018-10-31</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2018-10-30</lastmod>
+     <loc>https://gundammc.github.io/Project-Waifu/about/</loc>
+     <lastmod>2018-10-31</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2018-10-30</lastmod>
+     <loc>https://gundammc.github.io/Project-Waifu/network/overview/</loc>
+     <lastmod>2018-10-31</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>None</loc>
-     <lastmod>2018-10-30</lastmod>
+     <loc>https://gundammc.github.io/Project-Waifu/network/authentication/</loc>
+     <lastmod>2018-10-31</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
