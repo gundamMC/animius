@@ -1,4 +1,5 @@
-site_name: Project Waifu Docs
+site_name: 'Project Waifu Docs'
+site_url: 'https://gundammc.github.io/Project-Waifu'
 nav:
     - Home: 'index.md'
     - About: 'about.md'
