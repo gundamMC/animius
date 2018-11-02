@@ -1,20 +1,22 @@
 import ProjectWaifu.Console as Console
 
-print("Welcome to Project Waifu")
+print('Welcome to Project Waifu')
 
 while True:
-    UserInput = input("Input: ")
+    user_input = input('Input: ')
 
-    if UserInput == "Exit":
+    if user_input == 'Exit':
         break
 
-    InputArgs = Console.ParseArgs(UserInput)
-    Command = InputArgs[0]
-    InputArgs = InputArgs[1:]
+    command, args = Console.ParseArgs(user_input)
 
-    method_to_call = getattr(Console, Command, None)
+    print(command)
+    print(args)
 
-    if method_to_call is None:
-        print("Invalid command")
+    if command is None:
+        continue
+
+    if command in commands:
+        commands[command].__call__(args)
     else:
-        method_to_call(InputArgs)
+        print('Invalid command')
