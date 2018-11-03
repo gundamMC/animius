@@ -1,14 +1,44 @@
+# Project Information
 site_name: 'Project Waifu Docs'
+site_description: 'A Documentation of Project Waifu'
+site_author: 'gundamMC'
 site_url: 'https://gundammc.github.io/Project-Waifu'
+
+# Copyright
+copyright: 'Copyright &copy; 2018 gundamMC'
+
+# Navigation
 nav:
     - Home: 'index.md'
     - About: 'about.md'
+    - Commands:
+        - Overview: 'commands/overview.md'
+    - File Structure:
+        - Overview: 'file structure/overview.md'
     - Network: 
         - Overview: 'network/overview.md'
         - Authentication: 'network/authentication.md'
-theme: 'material'
+
+# Themes
+theme:
+    name: 'material'
+    palette:
+        primary: 'blue'
+        accent: 'blue'
+
+# Repo information
+repo_name: 'gundamMC/Project-Waifu'
+repo_url: 'https://github.com/gundamMC/Project-Waifu'
+
+# Extensions
 markdown_extensions:
   - codehilite:
       linenums: true
   - pymdownx.tilde
   - pymdownx.inlinehilite
+
+# Social links
+extra:
+  social:
+    - type: 'github'
+      link: 'https://github.com/gundamMC'
