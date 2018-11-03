@@ -1,11 +1,8 @@
 import tensorflow as tf
-from ProjectWaifu.WordEmbedding import WordEmbedding
-from ProjectWaifu.Utils import get_mini_batches, shuffle
-from ProjectWaifu.Model import Model
-import ProjectWaifu.ModelClasses as ModelClasses
+import ProjectWaifu as PW
 
 
-class IntentNERModel(Model):
+class IntentNERModel(PW.Model):
 
     # default values
     @staticmethod
@@ -126,8 +123,8 @@ class IntentNERModel(Model):
         for epoch in range(epochs):
 
             mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
-                = get_mini_batches(
-                    shuffle([
+                = PW.Utils.get_mini_batches(
+                    PW.Utils.shuffle([
                         self.data['x'],
                         self.data['x_length'],
                         self.data['y_intent'],
@@ -185,8 +182,7 @@ class IntentNERModel(Model):
                                         self.x_length: input_data.values['x_length']
                                     })
 
-        ner = [ner[i, 1:int(input_data.values['x_length'][i])] for i in range(len(ner))]
-        # excluding one since 1 is <GO>
+        ner = [ner[i, :int(input_data.values['x_length'][i])] for i in range(len(ner))]
 
         if save_path is not None:
             with open(save_path, "w") as file:
@@ -194,34 +190,3 @@ class IntentNERModel(Model):
                     file.write(str(intent[i]) + ' - ' + ', '.join(str(x) for x in ner[i]) + '\n')
 
         return intent, ner
-
-
-modelConfig = ModelClasses.ModelConfig()
-modelConfig.apply_defaults(IntentNERModel.DEFAULT_CONFIG(),
-                           IntentNERModel.DEFAULT_HYPERPARAMETERS(),
-                           IntentNERModel.DEFAULT_MODEL_STRUCTURE())
-
-data = ModelClasses.IntentNERData(modelConfig)
-
-embedding = WordEmbedding()
-embedding.create_embedding("./Data/glove.twitter.27B.50d.txt", vocab_size=40000)
-
-data.add_embedding_class(embedding)
-
-data.parse_data_folder('./Data/Intents')
-
-model = IntentNERModel(modelConfig, data)
-
-test = ModelClasses.IntentNERData(modelConfig)
-test.add_embedding_class(embedding)
-test.parse_input("hello")
-test.parse_input("what time is it?")
-test.parse_input("how is the weather outside")
-
-model.train(5)
-
-a = model.predict(test)
-
-print(model.predict(test))
-
-model.close()

@@ -1,10 +1,8 @@
 import tensorflow as tf
-from ProjectWaifu.Model import Model
-from ProjectWaifu.Utils import get_mini_batches, shuffle
-import ProjectWaifu.ModelClasses as ModelClasses
+import ProjectWaifu as pw
 
 
-class SpeakerVerificationModel(Model):
+class SpeakerVerificationModel(pw.Model):
 
     # default values
     @staticmethod
@@ -124,8 +122,8 @@ class SpeakerVerificationModel(Model):
 
         for epoch in range(epochs):
 
-            mini_batches_x, mini_batches_y = get_mini_batches(
-                shuffle([
+            mini_batches_x, mini_batches_y = pw.Utils.get_mini_batches(
+                pw.Utils.shuffle([
                     self.data['x'],
                     self.data['y']]
                 ), self.hyperparameters['batch_size'])
@@ -177,23 +175,22 @@ class SpeakerVerificationModel(Model):
         return result
 
 
-# Creating a model
-modelConfig = SpeakerVerificationModel.DEFAULT_MODEL_CONFIG()
-modelConfig.model_structure['input_window'] = 50
-modelConfig.config['display_step'] = 20
-
-data = ModelClasses.SpeakerVerificationData(modelConfig)
-
-data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\True.txt', output=True)
-data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\False.txt', output=False)
-model = SpeakerVerificationModel(modelConfig, data)
-
-test = ModelClasses.SpeakerVerificationData(modelConfig)
-test.parse_input_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\Hyouka - 01\\0020.wav')
-
-model.train(150)
-model.save()
-
-import numpy as np
-
-print(np.mean(model.predict(test)))
+# modelConfig = SpeakerVerificationModel.DEFAULT_MODEL_CONFIG()
+# modelConfig.model_structure['input_window'] = 50
+# modelConfig.config['display_step'] = 20
+#
+# data = ModelClasses.SpeakerVerificationData(modelConfig)
+#
+# data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\True.txt', output=True)
+# data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\False.txt', output=False)
+# model = SpeakerVerificationModel(modelConfig, data)
+#
+# test = ModelClasses.SpeakerVerificationData(modelConfig)
+# test.parse_input_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\Hyouka - 01\\0020.wav')
+#
+# model.train(150)
+# model.save()
+#
+# import numpy as np
+#
+# print(np.mean(model.predict(test)))
