@@ -43,8 +43,8 @@ def get_length(sequence):
     return length
 
 
-def sentence_to_index(sentence, word_to_index, max_seq=20, target=False):
-    if not target:
+def sentence_to_index(sentence, word_to_index, max_seq=20, go=False, eos=False):
+    if go:
         result = [word_to_index["<GO>"]]
         length = 1
     else:
@@ -60,18 +60,21 @@ def sentence_to_index(sentence, word_to_index, max_seq=20, target=False):
             unk += 1
 
     if length >= max_seq:
-        length = max_seq - 1
+        if eos:
+            length = max_seq - 1
+        else:
+            length = max_seq
 
-    set_sequence_length(result, word_to_index["<EOS>"], max_seq)
+    set_sequence_length(result, word_to_index["<EOS>"], max_seq, force_eos=eos)
 
     return result, length, unk
 
 
-def set_sequence_length(sequence, pad, max_seq=20):
+def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
 
     if len(sequence) < max_seq:
         sequence.extend([pad] * (max_seq - len(sequence)))
-    else:
+    elif force_eos:
         sequence = sequence[:max_seq - 1]
         sequence.append(pad)
 

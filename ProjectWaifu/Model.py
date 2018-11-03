@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import tensorflow as tf
-from ProjectWaifu.ModelClasses import ModelConfig
+import ProjectWaifu.ModelClasses as ModelClasses
 import json
 from os.path import isdir, join
 
@@ -26,9 +26,9 @@ class Model(ABC):
 
     @classmethod
     def DEFAULT_MODEL_CONFIG(cls):
-        return ModelConfig(config=cls.DEFAULT_CONFIG(),
-                           model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
-                           hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
+        return ModelClasses.ModelConfig(config=cls.DEFAULT_CONFIG(),
+                                        model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
+                                        hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
 
     def __init__(self, model_config, data, restore_path=None):
 
@@ -37,7 +37,7 @@ class Model(ABC):
             self.data = data
             return
 
-        if not isinstance(model_config, ModelConfig):
+        if not isinstance(model_config, ModelClasses.ModelConfig):
             raise TypeError('model_config must be a ModelConfig object')
 
         # apply values

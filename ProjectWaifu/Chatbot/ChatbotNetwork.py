@@ -1,11 +1,9 @@
 import tensorflow as tf
-from ProjectWaifu.Model import Model
-from ProjectWaifu.WordEmbedding import WordEmbedding
+import ProjectWaifu as pw
 from ProjectWaifu.Utils import get_mini_batches, shuffle
-import ProjectWaifu.ModelClasses as ModelClasses
 
 
-class ChatbotModel(Model):
+class ChatbotModel(pw.Model):
 
     # default values
     @staticmethod
@@ -213,9 +211,9 @@ class ChatbotModel(Model):
                 decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                     cell=attn_decoder_cell,
                     embedding=self.word_embedding,
-                    start_tokens=tf.tile(tf.constant([WordEmbedding.GO], dtype=tf.int32),
+                    start_tokens=tf.tile(tf.constant([pw.WordEmbedding.GO], dtype=tf.int32),
                                          [tf.shape(self.x)[0]]),
-                    end_token=WordEmbedding.EOS,
+                    end_token=pw.WordEmbedding.EOS,
                     initial_state=decoder_initial_state,
                     beam_width=beam_width,
                     output_layer=self.projection_layer,
@@ -313,53 +311,53 @@ class ChatbotModel(Model):
 # test
 
 # Creating a model
-modelConfig = ModelClasses.ModelConfig(
-    config={
-        'display_step': 1,
-        'tensorboard': './tensorboard',
-        'hyperdash': 'Project Waifu Chatbot Model'
-    },
-    hyperparameters={
-        'learning_rate': 0.00015,
-        'batch_size': 8,
-        'optimizer': 'adam'
-    },
-    model_structure={
-        'max_sequence': 20,
-        'n_hidden': 128
-    })
+# modelConfig = pw.ModelClasses.ModelConfig(
+#     config={
+#         'display_step': 1,
+#         'tensorboard': './tensorboard',
+#         'hyperdash': 'Project Waifu Chatbot Model'
+#     },
+#     hyperparameters={
+#         'learning_rate': 0.00015,
+#         'batch_size': 8,
+#         'optimizer': 'adam'
+#     },
+#     model_structure={
+#         'max_sequence': 20,
+#         'n_hidden': 128
+#     })
 
-data = ModelClasses.ChatbotData(modelConfig)
-embedding = WordEmbedding()
-embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
-
-data.add_embedding_class(embedding)
-
-data.add_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt", upper_bound=100)
-data.add_twitter('./Data/chat.txt', upper_bound=100)
-
-model = ChatbotModel(modelConfig, data)
-
-test = ModelClasses.ChatbotData(modelConfig)
-test.add_embedding_class(embedding)
-test.parse_input("hello")
-test.parse_input("what's your name?")
-test.parse_input("fuck you")
-test.parse_input("how has your day been?")
-
-model.train(5)
-model.save()
-
-model.close()
-
-# restoring the model
-# model = ChatbotModel(None, None, restore_path='./model')
-#
+# data = ModelClasses.ChatbotData(modelConfig)
 # embedding = WordEmbedding()
 # embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
-# test = ModelClasses.ChatbotData(model.model_structure['max_sequence'])
+#
+# data.add_embedding_class(embedding)
+#
+# data.add_cornell("./Data/movie_conversations.txt", "./Data/movie_lines.txt", upper_bound=100)
+# data.add_twitter('./Data/chat.txt', upper_bound=100)
+#
+# model = ChatbotModel(modelConfig, data)
+#
+# test = ModelClasses.ChatbotData(modelConfig)
 # test.add_embedding_class(embedding)
 # test.parse_input("hello")
+# test.parse_input("what's your name?")
+# test.parse_input("fuck you")
+# test.parse_input("how has your day been?")
 #
-
-print(model.predict(test))
+# model.train(5)
+# model.save()
+#
+# model.close()
+#
+# # restoring the model
+# # model = ChatbotModel(None, None, restore_path='./model')
+# #
+# # embedding = WordEmbedding()
+# # embedding.create_embedding("./Data/glove.twitter.27B.100d.txt", vocab_size=40000)
+# # test = ModelClasses.ChatbotData(model.model_structure['max_sequence'])
+# # test.add_embedding_class(embedding)
+# # test.parse_input("hello")
+# #
+#
+# print(model.predict(test))

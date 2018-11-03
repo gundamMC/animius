@@ -1,13 +1,10 @@
-import ProjectWaifu.Chatbot.ParseData as ChatbotParse
-import ProjectWaifu.IntentNER.ParseData as IntentNERParse
-import ProjectWaifu.SpeakerVerification.MFCC as MFCC
-from ProjectWaifu.Utils import sentence_to_index
+import ProjectWaifu as pw
 import numpy as np
 from abc import ABC, abstractmethod
 
 
 class ModelConfig:
-    def __init__(self, config=None, hyperparameters=None, model_structure=None):
+    def __init__(self, cls, config=None, hyperparameters=None, model_structure=None):
         if config is None:
             self.config = {}
         else:
@@ -23,17 +20,19 @@ class ModelConfig:
         else:
             self.model_structure = model_structure
 
-    def apply_defaults(self, DEFAULT_CONFIG, DEFAULT_HYPERPARAMETERS, DEFAULT_MODEL_STRUCTURE):
+        self.apply_defaults(cls)
 
-        for key, default_value in DEFAULT_CONFIG.items():
+    def apply_defaults(self, cls):
+
+        for key, default_value in cls.DEFAULT_CONFIG().items():
             if key not in self.config:
                 self.config[key] = default_value
 
-        for key, default_value in DEFAULT_HYPERPARAMETERS.items():
+        for key, default_value in cls.DEFAULT_HYPERPARAMETERS().items():
             if key not in self.hyperparameters:
                 self.hyperparameters[key] = default_value
 
-        for key, default_value in DEFAULT_MODEL_STRUCTURE.items():
+        for key, default_value in cls.DEFAULT_MODEL_STRUCTURE().items():
             if key not in self.model_structure:
                 self.model_structure[key] = default_value
 
@@ -97,8 +96,8 @@ class ChatbotData(Data):
         ])
 
     def parse_input(self, input_x):
-        x, x_length, _ = sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
-                                           self.values['embedding'].words_to_index)
+        x, x_length, _ = pw.Utils.sentence_to_index(pw.Chatbot.Parse.split_sentence(input_x.lower()),
+                                           self.values['embedding'].words_to_index, go=True, eos=True)
 
         self.values['x'] = np.concatenate([self.values['x'], np.array(x).reshape((1, len(x)))], axis=0)
         self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length).reshape(1,)], axis=0)
@@ -109,8 +108,8 @@ class ChatbotData(Data):
 
         f = open(path, 'r', encoding='utf8')
         for line in f:
-            x_tmp, length_tmp, _ = sentence_to_index(ChatbotParse.split_sentence(line.lower()),
-                                                     self.values['embedding'].words_to_index)
+            x_tmp, length_tmp, _ = pw.Utils.sentence_to_index(pw.Chatbot.Parse.split_sentence(line.lower()),
+                                                     self.values['embedding'].words_to_index, go=True, eos=True)
             x.append(x_tmp)
             x_length.append(length_tmp)
 
@@ -118,11 +117,11 @@ class ChatbotData(Data):
         self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length)])
 
     def parse_sentence_data(self, x, y):
-        x = ChatbotParse.split_data(x)
-        y = ChatbotParse.split_data(y)
+        x = pw.Chatbot.Parse.split_data(x)
+        y = pw.Chatbot.Parse.split_data(y)
 
         x, y, x_length, y_length, y_target = \
-            ChatbotParse.data_to_index(x, y, self.values['embedding'].words_to_index)
+            pw.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index)
 
         self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
         self.values['y'] = np.concatenate([self.values['y'], np.array(y)])
@@ -131,11 +130,11 @@ class ChatbotData(Data):
         self.values['y_target'] = np.concatenate([self.values['y_target'], np.array(y_target)])
 
     def add_cornell(self, conversations_path, movie_lines_path, lower_bound=None, upper_bound=None):
-        x, y = ChatbotParse.load_cornell(conversations_path, movie_lines_path)
+        x, y = pw.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
         self.parse_sentence_data(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
     def add_twitter(self, chat_path, lower_bound=None, upper_bound=None):
-        x, y = ChatbotParse.load_twitter(chat_path)
+        x, y = pw.Chatbot.Parse.load_twitter(chat_path)
         self.parse_sentence_data(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
 
@@ -148,7 +147,7 @@ class IntentNERData(Data):
         if isinstance(model_config, ModelConfig):
             self.max_seq = model_config.model_structure['max_sequence']
         else:
-            raise TypeError('model_config must be either a ModelConfig object')
+            raise TypeError('model_config must be a ModelConfig object')
 
         self.values['x'] = np.zeros((0, self.max_seq))
         self.values['x_length'] = np.zeros((0,))
@@ -173,14 +172,14 @@ class IntentNERData(Data):
 
     def parse_data_folder(self, folder_directory):
 
-        x, x_length, y_intent, y_ner = IntentNERParse.get_data(folder_directory, self.values['embedding'], self.max_seq)
+        x, x_length, y_intent, y_ner = pw.IntentNER.Parse.get_data(folder_directory, self.values['embedding'], self.max_seq)
 
         self.add_data([x, x_length, y_intent, y_ner])
 
     def parse_input(self, input_x):
 
-        x, x_length, _ = sentence_to_index(ChatbotParse.split_sentence(input_x.lower()),
-                                           self.values['embedding'].words_to_index)
+        x, x_length, _ = pw.Utils.sentence_to_index(pw.Chatbot.Parse.split_sentence(input_x.lower()),
+                                           self.values['embedding'].words_to_index, go=False, eos=False)
 
         self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1, )))
 
@@ -212,7 +211,7 @@ class SpeakerVerificationData(Data):
         self.values['y'] = np.concatenate([self.values['y'], output_label])
 
     def parse_input_file(self, path):
-        data = MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, flatten=False)
+        data = pw.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, flatten=False)
         self.add_input_data(data)
         return data.shape[0]
         # return batch number
