@@ -21,13 +21,12 @@ The server takes in JSON messages with the following format:
 ``` JSON
 {
   "command": "foo",
-  "parameters": {
-    "foo": 0.001,
+  "arguments": {
     "boo": 2,
     "bar": "MAX"
   }
 }
 ```
 
-`command` takes in a string that specifies a function defined by the server while the dictionary `parameters` define the keyword arguments.
-For instance, the above code represents `#!python foo(foo=0.001, boo=2, bar='MAX')`
+`command` takes in a string that specifies a function defined by the server while the dictionary `arguments` define the keyword arguments.
+For instance, the above code represents `foo --boo=2 --bar='MAX'`
