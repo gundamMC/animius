@@ -14,13 +14,14 @@ Although it is recommened for security, the client and the server are not requir
 
 See [(gundamMC/Waifu-GUI)](https://github.com/gundamMC/waifu-gui) for a C# WPF example.
 
-## Format
+## Commands
 
 The server takes in JSON messages with the following format:
 
 ``` JSON
 {
   "command": "foo",
+  "id": "01:01",
   "arguments": {
     "boo": 2,
     "bar": "MAX"
@@ -29,4 +30,31 @@ The server takes in JSON messages with the following format:
 ```
 
 `command` takes in a string that specifies a function defined by the server while the dictionary `arguments` define the keyword arguments.
-For instance, the above code represents `foo --boo=2 --bar='MAX'`
+For instance, the above code represents `foo --boo=2 --bar='MAX'`. `id` is simply an string identifier for the client.
+
+## Responses
+
+The server responds in the following format:
+
+``` JSON
+{
+  "id": "01:01",
+  "status": 0,
+  "message": "success",
+  "data": {
+    "foo": 2,
+    "boo": "bar"
+  }
+}
+```
+
+`id` is the identifier that the client sends. The server simply returns the same id. `status` is a code that represents the following values
+
+- 0 -> success
+- 1 -> failure
+- 2 -> argument error
+- 3- > error
+
+(An argument error occurs when an argument is missing or has the wrong type, in contrary to an error)
+
+`message` is simply a message that provides additional information on the status. In a failure or an error, it would provide the cause of such failure or error. `data` is a dictionary that contains the return values of the command. If the user queries for information on a model, `data` would include the information of the model. Note that `data` is subject to change for each command, while some commands may not even return anything in `data` (an empty dictionary will be used in that case to ensure that all responses contain a `data`).
