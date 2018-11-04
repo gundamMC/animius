@@ -405,8 +405,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#format" title="Format" class="md-nav__link">
-    Format
+  <a href="#commands" title="Commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses" title="Responses" class="md-nav__link">
+    Responses
   </a>
   
 </li>
@@ -474,8 +481,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#format" title="Format" class="md-nav__link">
-    Format
+  <a href="#commands" title="Commands" class="md-nav__link">
+    Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses" title="Responses" class="md-nav__link">
+    Responses
   </a>
   
 </li>
@@ -508,7 +522,7 @@ This allows for user-friendly or extensive GUIs and clients written in other lan
 <p>The client has no requirements other than networking. Python is not needed. To communicate with the server, simply use TCP messages.
 Although it is recommened for security, the client and the server are not required to be on the same network.</p>
 <p>See <a href="https://github.com/gundamMC/waifu-gui">(gundamMC/Waifu-GUI)</a> for a C# WPF example.</p>
-<h2 id="format">Format</h2>
+<h2 id="commands">Commands</h2>
 <p>The server takes in JSON messages with the following format:</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
@@ -516,8 +530,10 @@ Although it is recommened for security, the client and the server are not requir
 4
 5
 6
-7</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><span class="p">{</span>
+7
+8</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><span class="p">{</span>
   <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;foo&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;01:01&quot;</span><span class="p">,</span>
   <span class="nt">&quot;arguments&quot;</span><span class="p">:</span> <span class="p">{</span>
     <span class="nt">&quot;boo&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
     <span class="nt">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;MAX&quot;</span>
@@ -527,7 +543,38 @@ Although it is recommened for security, the client and the server are not requir
 </td></tr></table>
 
 <p><code class="codehilite">command</code> takes in a string that specifies a function defined by the server while the dictionary <code class="codehilite">arguments</code> define the keyword arguments.
-For instance, the above code represents <code class="codehilite">foo --boo=2 --bar=&#39;MAX&#39;</code></p>
+For instance, the above code represents <code class="codehilite">foo --boo=2 --bar=&#39;MAX&#39;</code>. <code class="codehilite">id</code> is simply an string identifier for the client.</p>
+<h2 id="responses">Responses</h2>
+<p>The server responds in the following format:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;01:01&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;status&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="nt">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;foo&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="nt">&quot;boo&quot;</span><span class="p">:</span> <span class="s2">&quot;bar&quot;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table>
+
+<p><code class="codehilite">id</code> is the identifier that the client sends. The server simply returns the same id. <code class="codehilite">status</code> is a code that represents the following values</p>
+<ul>
+<li>0 -&gt; success</li>
+<li>1 -&gt; failure</li>
+<li>2 -&gt; argument error</li>
+<li>3- &gt; error</li>
+</ul>
+<p>(An argument error occurs when an argument is missing or has the wrong type, in contrary to an error)</p>
+<p><code class="codehilite">message</code> is simply a message that provides additional information on the status. In a failure or an error, it would provide the cause of such failure or error. <code class="codehilite">data</code> is a dictionary that contains the return values of the command. If the user queries for information on a model, <code class="codehilite">data</code> would include the information of the model. Note that <code class="codehilite">data</code> is subject to change for each command, while some commands may not even return anything in <code class="codehilite">data</code> (an empty dictionary will be used in that case to ensure that all responses contain a <code class="codehilite">data</code>).</p>
                 
                   
                 
