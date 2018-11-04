@@ -8,7 +8,8 @@ def new_client(c):
         #print("%s(%s) 尝试连接" % (c.addr, c.port))
         while True:
             req = c.recv()
-            print(req)
+        #do something with console
+        print(req)
     except socket.errno as e:
         print("Socket error: %s" % str(e))
     except Exception as e:
