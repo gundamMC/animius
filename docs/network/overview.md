@@ -1,6 +1,6 @@
 # Network Overview
 
-In addition to using the python console, Project Waifu can also be accessed with a network TCP socket.
+In addition to using the python console, Animius can also be accessed with a network TCP socket.
 This allows for user-friendly or extensive GUIs and clients written in other languages.
 
 ## Server

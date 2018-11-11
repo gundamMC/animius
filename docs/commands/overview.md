@@ -18,4 +18,4 @@ The equivalent of this in the network socket would be:
 }
 ```
 
-The various commands and their arguments can be found in this section. Network-socket-related commands can be found under the [Network section](https://gundammc.github.io/Project-Waifu/network/overview/).
+The various commands and their arguments can be found in this section. Network-socket-related commands can be found under the [Network section](https://gundammc.github.io/Animius/network/overview/).

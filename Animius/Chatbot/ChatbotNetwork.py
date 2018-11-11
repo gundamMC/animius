@@ -1,6 +1,6 @@
 import tensorflow as tf
-import ProjectWaifu as pw
-from ProjectWaifu.Utils import get_mini_batches, shuffle
+import Animius as pw
+from Animius.Utils import get_mini_batches, shuffle
 
 
 class ChatbotModel(pw.Model):

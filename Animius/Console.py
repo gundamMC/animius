@@ -1,8 +1,8 @@
-import ProjectWaifu.SpeakerVerification as SpeakerVerification
-import ProjectWaifu.IntentNER as IntentNER
-import ProjectWaifu.Chatbot as Chatbot
-import ProjectWaifu.ModelClasses as ModelClasses
-import ProjectWaifu.Utils as Utils
+import Animius.SpeakerVerification as SpeakerVerification
+import Animius.IntentNER as IntentNER
+import Animius.Chatbot as Chatbot
+import Animius.ModelClasses as ModelClasses
+import Animius.Utils as Utils
 from shlex import split as shell_split
 
 

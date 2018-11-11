@@ -1,5 +1,5 @@
 import tensorflow as tf
-import ProjectWaifu as PW
+import Animius as PW
 
 
 class IntentNERModel(PW.Model):

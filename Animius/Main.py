@@ -1,4 +1,4 @@
-import ProjectWaifu.Console as Console
+import Animius.Console as Console
 
 print('Welcome to Project Waifu')
 

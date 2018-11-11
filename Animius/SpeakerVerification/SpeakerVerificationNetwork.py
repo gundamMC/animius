@@ -1,5 +1,5 @@
 import tensorflow as tf
-import ProjectWaifu as pw
+import Animius as pw
 
 
 class SpeakerVerificationModel(pw.Model):
@@ -181,12 +181,12 @@ class SpeakerVerificationModel(pw.Model):
 #
 # data = ModelClasses.SpeakerVerificationData(modelConfig)
 #
-# data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\True.txt', output=True)
-# data.parse_data_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\\False.txt', output=False)
+# data.parse_data_file('D:\Project Waifu\Project-Waifu\Animius\\audio\\True.txt', output=True)
+# data.parse_data_file('D:\Project Waifu\Project-Waifu\Animius\\audio\\False.txt', output=False)
 # model = SpeakerVerificationModel(modelConfig, data)
 #
 # test = ModelClasses.SpeakerVerificationData(modelConfig)
-# test.parse_input_file('D:\Project Waifu\Project-Waifu\ProjectWaifu\\audio\Hyouka - 01\\0020.wav')
+# test.parse_input_file('D:\Project Waifu\Project-Waifu\Animius\\audio\Hyouka - 01\\0020.wav')
 #
 # model.train(150)
 # model.save()

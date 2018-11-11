@@ -4,7 +4,7 @@ import numpy as np
 
 import sys
 
-from ProjectWaifu.SpeakerVerification.MFCC import getMFCC
+from Animius.SpeakerVerification.MFCC import getMFCC
 
 
 def main(args):
