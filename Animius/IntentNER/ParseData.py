@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import os
-import ProjectWaifu as pw
+import Animius as pw
 
 class Parse:
 

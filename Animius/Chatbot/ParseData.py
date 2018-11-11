@@ -1,5 +1,5 @@
 import re  # regex
-from ProjectWaifu.Utils import sentence_to_index
+from Animius.Utils import sentence_to_index
 
 
 class Parse:

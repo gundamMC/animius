@@ -1,8 +1,8 @@
 # File Structure Overview
 
-Project Waifu uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects are stored. It should be noted that all config files created by Project Waifu are in JSON.
+Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects are stored. It should be noted that all config files created by Animius are in JSON.
 
-When you start Project Waifu for the first time, the console will prompt you to choose a directory as the storage space for resources. This directory will contain *all* the files with the exception of `\user-config.json` being at the root directory.
+When you start Animius for the first time, the console will prompt you to choose a directory as the storage space for resources. This directory will contain *all* the files with the exception of `\user-config.json` being at the root directory.
 
 ## config.json
 

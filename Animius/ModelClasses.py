@@ -1,4 +1,4 @@
-import ProjectWaifu as pw
+import Animius as pw
 import numpy as np
 from abc import ABC, abstractmethod
 

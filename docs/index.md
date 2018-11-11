@@ -1,3 +1,3 @@
-# Welcome to Project Waifu Docs
+# Welcome to Animius Docs
 
 WIP
