@@ -1,9 +1,9 @@
 import tensorflow as tf
-import Animius as pw
-from Animius.Utils import get_mini_batches, shuffle
+import animius as am
+from animius.Utils import get_mini_batches, shuffle
 
 
-class ChatbotModel(pw.Model):
+class ChatbotModel(am.Model):
 
     # default values
     @staticmethod
@@ -213,9 +213,9 @@ class ChatbotModel(pw.Model):
                 decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                     cell=attn_decoder_cell,
                     embedding=self.word_embedding,
-                    start_tokens=tf.tile(tf.constant([pw.WordEmbedding.GO], dtype=tf.int32),
+                    start_tokens=tf.tile(tf.constant([am.WordEmbedding.GO], dtype=tf.int32),
                                          [tf.shape(self.x)[0]]),
-                    end_token=pw.WordEmbedding.EOS,
+                    end_token=am.WordEmbedding.EOS,
                     initial_state=decoder_initial_state,
                     beam_width=beam_width,
                     output_layer=self.projection_layer,
@@ -313,7 +313,7 @@ class ChatbotModel(pw.Model):
 # test
 
 # Creating a model
-# modelConfig = pw.ModelClasses.ModelConfig(
+# modelConfig = am.ModelClasses.ModelConfig(
 #     config={
 #         'display_step': 1,
 #         'tensorboard': './tensorboard',

@@ -1,5 +1,5 @@
 import re  # regex
-from Animius.Utils import sentence_to_index
+from animius.Utils import sentence_to_index
 
 
 class Parse:

@@ -1,8 +1,8 @@
-from Animius.Model import Model
-import Animius.ModelClasses as ModelClasses
-from Animius.WordEmbedding import WordEmbedding
-import Animius.Utils as Utils
+from animius.Model import Model
+import animius.ModelClasses as ModelClasses
+from animius.WordEmbedding import WordEmbedding
+import animius.Utils as Utils
 
-import Animius.IntentNER as IntentNER
-import Animius.Chatbot as Chatbot
-import Animius.SpeakerVerification as SpeakerVerification
+import animius.IntentNER as IntentNER
+import animius.Chatbot as Chatbot
+import animius.SpeakerVerification as SpeakerVerification

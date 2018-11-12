@@ -4,7 +4,7 @@ import math
 
 import sys
 
-from Animius.SpeakerVerification.MFCC import getMFCC
+from animius.SpeakerVerification.MFCC import getMFCC
 
 
 def getData(TruePaths, FalsePaths):

@@ -1,8 +1,8 @@
 import tensorflow as tf
-import Animius as PW
+import animius as am
 
 
-class IntentNERModel(PW.Model):
+class IntentNERModel(am.Model):
 
     # default values
     @staticmethod
@@ -125,8 +125,8 @@ class IntentNERModel(PW.Model):
         for epoch in range(epochs):
 
             mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
-                = PW.Utils.get_mini_batches(
-                    PW.Utils.shuffle([
+                = am.Utils.get_mini_batches(
+                    am.Utils.shuffle([
                         self.data['x'],
                         self.data['x_length'],
                         self.data['y_intent'],

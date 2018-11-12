@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import tensorflow as tf
-import Animius.ModelClasses as ModelClasses
+import animius.ModelClasses as ModelClasses
 import json
 from os.path import isdir, join
 
