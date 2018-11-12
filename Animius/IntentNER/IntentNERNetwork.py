@@ -37,48 +37,50 @@ class IntentNERModel(PW.Model):
                 self.model_structure[key] = lambda_value()
                 return lambda_value()
 
-        self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
-        self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+        graph = tf.Graph()
+        with graph.as_default():
+            self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
+            self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
 
-        # Tensorflow placeholders
-        self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']])  # [batch size, sequence length]
-        self.x_length = tf.placeholder(tf.int32, [None])
-        self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
-        self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_ner_output']])
-        self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
+            # Tensorflow placeholders
+            self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']])  # [batch size, sequence length]
+            self.x_length = tf.placeholder(tf.int32, [None])
+            self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
+            self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_ner_output']])
+            self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
 
-        # Network parameters
-        self.weights = {  # LSTM weights are created automatically by tensorflow
-            "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_hidden'], self.model_structure['n_intent_output']])),
-            "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_hidden'] + self.model_structure['n_intent_output'], self.model_structure['n_ner_output']]))
-        }
+            # Network parameters
+            self.weights = {  # LSTM weights are created automatically by tensorflow
+                "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_hidden'], self.model_structure['n_intent_output']])),
+                "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_hidden'] + self.model_structure['n_intent_output'], self.model_structure['n_ner_output']]))
+            }
 
-        self.biases = {
-            "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_intent_output']])),
-            "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_ner_output']]))
-        }
+            self.biases = {
+                "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_intent_output']])),
+                "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_ner_output']]))
+            }
 
-        self.cell_fw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
-        self.cell_bw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+            self.cell_fw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+            self.cell_bw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
 
-        # Optimization
-        logits_intent, logits_ner = self.network()
-        self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=self.y_intent)) + \
-        tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_ner))
+            # Optimization
+            logits_intent, logits_ner = self.network()
+            self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=self.y_intent)) + \
+            tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_ner))
 
-        optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
-        gradients, variables = zip(*optimizer.compute_gradients(self.cost))
-        gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
-        self.train_op = optimizer.apply_gradients(zip(gradients, variables))
+            optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
+            gradients, variables = zip(*optimizer.compute_gradients(self.cost))
+            gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
+            self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
-        self.prediction = tf.nn.softmax(logits_intent), tf.nn.softmax(logits_ner)
+            self.prediction = tf.nn.softmax(logits_intent), tf.nn.softmax(logits_ner)
 
-        # Tensorboard
-        if self.config['tensorboard'] is not None:
-            tf.summary.scalar('cost', self.cost)
-            self.merged = tf.summary.merge_all()
+            # Tensorboard
+            if self.config['tensorboard'] is not None:
+                tf.summary.scalar('cost', self.cost)
+                self.merged = tf.summary.merge_all()
 
-        self.init_tensorflow()
+        self.init_tensorflow(graph=graph)
 
         self.init_hyerdash(self.config['hyperdash'])
 

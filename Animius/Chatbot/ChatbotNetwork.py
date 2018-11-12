@@ -40,80 +40,82 @@ class ChatbotModel(pw.Model):
                 self.model_structure[key] = lambda_value()
                 return lambda_value()
 
-        self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
-        self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+        graph = tf.Graph()
+        with graph.as_default():
+            self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
+            self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
 
-        # just to make it easier to refer to
-        self.max_sequence = self.model_structure['max_sequence']
+            # just to make it easier to refer to
+            self.max_sequence = self.model_structure['max_sequence']
 
-        # Tensorflow placeholders
-        self.x = tf.placeholder(tf.int32, [None, self.max_sequence])
-        self.x_length = tf.placeholder(tf.int32, [None])
-        self.y = tf.placeholder(tf.int32, [None, self.max_sequence])
-        self.y_length = tf.placeholder(tf.int32, [None])
-        self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
-        self.y_target = tf.placeholder(tf.int32, [None, self.max_sequence])
-        # this is w/o <GO>
+            # Tensorflow placeholders
+            self.x = tf.placeholder(tf.int32, [None, self.max_sequence])
+            self.x_length = tf.placeholder(tf.int32, [None])
+            self.y = tf.placeholder(tf.int32, [None, self.max_sequence])
+            self.y_length = tf.placeholder(tf.int32, [None])
+            self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
+            self.y_target = tf.placeholder(tf.int32, [None, self.max_sequence])
+            # this is w/o <GO>
 
-        # Network parameters
-        def get_gru_cell():
-            return tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+            # Network parameters
+            def get_gru_cell():
+                return tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
 
-        self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
-        self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
-        self.projection_layer = tf.layers.Dense(self.word_count)
+            self.cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
+            self.cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
+            self.projection_layer = tf.layers.Dense(self.word_count)
 
-        # Optimization
-        dynamic_max_sequence = tf.reduce_max(self.y_length)
-        mask = tf.sequence_mask(self.y_length, maxlen=dynamic_max_sequence, dtype=tf.float32)
+            # Optimization
+            dynamic_max_sequence = tf.reduce_max(self.y_length)
+            mask = tf.sequence_mask(self.y_length, maxlen=dynamic_max_sequence, dtype=tf.float32)
 
-        # Manual cost
-        # crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        #     labels=self.y_target[:, :dynamic_max_sequence], logits=self.network())
-        # self.cost = tf.reduce_sum(crossent * mask) / tf.cast(tf.shape(self.y)[0], tf.float32)
+            # Manual cost
+            # crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
+            #     labels=self.y_target[:, :dynamic_max_sequence], logits=self.network())
+            # self.cost = tf.reduce_sum(crossent * mask) / tf.cast(tf.shape(self.y)[0], tf.float32)
 
-        # Built-in cost
-        self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y_target[:, :dynamic_max_sequence], weights=mask)
+            # Built-in cost
+            self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y_target[:, :dynamic_max_sequence], weights=mask)
 
-        optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
-        gradients, variables = zip(*optimizer.compute_gradients(self.cost))
-        gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
-        self.train_op = optimizer.apply_gradients(zip(gradients, variables))
+            optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
+            gradients, variables = zip(*optimizer.compute_gradients(self.cost))
+            gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
+            self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
-        self.infer = self.network(mode="infer")
+            self.infer = self.network(mode="infer")
 
-        # Greedy
-        # pred_infer = tf.cond(tf.less(tf.shape(self.infer)[1], self.max_sequence),
-        #                      lambda: tf.concat([self.infer,
-        #                                         tf.zeros(
-        #                                             [tf.shape(self.infer)[0],
-        #                                              self.max_sequence - tf.shape(self.infer)[1]],
-        #                                             tf.int32)], 1),
-        #                      lambda: tf.squeeze(self.infer[:, :20])
-        #                      )
+            # Greedy
+            # pred_infer = tf.cond(tf.less(tf.shape(self.infer)[1], self.max_sequence),
+            #                      lambda: tf.concat([self.infer,
+            #                                         tf.zeros(
+            #                                             [tf.shape(self.infer)[0],
+            #                                              self.max_sequence - tf.shape(self.infer)[1]],
+            #                                             tf.int32)], 1),
+            #                      lambda: tf.squeeze(self.infer[:, :20])
+            #                      )
 
-        # Beam
-        pred_infer = tf.cond(tf.less(tf.shape(self.infer)[2], self.max_sequence),
-                             lambda: tf.concat([tf.squeeze(self.infer[:, 0]),
-                                                tf.zeros(
-                                                    [tf.shape(self.infer)[0],
-                                                     self.max_sequence - tf.shape(self.infer)[-1]],
-                                                    tf.int32)], 1),
-                             lambda: tf.squeeze(self.infer[:, 0, :self.max_sequence])
-                             )
+            # Beam
+            pred_infer = tf.cond(tf.less(tf.shape(self.infer)[2], self.max_sequence),
+                                 lambda: tf.concat([tf.squeeze(self.infer[:, 0]),
+                                                    tf.zeros(
+                                                        [tf.shape(self.infer)[0],
+                                                         self.max_sequence - tf.shape(self.infer)[-1]],
+                                                        tf.int32)], 1),
+                                 lambda: tf.squeeze(self.infer[:, 0, :self.max_sequence])
+                                 )
 
-        correct_pred = tf.equal(
-            pred_infer,
-            self.y_target)
-        self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+            correct_pred = tf.equal(
+                pred_infer,
+                self.y_target)
+            self.accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-        # Tensorboard
-        if self.config['tensorboard'] is not None:
-            tf.summary.scalar('cost', self.cost)
-            tf.summary.scalar('accuracy', self.accuracy)
-            self.merged = tf.summary.merge_all()
+            # Tensorboard
+            if self.config['tensorboard'] is not None:
+                tf.summary.scalar('cost', self.cost)
+                tf.summary.scalar('accuracy', self.accuracy)
+                self.merged = tf.summary.merge_all()
 
-        self.init_tensorflow()
+        self.init_tensorflow(graph=graph)
 
         self.init_hyerdash(self.config['hyperdash'])
 
