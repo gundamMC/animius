@@ -1,8 +1,8 @@
 import tensorflow as tf
-import Animius as pw
+import animius as am
 
 
-class SpeakerVerificationModel(pw.Model):
+class SpeakerVerificationModel(am.Model):
 
     # default values
     @staticmethod
@@ -124,8 +124,8 @@ class SpeakerVerificationModel(pw.Model):
 
         for epoch in range(epochs):
 
-            mini_batches_x, mini_batches_y = pw.Utils.get_mini_batches(
-                pw.Utils.shuffle([
+            mini_batches_x, mini_batches_y = am.Utils.get_mini_batches(
+                am.Utils.shuffle([
                     self.data['x'],
                     self.data['y']]
                 ), self.hyperparameters['batch_size'])
@@ -183,12 +183,12 @@ class SpeakerVerificationModel(pw.Model):
 #
 # data = ModelClasses.SpeakerVerificationData(modelConfig)
 #
-# data.parse_data_file('D:\Project Waifu\Project-Waifu\Animius\\audio\\True.txt', output=True)
-# data.parse_data_file('D:\Project Waifu\Project-Waifu\Animius\\audio\\False.txt', output=False)
+# data.parse_data_file('D:\Project Waifu\Project-Waifu\animius\\audio\\True.txt', output=True)
+# data.parse_data_file('D:\Project Waifu\Project-Waifu\animius\\audio\\False.txt', output=False)
 # model = SpeakerVerificationModel(modelConfig, data)
 #
 # test = ModelClasses.SpeakerVerificationData(modelConfig)
-# test.parse_input_file('D:\Project Waifu\Project-Waifu\Animius\\audio\Hyouka - 01\\0020.wav')
+# test.parse_input_file('D:\Project Waifu\Project-Waifu\animius\\audio\Hyouka - 01\\0020.wav')
 #
 # model.train(150)
 # model.save()

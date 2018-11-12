@@ -30,7 +30,7 @@ def read_wave(path):
             sound.export(path, format='wav')
             wf = wave.open(path, 'rb')
             
-        sample_width = wf.getsampwidth()
+        sample_width = wf.getsamamidth()
         assert sample_width == 2
         sample_rate = wf.getframerate()
         assert sample_rate in (8000, 48000, 16000, 32000)
@@ -45,7 +45,7 @@ def write_wave(path, audio, sample_rate):
     """
     with contextlib.closing(wave.open(path, 'wb')) as wf:
         wf.setnchannels(1)
-        wf.setsampwidth(2)
+        wf.setsamamidth(2)
         wf.setframerate(sample_rate)
         wf.writeframes(audio)
 

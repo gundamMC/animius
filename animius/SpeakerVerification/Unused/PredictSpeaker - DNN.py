@@ -3,7 +3,7 @@ import os
 import numpy as np
 import sys
 
-from Animius.SpeakerVerification.MFCC import getMFCC
+from animius.SpeakerVerification.MFCC import getMFCC
 
 # Network hyperparameters
 num_input = 390

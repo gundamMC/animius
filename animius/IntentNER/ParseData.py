@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import os
-import Animius as pw
+import animius as am
 
 class Parse:
 
@@ -39,9 +39,9 @@ class Parse:
 
         for i in data:
             input_data, output_ner = Parse.get_ner_data(i["data"])
-            output_ner = pw.Utils.set_sequence_length(output_ner, 0, max_seq=max_seq)
+            output_ner = am.Utils.set_sequence_length(output_ner, 0, max_seq=max_seq)
             ner_out.append(np.eye(8)[output_ner])
-            input_data, input_length, _ = pw.Utils.sentence_to_index(input_data, words_to_index, max_seq=max_seq, go=False, eos=False)
+            input_data, input_length, _ = am.Utils.sentence_to_index(input_data, words_to_index, max_seq=max_seq, go=False, eos=False)
             result_in.append(input_data)
             result_length.append(input_length)
 
@@ -53,7 +53,7 @@ class Parse:
     @staticmethod
     def get_data(data_folder, word_embedding, max_seq=20):
 
-        if not isinstance(word_embedding, pw.WordEmbedding):
+        if not isinstance(word_embedding, am.WordEmbedding):
             raise TypeError('word embedding must be WordEmbedding object')
 
         x = []

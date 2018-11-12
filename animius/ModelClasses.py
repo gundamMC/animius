@@ -1,4 +1,4 @@
-import Animius as pw
+import animius as am
 import numpy as np
 from abc import ABC, abstractmethod
 
@@ -96,7 +96,7 @@ class ChatbotData(Data):
         ])
 
     def parse_input(self, input_x):
-        x, x_length, _ = pw.Utils.sentence_to_index(pw.Chatbot.Parse.split_sentence(input_x.lower()),
+        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
                                            self.values['embedding'].words_to_index, go=True, eos=True)
 
         self.values['x'] = np.concatenate([self.values['x'], np.array(x).reshape((1, len(x)))], axis=0)
@@ -108,7 +108,7 @@ class ChatbotData(Data):
 
         f = open(path, 'r', encoding='utf8')
         for line in f:
-            x_tmp, length_tmp, _ = pw.Utils.sentence_to_index(pw.Chatbot.Parse.split_sentence(line.lower()),
+            x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
                                                      self.values['embedding'].words_to_index, go=True, eos=True)
             x.append(x_tmp)
             x_length.append(length_tmp)
@@ -117,11 +117,11 @@ class ChatbotData(Data):
         self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length)])
 
     def parse_sentence_data(self, x, y):
-        x = pw.Chatbot.Parse.split_data(x)
-        y = pw.Chatbot.Parse.split_data(y)
+        x = am.Chatbot.Parse.split_data(x)
+        y = am.Chatbot.Parse.split_data(y)
 
         x, y, x_length, y_length, y_target = \
-            pw.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index)
+            am.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index)
 
         self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
         self.values['y'] = np.concatenate([self.values['y'], np.array(y)])
@@ -130,11 +130,11 @@ class ChatbotData(Data):
         self.values['y_target'] = np.concatenate([self.values['y_target'], np.array(y_target)])
 
     def add_cornell(self, conversations_path, movie_lines_path, lower_bound=None, upper_bound=None):
-        x, y = pw.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
+        x, y = am.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
         self.parse_sentence_data(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
     def add_twitter(self, chat_path, lower_bound=None, upper_bound=None):
-        x, y = pw.Chatbot.Parse.load_twitter(chat_path)
+        x, y = am.Chatbot.Parse.load_twitter(chat_path)
         self.parse_sentence_data(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
 
@@ -172,13 +172,13 @@ class IntentNERData(Data):
 
     def parse_data_folder(self, folder_directory):
 
-        x, x_length, y_intent, y_ner = pw.IntentNER.Parse.get_data(folder_directory, self.values['embedding'], self.max_seq)
+        x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory, self.values['embedding'], self.max_seq)
 
         self.add_data([x, x_length, y_intent, y_ner])
 
     def parse_input(self, input_x):
 
-        x, x_length, _ = pw.Utils.sentence_to_index(pw.Chatbot.Parse.split_sentence(input_x.lower()),
+        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
                                            self.values['embedding'].words_to_index, go=False, eos=False)
 
         self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1, )))
@@ -211,7 +211,7 @@ class SpeakerVerificationData(Data):
         self.values['y'] = np.concatenate([self.values['y'], output_label])
 
     def parse_input_file(self, path):
-        data = pw.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, flatten=False)
+        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, flatten=False)
         self.add_input_data(data)
         return data.shape[0]
         # return batch number

@@ -1,8 +1,8 @@
-import Animius.SpeakerVerification as SpeakerVerification
-import Animius.IntentNER as IntentNER
-import Animius.Chatbot as Chatbot
-import Animius.ModelClasses as ModelClasses
-import Animius.Utils as Utils
+import animius.SpeakerVerification as SpeakerVerification
+import animius.IntentNER as IntentNER
+import animius.Chatbot as Chatbot
+import animius.ModelClasses as ModelClasses
+import animius.Utils as Utils
 from shlex import split as shell_split
 
 
