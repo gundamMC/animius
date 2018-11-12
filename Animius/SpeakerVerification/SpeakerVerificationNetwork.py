@@ -31,53 +31,55 @@ class SpeakerVerificationModel(pw.Model):
 
         super().__init__(model_config, data, restore_path=restore_path)
 
-        # Tensorflow placeholders
-        self.x = tf.placeholder(tf.float32, [None,
-                                             self.model_structure['input_window'],
-                                             self.model_structure['input_cepstral']])
-        self.y = tf.placeholder(tf.float32, [None, 1])
+        graph = tf.Graph()
+        with graph.as_default():
+            # Tensorflow placeholders
+            self.x = tf.placeholder(tf.float32, [None,
+                                                 self.model_structure['input_window'],
+                                                 self.model_structure['input_cepstral']])
+            self.y = tf.placeholder(tf.float32, [None, 1])
 
-        # Network parameters
-        self.weights = {
-            # 3x3 conv filter, 1 input layers, 10 output layers
-            'wc1': tf.Variable(tf.random_normal([self.model_structure['filter_size_1'],
-                                                 self.model_structure['filter_size_1'],
-                                                 1,
-                                                 self.model_structure['num_filter_1']]
-                                                )),
-            # 5x5 conv filter, 10 input layers, 15 output layers
-            'wc2': tf.Variable(tf.random_normal([self.model_structure['filter_size_2'],
-                                                 self.model_structure['filter_size_2'],
-                                                 self.model_structure['num_filter_1'],
-                                                 self.model_structure['num_filter_2']]
-                                                )),
-            # fully connected 1, 15 input layers, 128 outpute nodes
-            'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window']/2) *
-                                                 round(self.model_structure['input_cepstral']/2) *
-                                                 self.model_structure['num_filter_2'],
-                                                 self.model_structure['fully_connected_1']]
-                                                )),
-            # output, 128 input nodes, 1 output node
-            'out': tf.Variable(tf.random_normal([128, 1]))
-        }
+            # Network parameters
+            self.weights = {
+                # 3x3 conv filter, 1 input layers, 10 output layers
+                'wc1': tf.Variable(tf.random_normal([self.model_structure['filter_size_1'],
+                                                     self.model_structure['filter_size_1'],
+                                                     1,
+                                                     self.model_structure['num_filter_1']]
+                                                    )),
+                # 5x5 conv filter, 10 input layers, 15 output layers
+                'wc2': tf.Variable(tf.random_normal([self.model_structure['filter_size_2'],
+                                                     self.model_structure['filter_size_2'],
+                                                     self.model_structure['num_filter_1'],
+                                                     self.model_structure['num_filter_2']]
+                                                    )),
+                # fully connected 1, 15 input layers, 128 outpute nodes
+                'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window']/2) *
+                                                     round(self.model_structure['input_cepstral']/2) *
+                                                     self.model_structure['num_filter_2'],
+                                                     self.model_structure['fully_connected_1']]
+                                                    )),
+                # output, 128 input nodes, 1 output node
+                'out': tf.Variable(tf.random_normal([128, 1]))
+            }
 
-        self.biases = {
-            'bc1': tf.Variable(tf.random_normal([self.model_structure['num_filter_1']])),
-            'bc2': tf.Variable(tf.random_normal([self.model_structure['num_filter_2']])),
-            'bd1': tf.Variable(tf.random_normal([self.model_structure['fully_connected_1']])),
-            'out': tf.Variable(tf.random_normal([1]))  # one output node
-        }
+            self.biases = {
+                'bc1': tf.Variable(tf.random_normal([self.model_structure['num_filter_1']])),
+                'bc2': tf.Variable(tf.random_normal([self.model_structure['num_filter_2']])),
+                'bd1': tf.Variable(tf.random_normal([self.model_structure['fully_connected_1']])),
+                'out': tf.Variable(tf.random_normal([1]))  # one output node
+            }
 
-        # Optimization
-        self.prediction = self.network()
-        self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.network(), labels=self.y))
-        self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(self.cost)
+            # Optimization
+            self.prediction = self.network()
+            self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.network(), labels=self.y))
+            self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(self.cost)
 
-        # Tensorboard
-        if self.config['tensorboard'] is not None:
-            tf.summary.scalar('cost', self.cost)
-            # tf.summary.scalar('accuracy', self.accuracy)
-            self.merged = tf.summary.merge_all()
+            # Tensorboard
+            if self.config['tensorboard'] is not None:
+                tf.summary.scalar('cost', self.cost)
+                # tf.summary.scalar('accuracy', self.accuracy)
+                self.merged = tf.summary.merge_all()
 
         self.init_tensorflow()
 

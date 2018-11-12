@@ -54,16 +54,18 @@ class Model(ABC):
         # prep for hyperdash
         self.hyperdash = None
 
-    def init_tensorflow(self):
+    def init_tensorflow(self, graph):
         # Tensorflow initialization
-        self.saver = tf.train.Saver()
-        if self.config['tensorboard'] is not None:
-            self.tensorboard_writer = tf.summary.FileWriter(self.config['tensorboard'])
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config)
+        with graph.as_default():
+            self.saver = tf.train.Saver()
+            if self.config['tensorboard'] is not None:
+                self.tensorboard_writer = tf.summary.FileWriter(self.config['tensorboard'])
 
-        self.sess.run(tf.global_variables_initializer())
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+
+            self.sess = tf.Session(config=config, graph=graph)
+            self.sess.run(tf.global_variables_initializer())
 
     def init_hyerdash(self, name):
         if name is not None:
@@ -78,9 +80,10 @@ class Model(ABC):
 
         # Do not include word embedding when restoring models
         if word_embedding_placeholder is not None and 'embedding' in self.data.values:
-            embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
-            self.sess.run(word_embedding_placeholder.assign(embedding_placeholder),
-                          feed_dict={embedding_placeholder: self.data['embedding'].embedding})
+            with self.sess.graph.as_default():
+                embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
+                self.sess.run(word_embedding_placeholder.assign(embedding_placeholder),
+                              feed_dict={embedding_placeholder: self.data['embedding'].embedding})
 
     @abstractmethod
     def train(self, epochs):
