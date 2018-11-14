@@ -102,6 +102,14 @@ class ChatbotData(Data):
         self.values['x'] = np.concatenate([self.values['x'], np.array(x).reshape((1, len(x)))], axis=0)
         self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length).reshape(1,)], axis=0)
 
+    def set_parse_input(self, input_x):
+        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+                                                    self.values['embedding'].words_to_index, go=True, eos=True)
+
+        # directly set the values
+        self.values['x'] = np.array(x).reshape((1, len(x)))
+        self.values['x_length'] = np.array(x_length).reshape(1, )
+
     def parse_input_file(self, path):
         x = []
         x_length = []
@@ -182,6 +190,14 @@ class IntentNERData(Data):
                                            self.values['embedding'].words_to_index, go=False, eos=False)
 
         self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1, )))
+
+    def set_parse_input(self, input_x):
+
+        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+                                                    self.values['embedding'].words_to_index, go=False, eos=False)
+
+        self.values['x'] = np.array(x).reshape((1, len(x)))
+        self.values['x_length'] = np.array(x_length).reshape((1,))
 
 
 class SpeakerVerificationData(Data):
