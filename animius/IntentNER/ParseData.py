@@ -31,7 +31,7 @@ class Parse:
 
     @staticmethod
     def get_file_data(intent, words_to_index, data_folder, max_seq=20):
-        data = json.load(open(data_folder + "\\" + intent + ".json"))
+        data = json.load(open(data_folder + "\\" + intent + ".json", encoding="utf8"))
         data = data[intent]
         result_in = []
         result_length = []

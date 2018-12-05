@@ -43,8 +43,8 @@ class IntentNERModel(am.Model):
             self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
 
             # Tensorflow placeholders
-            self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']])  # [batch size, sequence length]
-            self.x_length = tf.placeholder(tf.int32, [None])
+            self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']], name='input_x')  # [batch size, sequence length]
+            self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
             self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
             self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_ner_output']])
             self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
@@ -109,14 +109,23 @@ class IntentNERModel(am.Model):
         last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
 
         # apply linear
-        outputs_intent = tf.matmul(
-            tf.gather_nd(outputs_fw, last_time_step_indexes),
-            self.weights["out_intent"]) + self.biases["out_intent"]
+        outputs_intent = tf.add(
+            tf.matmul(
+                tf.gather_nd(outputs_fw, last_time_step_indexes),
+                self.weights["out_intent"]
+            ),
+            self.biases["out_intent"],
+            name='out_intent'
+        )
 
         entities = tf.concat(
             [output_bw, tf.tile(tf.expand_dims(outputs_intent, 1), [1, self.model_structure['max_sequence'], 1])], -1
         )
-        outputs_entities = tf.einsum('ijk,kl->ijl', entities, self.weights["out_ner"]) + self.biases["out_ner"]
+        outputs_entities = tf.add(
+            tf.einsum('ijk,kl->ijl', entities, self.weights["out_ner"]),
+            self.biases["out_ner"],
+            name='out_entities'
+        )
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
