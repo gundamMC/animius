@@ -114,7 +114,7 @@ class Model(ABC):
     def set_data(self, data):
         self.data = data
 
-    def save(self, path='./model/', meta=False, var_only=False, write_graph=False):
+    def save(self, path='./model/', meta=False, write_graph=False):
 
         if not isdir(path):
             raise NotADirectoryError('Save path must be a directory')
