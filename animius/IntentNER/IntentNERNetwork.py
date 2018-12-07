@@ -47,7 +47,7 @@ class IntentNERModel(am.Model):
             self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
             self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
             self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_ner_output']])
-            self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
+            self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False, name='word_embedding')
 
             # Network parameters
             self.weights = {  # LSTM weights are created automatically by tensorflow
@@ -115,7 +115,7 @@ class IntentNERModel(am.Model):
                 self.weights["out_intent"]
             ),
             self.biases["out_intent"],
-            name='out_intent'
+            name='output_intent'
         )
 
         entities = tf.concat(
@@ -124,7 +124,7 @@ class IntentNERModel(am.Model):
         outputs_entities = tf.add(
             tf.einsum('ijk,kl->ijl', entities, self.weights["out_ner"]),
             self.biases["out_ner"],
-            name='out_entities'
+            name='output_entities'
         )
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
