@@ -25,7 +25,7 @@ class ChatbotModel(am.Model):
             'beam_width': 3
         }
 
-    def __init__(self, model_config, data, restore_path=None):
+    def __init__(self, model_config, data, restore_path=None, embedding_tensor=None, graph=None):
 
         super().__init__(model_config, data, restore_path=restore_path)
 
@@ -34,26 +34,33 @@ class ChatbotModel(am.Model):
         def test_model_structure(key, lambda_value):
             if key in self.model_structure:
                 return self.model_structure[key]
+            elif self.data is None:
+                raise ValueError('Data cannot be none')
             else:
-                if self.data is None or 'embedding' not in self.data.values:
-                    raise ValueError('When creating a new model, data must contain a word embedding')
                 self.model_structure[key] = lambda_value()
                 return lambda_value()
 
-        graph = tf.Graph()
+        if graph is None:
+            graph = tf.Graph()
+
         with graph.as_default():
-            self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
-            self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+            if embedding_tensor is None:
+                self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
+                self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+                self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)),
+                                                  trainable=False, name='word_embedding')
+            else:
+                self.word_count, self.n_vector = embedding_tensor.shape
+                self.word_embedding = embedding_tensor
 
             # just to make it easier to refer to
             self.max_sequence = self.model_structure['max_sequence']
 
             # Tensorflow placeholders
-            self.x = tf.placeholder(tf.int32, [None, self.max_sequence])
-            self.x_length = tf.placeholder(tf.int32, [None])
+            self.x = tf.placeholder(tf.int32, [None, self.max_sequence], name='input_x')
+            self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
             self.y = tf.placeholder(tf.int32, [None, self.max_sequence])
             self.y_length = tf.placeholder(tf.int32, [None])
-            self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False)
             self.y_target = tf.placeholder(tf.int32, [None, self.max_sequence])
             # this is w/o <GO>
 
@@ -120,7 +127,7 @@ class ChatbotModel(am.Model):
         self.init_hyerdash(self.config['hyperdash'])
 
         # restore model data values
-        self.init_restore(restore_path, self.word_embedding)
+        self.init_restore(restore_path, self.word_embedding if embedding_tensor is None else None)
 
     def network(self, mode="train"):
 
@@ -224,7 +231,7 @@ class ChatbotModel(am.Model):
 
                 outputs, _, _ = tf.contrib.seq2seq.dynamic_decode(decoder, maximum_iterations=self.max_sequence)
 
-                return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1])  # [batch size, beam width, sequence length]
+                return tf.transpose(outputs.predicted_ids, perm=[0, 2, 1], name='output_infer')  # [batch size, beam width, sequence length]
 
     def train(self, epochs=10):
         for epoch in range(epochs):
