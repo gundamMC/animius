@@ -55,18 +55,20 @@ class Model(ABC):
         # prep for hyperdash
         self.hyperdash = None
 
-    def init_tensorflow(self, graph):
+    def init_tensorflow(self, graph, init_param=True, init_sess=True):
         # Tensorflow initialization
         with graph.as_default():
             self.saver = tf.train.Saver()
             if self.config['tensorboard'] is not None:
                 self.tensorboard_writer = tf.summary.FileWriter(self.config['tensorboard'])
 
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
+            if init_sess:
+                config = tf.ConfigProto()
+                config.gpu_options.allow_growth = True
+                self.sess = tf.Session(config=config, graph=graph)
 
-            self.sess = tf.Session(config=config, graph=graph)
-            self.sess.run(tf.global_variables_initializer())
+            if init_param:
+                self.sess.run(tf.global_variables_initializer())
 
     def init_hyerdash(self, name):
         if name is not None:

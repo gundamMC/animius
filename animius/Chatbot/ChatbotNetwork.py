@@ -25,7 +25,7 @@ class ChatbotModel(am.Model):
             'beam_width': 3
         }
 
-    def __init__(self, model_config, data, restore_path=None, embedding_tensor=None, graph=None):
+    def __init__(self, model_config, data, restore_path=None, graph=None, embedding_tensor=None):
 
         super().__init__(model_config, data, restore_path=restore_path)
 
@@ -39,6 +39,25 @@ class ChatbotModel(am.Model):
             else:
                 self.model_structure[key] = lambda_value()
                 return lambda_value()
+
+        if graph is not None and restore_path is not None:
+            # Combined chatbot model with modified graph
+            self.init_tensorflow(graph=graph, init_param=False, init_sess=False)
+            self.init_hyerdash(self.config['hyperdash'])
+            self.init_restore(restore_path, None)
+
+            # set up self vars and ops for predict/training
+            self.x = graph.get_tensor_by_name('input_x:0')
+            self.x_length = graph.get_tensor_by_name('input_x_length:0')
+            self.y = graph.get_tensor_by_name('train_y:0')
+            self.y_length = graph.get_tensor_by_name('train_y_length:0')
+            self.y_target = graph.get_tensor_by_name('train_y_target:0')
+            self.train_op = graph.get_operation_by_name('train_op')
+            self.cost = graph.get_tensor_by_name('train_cost/truediv:0')
+            # self.merged = graph.get_tensor_by_name('tensorboard_merged:0')
+            self.infer = graph.get_tensor_by_name('decode_1/output_infer:0')
+
+            return
 
         if graph is None:
             graph = tf.Graph()
@@ -59,9 +78,9 @@ class ChatbotModel(am.Model):
             # Tensorflow placeholders
             self.x = tf.placeholder(tf.int32, [None, self.max_sequence], name='input_x')
             self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
-            self.y = tf.placeholder(tf.int32, [None, self.max_sequence])
-            self.y_length = tf.placeholder(tf.int32, [None])
-            self.y_target = tf.placeholder(tf.int32, [None, self.max_sequence])
+            self.y = tf.placeholder(tf.int32, [None, self.max_sequence], name='train_y')
+            self.y_length = tf.placeholder(tf.int32, [None], name='train_y_length')
+            self.y_target = tf.placeholder(tf.int32, [None, self.max_sequence], name='train_y_target')
             # this is w/o <GO>
 
             # Network parameters
@@ -82,12 +101,15 @@ class ChatbotModel(am.Model):
             # self.cost = tf.reduce_sum(crossent * mask) / tf.cast(tf.shape(self.y)[0], tf.float32)
 
             # Built-in cost
-            self.cost = tf.contrib.seq2seq.sequence_loss(self.network(), self.y_target[:, :dynamic_max_sequence], weights=mask)
+            self.cost = tf.contrib.seq2seq.sequence_loss(self.network(),
+                                                         self.y_target[:, :dynamic_max_sequence],
+                                                         weights=mask,
+                                                         name='train_cost')
 
             optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
             gradients, variables = zip(*optimizer.compute_gradients(self.cost))
             gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
-            self.train_op = optimizer.apply_gradients(zip(gradients, variables))
+            self.train_op = optimizer.apply_gradients(zip(gradients, variables), name='train_op')
 
             self.infer = self.network(mode="infer")
 
@@ -120,7 +142,7 @@ class ChatbotModel(am.Model):
             if self.config['tensorboard'] is not None:
                 tf.summary.scalar('cost', self.cost)
                 tf.summary.scalar('accuracy', self.accuracy)
-                self.merged = tf.summary.merge_all()
+                self.merged = tf.summary.merge_all(name='tensorboard_merged')
 
         self.init_tensorflow(graph=graph)
 
