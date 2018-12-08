@@ -64,6 +64,8 @@ class ChatbotData(Data):
 
         if isinstance(model_config, ModelConfig):
             max_seq = model_config.model_structure['max_sequence']
+        elif isinstance(model_config, int):
+            max_seq = model_config
         else:
             raise TypeError('sequence_length must be either an integer or a ModelConfig object')
 
@@ -129,7 +131,8 @@ class ChatbotData(Data):
         y = am.Chatbot.Parse.split_data(y)
 
         x, y, x_length, y_length, y_target = \
-            am.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index)
+            am.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index,
+                                           max_seq=self.values['x'].shape[-1])
 
         self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
         self.values['y'] = np.concatenate([self.values['y'], np.array(y)])
