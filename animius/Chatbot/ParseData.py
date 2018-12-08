@@ -110,7 +110,7 @@ class Parse:
         return result
 
     @staticmethod
-    def data_to_index(data_x, data_y, word_to_index):
+    def data_to_index(data_x, data_y, word_to_index, max_seq=20):
         result_x = []
         result_y = []
         lengths_x = []
@@ -119,8 +119,8 @@ class Parse:
         index = 0
 
         while index < len(data_x):
-            x, x_length, x_unk = sentence_to_index(data_x[index], word_to_index)
-            y, y_length, y_unk = sentence_to_index(data_y[index], word_to_index)
+            x, x_length, x_unk = sentence_to_index(data_x[index], word_to_index, max_seq=max_seq, go=True, eos=True)
+            y, y_length, y_unk = sentence_to_index(data_y[index], word_to_index, max_seq=max_seq, go=True, eos=True)
 
             index += 1
 
