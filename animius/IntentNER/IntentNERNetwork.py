@@ -73,7 +73,8 @@ class IntentNERModel(am.Model):
             gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
             self.train_op = optimizer.apply_gradients(zip(gradients, variables))
 
-            self.prediction = tf.nn.softmax(logits_intent), tf.nn.softmax(logits_ner)
+            self.prediction = tf.nn.softmax(logits_intent, name='output_intent'),\
+                tf.nn.softmax(logits_ner, name='output_ner')
 
             # Tensorboard
             if self.config['tensorboard'] is not None:
@@ -114,8 +115,7 @@ class IntentNERModel(am.Model):
                 tf.gather_nd(outputs_fw, last_time_step_indexes),
                 self.weights["out_intent"]
             ),
-            self.biases["out_intent"],
-            name='output_intent'
+            self.biases["out_intent"]
         )
 
         entities = tf.concat(
@@ -123,8 +123,7 @@ class IntentNERModel(am.Model):
         )
         outputs_entities = tf.add(
             tf.einsum('ijk,kl->ijl', entities, self.weights["out_ner"]),
-            self.biases["out_ner"],
-            name='output_entities'
+            self.biases["out_ner"]
         )
 
         return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
