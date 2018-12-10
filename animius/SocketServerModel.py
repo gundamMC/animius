@@ -85,10 +85,13 @@ class client(object):
 
     def initRandomAEScipher(self):
         try:
+            initAes=dict()
             self.AEScipher = AEScipher.generateRandom()
-            return True
+            initAes.append("key",self.AEScipher.key)
+            initAes.append("iv",self.AEScipher.iv)
+            return initAes
         except:
-            return False
+            return {}
 
     def _send(self, data):
         self.socket.send(data)
