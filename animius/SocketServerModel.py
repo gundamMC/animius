@@ -99,9 +99,9 @@ class client(object):
     def _recv(self, mtu=65535):
         return self.socket.recv(mtu)
 
-    def send(self,id, status, message, **kwargs):
+    def send(self,id, status, message, kwargs):
         try:
-            resp = Response.createResp(id, status, message, **kwargs)
+            resp = Response.createResp(id, status, message, kwargs)
             resp = self.AEScipher.encrypt(resp)
             self._send(resp)
             return True
