@@ -7,7 +7,7 @@ def new_client(c):
     try:
         #print("%s(%s) 尝试连接" % (c.addr, c.port))
         initAes=c.initRandomAEScipher()
-        c.sendAes(0,200,"InitAes",key=initAes["key"],iv=initAes["iv"])
+        c.sendAes(0,200,"InitAes",{"key":initAes["key"],"iv":initAes["iv"]})
         while True:
             req = c.recv()
         #do something with console
