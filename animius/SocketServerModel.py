@@ -28,7 +28,6 @@ class Response(object):
     @staticmethod
     def createResp(id, status, message, data):
         try:
-            print(data)
             resp = {"id": id,
                     "status": status,
                     "message": message,
