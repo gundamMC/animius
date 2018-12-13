@@ -120,7 +120,15 @@ class client(object):
             return True
         except:
             return False
-
+            
+    def sendAes(self, id, status, message, data):
+        try:
+            resp = Response.createResp(id, status, message, data)
+            self._send(resp)
+            return True
+        except:
+            return False
+            
     def recv(self):
         try:
             req = self.AEScipher.decrypt(self._recv())
