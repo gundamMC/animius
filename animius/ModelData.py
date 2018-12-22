@@ -3,40 +3,6 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 
-class ModelConfig:
-    def __init__(self, cls, config=None, hyperparameters=None, model_structure=None):
-        if config is None:
-            self.config = {}
-        else:
-            self.config = config
-
-        if hyperparameters is None:
-            self.hyperparameters = {}
-        else:
-            self.hyperparameters = hyperparameters
-
-        if model_structure is None:
-            self.model_structure = {}
-        else:
-            self.model_structure = model_structure
-
-        self.apply_defaults(cls)
-
-    def apply_defaults(self, cls):
-
-        for key, default_value in cls.DEFAULT_CONFIG().items():
-            if key not in self.config:
-                self.config[key] = default_value
-
-        for key, default_value in cls.DEFAULT_HYPERPARAMETERS().items():
-            if key not in self.hyperparameters:
-                self.hyperparameters[key] = default_value
-
-        for key, default_value in cls.DEFAULT_MODEL_STRUCTURE().items():
-            if key not in self.model_structure:
-                self.model_structure[key] = default_value
-
-
 class Data(ABC):
 
     def __init__(self):
@@ -62,7 +28,7 @@ class ChatbotData(Data):
 
         super().__init__()
 
-        if isinstance(model_config, ModelConfig):
+        if isinstance(model_config, am.ModelConfig):
             max_seq = model_config.model_structure['max_sequence']
         elif isinstance(model_config, int):
             max_seq = model_config
@@ -161,7 +127,7 @@ class IntentNERData(Data):
 
         super().__init__()
 
-        if isinstance(model_config, ModelConfig):
+        if isinstance(model_config, am.ModelConfig):
             self.max_seq = model_config.model_structure['max_sequence']
         else:
             raise TypeError('model_config must be a ModelConfig object')
@@ -273,7 +239,7 @@ class CombinedPredictionData(Data):
 
         super().__init__()
 
-        if isinstance(model_config, ModelConfig):
+        if isinstance(model_config, am.ModelConfig):
             self.max_seq = model_config.model_structure['max_sequence']
         elif isinstance(model_config, int):
             self.max_seq = model_config
