@@ -10,6 +10,7 @@ class Model(ABC):
     @staticmethod
     def DEFAULT_CONFIG():
         return {
+            'name': 'Model',
             'epoch': 0,
             'display_step': 1,
             'tensorboard': None,
@@ -26,9 +27,10 @@ class Model(ABC):
 
     @classmethod
     def DEFAULT_MODEL_CONFIG(cls):
-        return am.ModelConfig(cls, config=cls.DEFAULT_CONFIG(),
-                                        model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
-                                        hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
+        return am.ModelConfig(cls,
+                              config=cls.DEFAULT_CONFIG(),
+                              model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
+                              hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
 
     def __init__(self, model_config, data, restore_path=None):
 
@@ -101,7 +103,7 @@ class Model(ABC):
         if not isdir(path):
             raise NotADirectoryError('Save path must be a directory')
 
-        with open(join(path, 'model_config.modelconfig'), 'r') as f:
+        with open(join(path, 'model_config.json'), 'r') as f:
             stored = json.load(f)
             self.config = stored['config']
             self.model_structure = stored['model_structure']
@@ -116,25 +118,25 @@ class Model(ABC):
     def set_data(self, data):
         self.data = data
 
-    def save(self, path='./model/', meta=False, write_graph=False):
+    def save(self, path='./model/', meta=False, graph=False):
 
         if not isdir(path):
             raise NotADirectoryError('Save path must be a directory')
 
         self.saver.save(self.sess, join(path, 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
 
-        if write_graph:
+        if graph:
             tf.train.write_graph(self.sess.graph.as_graph_def(), path, 'model_graph.pb', as_text=False)
+            self.config['graph'] = join(path, 'model_graph.pb')
 
-        with open(join(path, 'model_config.modelconfig'), 'w') as f:
-            f.write(
-                json.dumps(
-                    {
-                        'config': self.config,
-                        'model_structure': self.model_structure,
-                        'hyperparameters': self.hyperparameters
-                    }, indent=4)
-            )
+        with open(join(path, 'model_config.json'), 'w') as f:
+            json.dump({
+                'config': self.config,
+                'model_structure': self.model_structure,
+                'hyperparameters': self.hyperparameters
+            }, f, indent=4)
+
+        print('Model saved at ' + path)
 
     def close(self):
         self.sess.close()

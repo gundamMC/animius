@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.tools import freeze_graph as tf_freeze_graph
 from tensorflow.python.tools import optimize_for_inference_lib
+from os.path import join
+import json
 
 
 def shuffle(data_lists):
@@ -83,19 +85,25 @@ def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
     return sequence
 
 
-def freeze_graph(model_dir, output_node_names):
+def freeze_graph(model_dir, output_node_names, stored_model_config=None):
     # Retrieve latest checkpoint
     checkpoint = tf.train.get_checkpoint_state(model_dir)
     input_checkpoint = checkpoint.model_checkpoint_path
 
     # Define the path for the frozen model
-    absolute_model_dir = "/".join(input_checkpoint.split('/')[:-1])
-    input_graph = absolute_model_dir + "/model_graph.pb"
-    output_graph = absolute_model_dir + "/frozen_model.pb"
+    if stored_model_config is None:
+        with open(join(model_dir, 'model_config.json'), 'r') as f:
+            stored = json.load(f)
+    else:
+        stored = stored_model_config
+
+    if 'graph' not in stored['config']:
+        raise ValueError('No graph found. Save the model with graph=True')
+
+    input_graph = stored['config']['graph']
+    output_graph = join(model_dir, "frozen_model.pb")
 
     clear_devices = True
-
-    print(input_graph)
 
     tf_freeze_graph.freeze_graph(input_graph, None, True,
                                  input_checkpoint, output_node_names,
@@ -103,25 +111,44 @@ def freeze_graph(model_dir, output_node_names):
                                  input_meta_graph=input_checkpoint + ".meta"
                                  )
 
-    return output_graph
+    # save frozen graph location
+    with open(join(model_dir, 'model_config.json'), 'w') as f:
+        stored['config']['frozen_graph'] = output_graph
+        json.dump(stored, f, indent=4)
+
+    return output_graph  # output graph path
 
 
-def optimize(frozen_graph_path, input_node_names, output_node_names):
+def optimize(model_dir, input_node_names, output_node_names):
+
+    with open(join(model_dir, 'model_config.json'), 'r') as f:
+        stored = json.load(f)
+
+    if 'frozen_graph' in stored['config']:
+        frozen_graph = stored['config']['frozen_graph']
+    else:
+        if 'graph' not in stored['config']:
+            raise ValueError('No graph found. Save the model with graph=True')
+        else:  # the model is not frozen
+            frozen_graph = freeze_graph(model_dir, ', '.join(output_node_names))
+
     inputGraph = tf.GraphDef()
-    with tf.gfile.Open(frozen_graph_path, "rb") as f:
+    with tf.gfile.Open(frozen_graph, "rb") as f:
         data2read = f.read()
         inputGraph.ParseFromString(data2read)
 
-    outputGraph = optimize_for_inference_lib.optimize_for_inference(
+    output_graph = optimize_for_inference_lib.optimize_for_inference(
         inputGraph,
         input_node_names,  # an array of the input node(s)
         output_node_names,  # an array of output nodes
         tf.int32.as_datatype_enum)
 
     # Save the optimized graph
-    absolute_model_dir = "/".join(frozen_graph_path.split('/')[:-1])
-    output_graph = absolute_model_dir + '/optimized_model.pb'
-    f = tf.gfile.FastGFile(output_graph, "w")
-    f.write(outputGraph.SerializeToString())
+    tf.train.write_graph(output_graph, model_dir, 'optimized_graph.pb', as_text=False)
 
-    return output_graph
+    # save optimized graph location
+    with open(join(model_dir, 'model_config.json'), 'w') as f:
+        stored['config']['optimized_graph'] = join(model_dir, 'optimized_graph.pb')
+        json.dump(stored, f, indent=4)
+
+    return join(model_dir, 'optimized_graph.pb')  # output graph path
