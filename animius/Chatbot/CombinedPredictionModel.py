@@ -1,5 +1,8 @@
 import tensorflow as tf
 import numpy as np
+import json
+from os.path import join
+import animius as am
 
 
 class CombinedPredictionModel:
@@ -7,7 +10,20 @@ class CombinedPredictionModel:
     # For some reason using the optimized model fails.
     # Use the frozen one instead.
     # ALso, graph transform seems to perform worse than the frozen model...
-    def __init__(self, restore_graph):
+    def __init__(self, model_dir):
+
+        with open(join(model_dir, 'model_config.json'), 'r') as f:
+            stored = json.load(f)
+            config = stored['config']
+            model_structure = stored['model_structure']
+            hyperparameters = stored['hyperparameters']
+
+            self.model_config = am.ModelConfig(am.Chatbot.ChatbotModel,
+                                               config,
+                                               model_structure,
+                                               hyperparameters)
+
+        restore_graph = self.model_config.config['graph']
 
         # restore graph
         graph_def = tf.GraphDef()
@@ -16,7 +32,7 @@ class CombinedPredictionModel:
 
         graph = tf.Graph()
         with graph.as_default():
-            tf.import_graph_def(graph_def)
+            tf.import_graph_def(graph_def, name='')
 
         # init tensorflow
         config = tf.ConfigProto()
@@ -24,6 +40,7 @@ class CombinedPredictionModel:
         self.sess = tf.Session(config=config, graph=graph)
 
     def intent_predict(self, input_data, save_path=None):
+
         intent, ner = self.sess.run([self.sess.graph.get_tensor_by_name('intent/output_intent:0'),
                                      self.sess.graph.get_tensor_by_name('intent/output_ner:0')],
                                     feed_dict={
