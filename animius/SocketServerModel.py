@@ -5,6 +5,7 @@ import socket, threading, time, base64, json
 
 clients = {}
 
+
 class Request(object):
     def __init__(self, id, command, arguments):
         self.id = id
@@ -25,7 +26,7 @@ class Response(object):
         pass
 
     @staticmethod
-    def createResp(id, status, message, data={}):
+    def createResp(id, status, message, data):
         try:
             resp = {"id": id,
                     "status": status,
@@ -36,6 +37,7 @@ class Response(object):
         except:
             return None
 
+
 class AEScipher():
     def __init__(self, key, iv):
         self.key = key
@@ -44,11 +46,16 @@ class AEScipher():
         # use AES CBC
         self.cipher = lambda: AES.new(self.key, AES.MODE_CBC, iv=self.iv)
 
+    def getKey(self):
+        return base64.b64encode(self.key).decode()
+
+    def getIv(self):
+        return base64.b16encode(self.iv).decode()
     @classmethod
     def generateRandom(cls):
         iv = get_random_bytes(16)
         key = get_random_bytes(16)
-        return cls(key,iv)
+        return cls(key, iv)
 
     # AES encrypt
     def encrypt(self, data):
@@ -64,10 +71,11 @@ class AEScipher():
     def decrypt(self, encrData):
         try:
             decrData = self.cipher().decrypt(base64.b64decode(encrData))
-            decrData = Padding.unpad(decrData, self.blocksize,style='pkcs7')
+            decrData = Padding.unpad(decrData, self.blocksize, style='pkcs7')
             return decrData
         except:
             return None
+
 
 class client(object):
     def __init__(self, socket, addr):
@@ -96,15 +104,31 @@ class client(object):
     def _recv(self, mtu=65535):
         return self.socket.recv(mtu)
 
-    def send(self,id, status, message, **kwargs):
+    def send(self, id, status, message, data):
         try:
-            resp = Response.createResp(id, status, message, **kwargs)
+            resp = Response.createResp(id, status, message, data)
             resp = self.AEScipher.encrypt(resp)
             self._send(resp)
             return True
         except:
             return False
 
+    def sendKw(self, id, status, message, **kwargs):
+        try:
+            resp = Response.createResp(id, status, message, kwargs)
+            self._send(resp)
+            return True
+        except:
+            return False
+            
+    def sendAes(self, id, status, message, data):
+        try:
+            resp = Response.createResp(id, status, message, data)
+            self._send(resp)
+            return True
+        except:
+            return False
+            
     def recv(self):
         try:
             req = self.AEScipher.decrypt(self._recv())
