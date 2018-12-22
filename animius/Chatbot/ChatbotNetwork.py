@@ -1,6 +1,8 @@
 import tensorflow as tf
 import animius as am
 from animius.Utils import get_mini_batches, shuffle
+from tensorflow.contrib.seq2seq.python.ops import beam_search_ops
+# force load beam_search_ops, see https://github.com/tensorflow/tensorflow/issues/12927
 
 
 class ChatbotModel(am.Model):
@@ -40,28 +42,10 @@ class ChatbotModel(am.Model):
                 self.model_structure[key] = lambda_value()
                 return lambda_value()
 
-        if graph is not None and restore_path is not None:
-            # Combined chatbot model with modified graph
-            self.init_tensorflow(graph=graph, init_param=False, init_sess=False)
-            self.init_hyerdash(self.config['hyperdash'])
-            self.init_restore(restore_path, None)
-
-            # set up self vars and ops for predict/training
-            self.x = graph.get_tensor_by_name('input_x:0')
-            self.x_length = graph.get_tensor_by_name('input_x_length:0')
-            self.y = graph.get_tensor_by_name('train_y:0')
-            self.y_length = graph.get_tensor_by_name('train_y_length:0')
-            self.y_target = graph.get_tensor_by_name('train_y_target:0')
-            self.train_op = graph.get_operation_by_name('train_op')
-            self.cost = graph.get_tensor_by_name('train_cost/truediv:0')
-            # self.merged = graph.get_tensor_by_name('tensorboard_merged:0')
-            self.infer = graph.get_tensor_by_name('decode_1/output_infer:0')
-
-            return
-
         if graph is None:
             graph = tf.Graph()
 
+        # build map
         with graph.as_default():
             if embedding_tensor is None:
                 self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
@@ -148,7 +132,7 @@ class ChatbotModel(am.Model):
 
         self.init_hyerdash(self.config['hyperdash'])
 
-        # restore model data values
+        # restore model data values (restore_path has to be None)
         self.init_restore(restore_path, self.word_embedding if embedding_tensor is None else None)
 
     def network(self, mode="train"):
@@ -313,6 +297,7 @@ class ChatbotModel(am.Model):
             self.config['epoch'] += 1
 
     def predict(self, input_data, save_path=None):
+
         test_output = self.sess.run(self.infer,
                                     feed_dict={
                                         self.x: input_data.values['x'],
@@ -322,11 +307,11 @@ class ChatbotModel(am.Model):
         list_res = []
         for batch in test_output:
             result = []
-            # take only the first beam
-            for beam in batch:
+            for beam in batch:  # three branches
                 beam_res = ''
                 for index in beam:
                     # if test_output is a numpy array, use np.take
+                    # append the words into a sentence
                     beam_res = beam_res + input_data['embedding'].words[int(index)] + " "
                 result.append(beam_res)
             list_res.append(result)

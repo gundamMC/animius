@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.tools import freeze_graph as tf_freeze_graph
+from tensorflow.python.tools import optimize_for_inference_lib
 
 
 def shuffle(data_lists):
@@ -27,9 +29,6 @@ def get_mini_batches(data_lists, mini_batch_size):
         mini_batches.append(tmp)
 
     return mini_batches
-
-
-socket = None
 
 
 def get_length(sequence):
@@ -84,13 +83,45 @@ def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
     return sequence
 
 
-def setSocket(inputSocket):
-    global socket
-    socket = inputSocket
+def freeze_graph(model_dir, output_node_names):
+    # Retrieve latest checkpoint
+    checkpoint = tf.train.get_checkpoint_state(model_dir)
+    input_checkpoint = checkpoint.model_checkpoint_path
+
+    # Define the path for the frozen model
+    absolute_model_dir = "/".join(input_checkpoint.split('/')[:-1])
+    input_graph = absolute_model_dir + "/model_graph.pb"
+    output_graph = absolute_model_dir + "/frozen_model.pb"
+
+    clear_devices = True
+
+    print(input_graph)
+
+    tf_freeze_graph.freeze_graph(input_graph, None, True,
+                                 input_checkpoint, output_node_names,
+                                 "", "", output_graph, clear_devices, "",
+                                 input_meta_graph=input_checkpoint + ".meta"
+                                 )
+
+    return output_graph
 
 
-def printMessage(message):
-    if socket is not None:
-        socket.send(message.encode("UTF-8"))
-    else:
-        print(message)
+def optimize(frozen_graph_path, input_node_names, output_node_names):
+    inputGraph = tf.GraphDef()
+    with tf.gfile.Open(frozen_graph_path, "rb") as f:
+        data2read = f.read()
+        inputGraph.ParseFromString(data2read)
+
+    outputGraph = optimize_for_inference_lib.optimize_for_inference(
+        inputGraph,
+        input_node_names,  # an array of the input node(s)
+        output_node_names,  # an array of output nodes
+        tf.int32.as_datatype_enum)
+
+    # Save the optimized graph
+    absolute_model_dir = "/".join(frozen_graph_path.split('/')[:-1])
+    output_graph = absolute_model_dir + '/optimized_model.pb'
+    f = tf.gfile.FastGFile(output_graph, "w")
+    f.write(outputGraph.SerializeToString())
+
+    return output_graph
