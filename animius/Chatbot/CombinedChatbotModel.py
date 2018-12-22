@@ -1,14 +1,19 @@
-import animius as am
 import tensorflow as tf
 from .ChatbotNetwork import ChatbotModel
 
 
+# A chatbot network built upon an intent-ner model, using its embedding tensor and thus saving VRAM.
+# This model is meant for training. Once training is complete, it is advised to freeze the model
+# and use the CombinedPredictionModel class instead.
 class CombinedChatbotModel(ChatbotModel):
 
     def __init__(self, model_config, data, restore_path=None):
 
         # restoring graph
         if restore_path is not None:
+
+            self.restore_config(restore_path)
+            self.data = data
 
             config = tf.ConfigProto()
             config.gpu_options.allow_growth = True
@@ -24,9 +29,19 @@ class CombinedChatbotModel(ChatbotModel):
 
                 self.saver.restore(self.sess, input_checkpoint)
 
-            super().__init__(None, data, restore_path=restore_path,
-                             embedding_tensor=None,
-                             graph=self.sess.graph)
+                # set up self vars and ops for predict/training
+                self.x = self.sess.graph.get_tensor_by_name('input_x:0')
+                self.x_length = self.sess.graph.get_tensor_by_name('input_x_length:0')
+                self.y = self.sess.graph.get_tensor_by_name('train_y:0')
+                self.y_length = self.sess.graph.get_tensor_by_name('train_y_length:0')
+                self.y_target = self.sess.graph.get_tensor_by_name('train_y_target:0')
+                self.train_op = self.sess.graph.get_operation_by_name('train_op')
+                self.cost = self.sess.graph.get_tensor_by_name('train_cost/truediv:0')
+                self.infer = self.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
+
+                # initialize tensorboard and hyperdash
+                self.init_tensorflow(graph=self.sess.graph, init_param=False, init_sess=False)
+                self.init_hyerdash(self.config['hyperdash'])
 
             return
 
@@ -35,8 +50,7 @@ class CombinedChatbotModel(ChatbotModel):
 
         intent_ner_graph_def = tf.GraphDef()
         with tf.gfile.Open(intent_ner_path, "rb") as f:
-            data2read = f.read()
-            intent_ner_graph_def.ParseFromString(data2read)
+            intent_ner_graph_def.ParseFromString(f.read())
 
         intent_ner_graph = tf.Graph()
         with intent_ner_graph.as_default():
@@ -45,13 +59,3 @@ class CombinedChatbotModel(ChatbotModel):
         super().__init__(model_config, data, restore_path=None,
                          embedding_tensor=intent_ner_graph.get_tensor_by_name('intent/word_embedding:0'),
                          graph=intent_ner_graph)
-
-
-    def predict(self, input_data, save_path=None):
-
-        intent, ner = self.sess.run([self.sess.graph.get_tensor_by_name('intent/output_intent:0'),
-                                     self.sess.graph.get_tensor_by_name('intent/output_ner:0')],
-                                    feed_dict={
-                                        self.x: input_data.values['x'],
-                                        self.x_length: input_data.values['x_length']
-                                    })

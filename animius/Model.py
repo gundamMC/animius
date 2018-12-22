@@ -3,7 +3,6 @@ import tensorflow as tf
 import animius.ModelClasses as ModelClasses
 import json
 from os.path import isdir, join
-from tensorflow.python.tools import freeze_graph, optimize_for_inference_lib
 
 
 class Model(ABC):
@@ -55,10 +54,11 @@ class Model(ABC):
         # prep for hyperdash
         self.hyperdash = None
 
+    # Tensorflow initialization
     def init_tensorflow(self, graph, init_param=True, init_sess=True):
-        # Tensorflow initialization
         with graph.as_default():
-            self.saver = tf.train.Saver()
+            if not hasattr(self, 'saver') or self.saver is None:
+                self.saver = tf.train.Saver()
             if self.config['tensorboard'] is not None:
                 self.tensorboard_writer = tf.summary.FileWriter(self.config['tensorboard'])
 
@@ -134,50 +134,6 @@ class Model(ABC):
 
         if write_graph:
             tf.train.write_graph(self.sess.graph.as_graph_def(), '.', join(path, 'model_graph.pb'), as_text=False)
-
-    @staticmethod
-    def freeze_graph(model_dir, output_node_names):
-
-        # Retrieve latest checkpoint
-        checkpoint = tf.train.get_checkpoint_state(model_dir)
-        input_checkpoint = checkpoint.model_checkpoint_path
-
-        # Define the path for the frozen model
-        absolute_model_dir = "/".join(input_checkpoint.split('/')[:-1])
-        input_graph = absolute_model_dir + "/model_graph.pb"
-        output_graph = absolute_model_dir + "/frozen_model.pb"
-
-        clear_devices = True
-
-        freeze_graph.freeze_graph(input_graph, None, True,
-                                  input_checkpoint, output_node_names,
-                                  "", "", output_graph, clear_devices, "",
-                                  input_meta_graph=absolute_model_dir + "/model-250.meta"
-                                  )
-
-        return output_graph
-
-    @staticmethod
-    def optimize(frozen_graph_path, input_node_names, output_node_names):
-
-        inputGraph = tf.GraphDef()
-        with tf.gfile.Open(frozen_graph_path, "rb") as f:
-            data2read = f.read()
-            inputGraph.ParseFromString(data2read)
-
-        outputGraph = optimize_for_inference_lib.optimize_for_inference(
-            inputGraph,
-            input_node_names,  # an array of the input node(s)
-            output_node_names,  # an array of output nodes
-            tf.int32.as_datatype_enum)
-
-        # Save the optimized graph
-        absolute_model_dir = "/".join(frozen_graph_path.split('/')[:-1])
-        output_graph = absolute_model_dir + '/optimized_model.pb'
-        f = tf.gfile.FastGFile(output_graph, "w")
-        f.write(outputGraph.SerializeToString())
-
-        return output_graph
 
     def close(self):
         self.sess.close()
