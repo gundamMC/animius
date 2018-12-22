@@ -1,5 +1,6 @@
 from animius.Model import Model
-import animius.ModelClasses as ModelClasses
+from animius.ModelData import *
+from animius.ModelConfig import *
 from animius.WordEmbedding import WordEmbedding
 import animius.Utils as Utils
 

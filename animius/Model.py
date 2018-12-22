@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import tensorflow as tf
-import animius.ModelClasses as ModelClasses
+import animius as am
 import json
 from os.path import isdir, join
 
@@ -26,7 +26,7 @@ class Model(ABC):
 
     @classmethod
     def DEFAULT_MODEL_CONFIG(cls):
-        return ModelClasses.ModelConfig(config=cls.DEFAULT_CONFIG(),
+        return am.ModelConfig(cls, config=cls.DEFAULT_CONFIG(),
                                         model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
                                         hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
 
@@ -37,7 +37,7 @@ class Model(ABC):
             self.data = data
             return
 
-        if not isinstance(model_config, ModelClasses.ModelConfig):
+        if not isinstance(model_config, am.ModelConfig):
             raise TypeError('model_config must be a ModelConfig object')
 
         # apply values
@@ -122,6 +122,10 @@ class Model(ABC):
             raise NotADirectoryError('Save path must be a directory')
 
         self.saver.save(self.sess, join(path, 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
+
+        if write_graph:
+            tf.train.write_graph(self.sess.graph.as_graph_def(), path, 'model_graph.pb', as_text=False)
+
         with open(join(path, 'model_config.modelconfig'), 'w') as f:
             f.write(
                 json.dumps(
@@ -131,9 +135,6 @@ class Model(ABC):
                         'hyperparameters': self.hyperparameters
                     }, indent=4)
             )
-
-        if write_graph:
-            tf.train.write_graph(self.sess.graph.as_graph_def(), '.', join(path, 'model_graph.pb'), as_text=False)
 
     def close(self):
         self.sess.close()
