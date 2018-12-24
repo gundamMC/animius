@@ -66,7 +66,7 @@ class ChatbotData(Data):
         self.values['y_length'] = np.concatenate([self.values['y_length'], output_length])
         if output_target is None:
             self.values['y_target'] = np.concatenate([
-                self.values['y_length'],
+                self.values['y_target'],
                 np.concatenate([
                     output_data[:, 1:],
                     np.full([output_data.shape[0], 1], self.values['embedding'].EOS)], axis=1)
