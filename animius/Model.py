@@ -2,7 +2,9 @@ from abc import ABC, abstractmethod
 import tensorflow as tf
 import animius as am
 import json
-from os.path import isdir, join
+from os.path import join
+from os import mkdir
+import errno
 
 
 class Model(ABC):
@@ -32,23 +34,16 @@ class Model(ABC):
                               model_structure=cls.DEFAULT_MODEL_STRUCTURE(),
                               hyperparameters=cls.DEFAULT_HYPERPARAMETERS())
 
-    def __init__(self, model_config, data, restore_path=None):
+    def __init__(self):
+        # Attributes assigned at init function (manually called by the user)
+        self.config = None
+        self.model_structure = None
+        self.hyperparameters = None
 
-        if restore_path is not None:
-            self.restore_config(restore_path)
-            self.data = data
-            return
-
-        if not isinstance(model_config, am.ModelConfig):
-            raise TypeError('model_config must be a ModelConfig object')
-
-        # apply values
-        self.config = model_config.config
-        self.model_structure = model_config.model_structure
-        self.hyperparameters = model_config.hyperparameters
-        self.data = data
+        self.data = None
 
         # prep for tensorflow
+        self.graph = None
         self.saver = None
         self.tensorboard_writer = None
         self.sess = None
@@ -56,10 +51,18 @@ class Model(ABC):
         # prep for hyperdash
         self.hyperdash = None
 
+    @abstractmethod
+    def build_graph(self, model_config, data):
+        pass
+
     # Tensorflow initialization
-    def init_tensorflow(self, graph, init_param=True, init_sess=True):
-        with graph.as_default():
-            if not hasattr(self, 'saver') or self.saver is None:
+    def init_tensorflow(self, graph=None, init_param=True, init_sess=True):
+
+        if graph is not None:
+            self.graph = graph
+
+        with self.graph.as_default():
+            if self.saver is None:
                 self.saver = tf.train.Saver()
             if self.config['tensorboard'] is not None:
                 self.tensorboard_writer = tf.summary.FileWriter(self.config['tensorboard'])
@@ -77,12 +80,7 @@ class Model(ABC):
             from hyperdash import Experiment
             self.hyperdash = Experiment(name)
 
-    def init_restore(self, restore_path, word_embedding_placeholder=None):
-        # restore model data values
-        if restore_path is not None:
-            self.restore_model(restore_path)
-            return  # do not restore word embedding
-
+    def restore_embedding(self, word_embedding_placeholder):
         # Do not include word embedding when restoring models
         if word_embedding_placeholder is not None and 'embedding' in self.data.values:
             with self.sess.graph.as_default():
@@ -98,45 +96,52 @@ class Model(ABC):
     def predict(self, input_data, save_path=None):
         pass
 
-    def restore_config(self, path='./model'):
+    def restore_config(self, directory='./model'):
+        try:
+            with open(join(directory, 'model_config.json'), 'r') as f:
+                stored = json.load(f)
+                self.config = stored['config']
+                self.model_structure = stored['model_structure']
+                self.hyperparameters = stored['hyperparameters']
+        except OSError as exc:
+            print('OS error: {0}'.format(exc))
+        except KeyError:
+            print('Restore failed. model_config.json is missing values')
 
-        if not isdir(path):
-            raise NotADirectoryError('Save path must be a directory')
-
-        with open(join(path, 'model_config.json'), 'r') as f:
-            stored = json.load(f)
-            self.config = stored['config']
-            self.model_structure = stored['model_structure']
-            self.hyperparameters = stored['hyperparameters']
-
-    def restore_model(self, path='./model'):
-        if not isdir(path):
-            raise NotADirectoryError('Save path must be a directory')
-
-        self.saver.restore(self.sess, tf.train.latest_checkpoint(path))
+    def restore_model(self, directory='./model'):
+        self.saver.restore(self.sess, tf.train.latest_checkpoint(directory))
 
     def set_data(self, data):
         self.data = data
 
-    def save(self, path='./model/', meta=False, graph=False):
+    def save(self, directory='./model/', meta=True, graph=False):
 
-        if not isdir(path):
-            raise NotADirectoryError('Save path must be a directory')
+        try:
+            mkdir(directory)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                print('OS error: {0}'.format(exc))
+                return
+            pass
 
-        self.saver.save(self.sess, join(path, 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
+        self.saver.save(self.sess, join(directory, 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
 
         if graph:
-            tf.train.write_graph(self.sess.graph.as_graph_def(), path, 'model_graph.pb', as_text=False)
-            self.config['graph'] = join(path, 'model_graph.pb')
+            tf.train.write_graph(self.sess.graph.as_graph_def(), directory, 'model_graph.pb', as_text=False)
+            self.config['graph'] = join(directory, 'model_graph.pb')
 
-        with open(join(path, 'model_config.json'), 'w') as f:
+        with open(join(directory, 'model_config.json'), 'w') as f:
             json.dump({
                 'config': self.config,
                 'model_structure': self.model_structure,
                 'hyperparameters': self.hyperparameters
             }, f, indent=4)
 
-        print('Model saved at ' + path)
+        print('Model saved at ' + directory)
+
+    @classmethod
+    def load(cls, directory, data=None):
+        pass
 
     def close(self):
         self.sess.close()
