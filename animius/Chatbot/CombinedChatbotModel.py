@@ -7,12 +7,12 @@ from .ChatbotNetwork import ChatbotModel
 # and use the CombinedPredictionModel class instead.
 class CombinedChatbotModel(ChatbotModel):
 
-    def __init__(self, model_config, data, restore_path=None):
+    def __init__(self, model_config, data, restore_directory=None):
 
         # restoring graph
-        if restore_path is not None:
+        if restore_directory is not None:
 
-            self.restore_config(restore_path)
+            self.restore_config(restore_directory)
             self.data = data
 
             config = tf.ConfigProto()
@@ -20,7 +20,7 @@ class CombinedChatbotModel(ChatbotModel):
 
             self.sess = tf.Session(graph=tf.Graph(), config=config)
 
-            checkpoint = tf.train.get_checkpoint_state(restore_path)
+            checkpoint = tf.train.get_checkpoint_state(restore_directory)
             input_checkpoint = checkpoint.model_checkpoint_path
 
             with self.sess.graph.as_default():
@@ -56,6 +56,11 @@ class CombinedChatbotModel(ChatbotModel):
         with intent_ner_graph.as_default():
             tf.import_graph_def(intent_ner_graph_def, name='intent')
 
-        super().__init__(model_config, data, restore_path=None,
+        super().__init__()
+
+        self.build_graph(model_config,
+                         data,
                          embedding_tensor=intent_ner_graph.get_tensor_by_name('intent/word_embedding:0'),
                          graph=intent_ner_graph)
+
+        self.init_tensorflow()
