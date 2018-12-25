@@ -1,7 +1,9 @@
-import tensorflow as tf
-import numpy as np
 import json
 from os.path import join
+
+import numpy as np
+import tensorflow as tf
+
 import animius as am
 
 

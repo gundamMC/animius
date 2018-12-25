@@ -1,8 +1,9 @@
-import animius as am
-from os.path import join
-from os import mkdir
 import errno
 import json
+from os import mkdir
+from os.path import join
+
+import animius as am
 
 
 class Waifu:

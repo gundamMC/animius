@@ -6,12 +6,11 @@
 # edited from https://github.com/wiseman/py-webrtcvad/blob/master/example.py
 import collections
 import contextlib
+import os
 import sys
 import wave
-import os
 
 import webrtcvad
-
 from pydub import AudioSegment
 
 

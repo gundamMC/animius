@@ -1,6 +1,7 @@
+import os
+
 import pysubs2
 from pydub import AudioSegment
-import os
 
 
 class Parser:

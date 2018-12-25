@@ -1,10 +1,12 @@
-from abc import ABC, abstractmethod
-import tensorflow as tf
-import animius as am
-import json
-from os.path import join
-from os import mkdir
 import errno
+import json
+from abc import ABC, abstractmethod
+from os import mkdir
+from os.path import join
+
+import tensorflow as tf
+
+import animius as am
 
 
 class Model(ABC):

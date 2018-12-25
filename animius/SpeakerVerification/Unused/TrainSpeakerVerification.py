@@ -1,8 +1,8 @@
-import tensorflow as tf
-import numpy as np
 import math
-
 import sys
+
+import numpy as np
+import tensorflow as tf
 
 from animius.SpeakerVerification.MFCC import getMFCC
 

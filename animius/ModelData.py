@@ -1,6 +1,8 @@
-import animius as am
-import numpy as np
 from abc import ABC, abstractmethod
+
+import numpy as np
+
+import animius as am
 
 
 class Data(ABC):
