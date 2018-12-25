@@ -9,6 +9,10 @@ clients = {}
 def new_client(c, console):
     try:
         print('Establishing connection with: {0}:{1}'.format(c.addr, c.port))
+        if c.pwd != "":
+            recvPwd=c.socket.recv(65535)
+            if recvPwd != pwd:
+                c.close()
         c.initRandomAEScipher()
         c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
         while True:
@@ -24,7 +28,7 @@ def new_client(c, console):
         c.close()
 
 
-def start_server(console, port, local=True, max_clients=10):
+def start_server(console, port, local=True, pwd="", max_clients=10):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     if local:
@@ -33,13 +37,13 @@ def start_server(console, port, local=True, max_clients=10):
         host = socket.gethostname()
     server.bind((host, port))
 
-    # 侦听客户端
+    #Start Listening
     server.listen(max_clients)
     print('Sever started. Listening on {0}:{1}'.format(host, port))
 
     while True:
-        # 接受客户端连接
+        #Accept Connection
         conn, addr = server.accept()
-        c = Client(conn, addr)
+        c = Client(conn, addr,pwd)
         t = threading.Thread(target=new_client, args=(c, console))
         t.start()
