@@ -108,3 +108,6 @@ class CombinedPredictionModel:
                 result.append((0, i))
 
         return result
+
+    def close(self):
+        self.sess.close()
