@@ -1,6 +1,6 @@
 import numpy as np
-import speechpy
 import scipy.io.wavfile as wav
+import speechpy
 
 
 class MFCC:

@@ -1,7 +1,9 @@
+import base64
+import json
+
 from Crypto.Cipher import AES
-from Crypto.Util import Padding
 from Crypto.Random import get_random_bytes
-import socket, threading, time, base64, json
+from Crypto.Util import Padding
 
 clients = {}
 

@@ -1,9 +1,10 @@
+import json
+from os.path import join
+
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.tools import freeze_graph as tf_freeze_graph
 from tensorflow.python.tools import optimize_for_inference_lib
-from os.path import join
-import json
 
 
 def shuffle(data_lists):

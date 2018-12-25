@@ -1,2 +1,2 @@
-from .SpeakerVerificationNetwork import SpeakerVerificationModel
 from .MFCC import MFCC
+from .SpeakerVerificationNetwork import SpeakerVerificationModel
