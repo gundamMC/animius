@@ -75,9 +75,10 @@ class AEScipher:
 
 
 class Client:
-    def __init__(self, socket, addr):
+    def __init__(self, socket, addr, pwd):
         self.addr = addr[0]
         self.port = addr[1]
+        self.pwd=pwd
         self.socket = socket
         self.AEScipher = None
 
