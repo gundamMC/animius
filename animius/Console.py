@@ -1,128 +1,53 @@
-import animius.SpeakerVerification as SpeakerVerification
-import animius.IntentNER as IntentNER
-import animius.Chatbot as Chatbot
-import animius.ModelClasses as ModelClasses
-import animius.Utils as Utils
-from shlex import split as shell_split
+import animius as am
+
+from .SocketServerModel import Response
+
+
+class ArgumentError(Exception):
+    pass
 
 
 class Console:
 
-    Networks = {}
-    SelectedNetwork = None
+    def __init__(self):
+        self.models = {}
+        self.waifu = {}
+        self.model_configs = {}
+        self.data = {}
+        self.embeddings = {}
 
     @staticmethod
-    def GetNetworks(args):
-        print("Current networks:")
-        for name, value in Networks.items():
-            print(name + ' - ' + type(value).__name__)
+    def check_arguments(args, hard_requirements, soft_requirements):
+        # Check if the user-provided arguments meet the requirements of the method/command
+        # hard_requirement throws ArgumentError if not fulfilled
+        # soft_requirement gives a value of None
+        for req in hard_requirements:
+            if req not in args:
+                raise ArgumentError('{0} is required')
 
-    @staticmethod
-    def Select(args):
-        if len(args) != 1:
-            print("Usage: Select <Network Name>")
-            return
-        if args[0] not in Networks:
-            print("Error: Network \"" + args[0] + "\" does not exist")
-            return
-        global SelectedNetwork
-        SelectedNetwork = Networks[args[0]]
+        for req in soft_requirements:
+            if req not in args:
+                args['req'] = None
 
-    @staticmethod
-    def GetSelected(args):
-        return SelectedNetwork.name
+    def create_model_config(self, **kwargs):
+        Console.check_arguments(kwargs, ['name', 'cls'], ['config', 'hyperparameters', 'data'])
 
-    @staticmethod
-    def AddNetwork(args):
+        self.model_configs[kwargs['name']] = am.ModelConfig(kwargs['cls'],
+                                                            kwargs['config'],
+                                                            kwargs['hyperparameters'],
+                                                            kwargs['data'])
 
-        if len(args) != 2:
-            print("Usage: AddNetwork <Network Type> <Network Name>")
-            return
+    def handle_network(self, request):
 
-        if args[0].lower() == "speakerverification":
-            Networks[args[1]] = SpeakerVerificationModel()
-            print("Speaker verification network \"" + args[1] + "\" added and selected!")
+        command = request.command.lower().replace(' ', '_')
+        method_to_call = getattr(self, command)
 
-        elif args[0].lower() == "intentandner":
-            Networks[args[1]] = IntentNERModel()
-            print("Intent and NER network \"" + args[1] + "\" added and selected!")
-
-        else:
-            print("Invalid type")
-            return
-
-        Select([args[1]])
-
-    @staticmethod
-    def SetTrainingData(args):
-
-        if len(args) < 1:
-            print("Usage: SetTrainingData {<Network Arguments>}")
-            return
-
-        SelectedNetwork.setTrainingData(args)
-        print("Training data set!")
-
-    @staticmethod
-    def Train(args):
-
-        if len(args) > 2:
-            print("Usage: Train [Epochs] [Display step]")
-            return
-
-        if len(args) == 0:
-            SelectedNetwork.train()
-        elif len(args) == 1:
-            SelectedNetwork.train(epochs=int(args[0]))
-        else:
-            SelectedNetwork.train(epochs=int(args[0]), display_step=int(args[1]))
-
-    @staticmethod
-    def Predict(args):
-        if len(args) != 1:
-            print("Usage: Predict <Network input>")
-            return
-        output = SelectedNetwork.predict(args[0])
-        print(output)
-
-    @staticmethod
-    def PredictAll(args):
-        if len(args) == 1:
-            output = SelectedNetwork.predictAll(args[0])
-        elif len(args) == 2:
-            output = SelectedNetwork.predictAll(args[0], args[1])
-        else:
-            print("Usage: Predict <Path of file containing network input>")
-            return
-        print(output)
-
-    @staticmethod
-    def LoadWordVector(args):
-        if len(args) == 1:
-            Utils.createEmbedding(args[0])
-        else:
-            print("Usage: LoadWordVector <Path of word vector>")
-            return
-            print(output)
-
-    commands = {
-        's': AddNetwork
-    }
-
-    @staticmethod
-    def ParseArgs(input_string):
         try:
-            input_string = shell_split(input_string)
-        except Exception as e:
-            print(e)
-            return None, None
-        command = input_string[0]
-        args = {}
-        for arg in input_string[1:]:
-            if not str.startswith(arg, '-') or '=' not in arg:
-                print('Invalid argument', arg, '. Arguments must start with - or -- and include a =')
-                return None, None
-            arg_name, arg_value = arg.lstrip('-').split('=')
-            args[arg_name] = arg_value
-
-        return command, args
+            result = method_to_call(request.arguments)
+            if result is None:
+                result = {}
+            return Response.createResp(request.id, 0, 'success', result)
+        except ArgumentError as exc:
+            return Response.createResp(request.id, 1, exc, {})
+        except Exception as exc:
+            return Response.createResp(request.id, 2, exc, {})
