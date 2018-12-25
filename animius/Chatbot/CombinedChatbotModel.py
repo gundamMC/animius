@@ -1,5 +1,5 @@
 import tensorflow as tf
-from .ChatbotNetwork import ChatbotModel
+from .ChatbotModel import ChatbotModel
 
 
 # A chatbot network built upon an intent-ner model, using its embedding tensor and thus saving VRAM.
