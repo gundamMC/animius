@@ -99,16 +99,11 @@ class Model(ABC):
         pass
 
     def restore_config(self, directory='./model'):
-        try:
-            with open(join(directory, 'model_config.json'), 'r') as f:
-                stored = json.load(f)
-                self.config = stored['config']
-                self.model_structure = stored['model_structure']
-                self.hyperparameters = stored['hyperparameters']
-        except OSError as exc:
-            print('OS error: {0}'.format(exc))
-        except KeyError:
-            print('Restore failed. model_config.json is missing values')
+        with open(join(directory, 'model_config.json'), 'r') as f:
+            stored = json.load(f)
+            self.config = stored['config']
+            self.model_structure = stored['model_structure']
+            self.hyperparameters = stored['hyperparameters']
 
     def restore_model(self, directory='./model'):
         self.saver.restore(self.sess, tf.train.latest_checkpoint(directory))
@@ -122,8 +117,7 @@ class Model(ABC):
             mkdir(directory)
         except OSError as exc:
             if exc.errno != errno.EEXIST:
-                print('OS error: {0}'.format(exc))
-                return
+                raise exc
             pass
 
         self.saver.save(self.sess, join(directory, 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
