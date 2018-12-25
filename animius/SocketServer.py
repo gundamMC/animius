@@ -1,46 +1,45 @@
-from .SocketServerModel import client
+import socket
+import threading
+
+from .SocketServerModel import Client
 
 clients = {}
 
 
-def new_client(c):
+def new_client(c, console):
     try:
-        #print("%s(%s) 尝试连接" % (c.addr, c.port))
+        print('Establishing connection with: {0}:{1}'.format(c.addr, c.port))
         c.initRandomAEScipher()
-        c.sendAes(0,200,"InitAes",{"key":c.AEScipher.getKey(),"iv":c.AEScipher.getIv()})
+        c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
         while True:
             req = c.recv()
-        #do something with console
-        print(req)
-    except socket.errno as e:
-        print("Socket error: %s" % str(e))
-    except Exception as e:
-        print("Other exception: %s" % str(e))
+            response = console.handle_network(req)
+            c.send(response)
+    except socket.error as error:
+        print('Socket error from {0}: {1]'.format(c.addr, error))
+    except Exception as error:
+        print('Unexpected exception from {0}: {0}'.format(c.addr, error))
     finally:
-        #print("%s(%s) 断开连接" % (c.addr, c.port))
+        print('Closing connection with {0}:{1}'.format(c.addr, c.port))
         c.close()
 
 
-def start_server(port, local=True, cnum=10):
+def start_server(console, port, local=True, max_clients=10):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     if local:
-        host = "127.0.0.1"
+        host = '127.0.0.1'
     else:
         host = socket.gethostname()
     server.bind((host, port))
 
     # 侦听客户端
-    server.listen(cnum)
+    server.listen(max_clients)
     print("服务器已开启")
 
     while True:
         # 接受客户端连接
         conn, addr = server.accept()
-        c = client(conn, addr)
-        t = threading.Thread(target=new_client, args=(c,))
+        c = Client(conn, addr)
+        t = threading.Thread(target=new_client, args=(c, console))
         t.start()
-
-if __name__ == "__main__":
-    start_server(12345, local=False)
-    #print("服务器已关闭")

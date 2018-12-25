@@ -8,7 +8,7 @@ from Crypto.Util import Padding
 clients = {}
 
 
-class Request(object):
+class Request:
     def __init__(self, id, command, arguments):
         self.id = id
         self.command = command
@@ -23,24 +23,19 @@ class Request(object):
             return None
 
 
-class Response(object):
-    def __init__(self):
-        pass
+class Response:
 
     @staticmethod
-    def createResp(id, status, message, data):
-        try:
-            resp = {"id": id,
-                    "status": status,
-                    "message": message,
-                    "data": data
-                    }
-            return json.dumps(resp).encode("utf-8")
-        except:
-            return None
+    def createResp(response_id, status, message, data):
+        resp = {"id": response_id,
+                "status": status,
+                "message": message,
+                "data": data
+                }
+        return json.dumps(resp).encode("utf-8")
 
 
-class AEScipher():
+class AEScipher:
     def __init__(self, key, iv):
         self.key = key
         self.iv = iv
@@ -79,7 +74,7 @@ class AEScipher():
             return None
 
 
-class client(object):
+class Client:
     def __init__(self, socket, addr):
         self.addr = addr[0]
         self.port = addr[1]
@@ -106,24 +101,15 @@ class client(object):
     def _recv(self, mtu=65535):
         return self.socket.recv(mtu)
 
-    def send(self, id, status, message, data):
+    def send(self, response):
         try:
-            resp = Response.createResp(id, status, message, data)
-            resp = self.AEScipher.encrypt(resp)
-            self._send(resp)
-            return True
-        except:
-            return False
-
-    def sendKw(self, id, status, message, **kwargs):
-        try:
-            resp = Response.createResp(id, status, message, kwargs)
-            self._send(resp)
+            response = self.AEScipher.encrypt(response)
+            self._send(response)
             return True
         except:
             return False
             
-    def sendAes(self, id, status, message, data):
+    def sendWithoutAes(self, id, status, message, data):
         try:
             resp = Response.createResp(id, status, message, data)
             self._send(resp)
