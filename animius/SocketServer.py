@@ -14,7 +14,7 @@ def new_client(c, console):
         while True:
             req = c.recv()
             response = console.handle_network(req)
-            c.send(response)
+            c.send(*response)
     except socket.error as error:
         print('Socket error from {0}: {1]'.format(c.addr, error))
     except Exception as error:
@@ -35,7 +35,7 @@ def start_server(console, port, local=True, max_clients=10):
 
     # 侦听客户端
     server.listen(max_clients)
-    print("服务器已开启")
+    print('Sever started. Listening on {0}:{1}'.format(host, port))
 
     while True:
         # 接受客户端连接

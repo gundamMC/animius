@@ -1,7 +1,5 @@
 import animius as am
 
-from .SocketServerModel import Response
-
 
 class ArgumentError(Exception):
     pass
@@ -46,8 +44,8 @@ class Console:
             result = method_to_call(request.arguments)
             if result is None:
                 result = {}
-            return Response.createResp(request.id, 0, 'success', result)
+            return request.id, 0, 'success', result
         except ArgumentError as exc:
-            return Response.createResp(request.id, 1, exc, {})
+            return request.id, 1, exc, {}
         except Exception as exc:
-            return Response.createResp(request.id, 2, exc, {})
+            return request.id, 2, exc, {}

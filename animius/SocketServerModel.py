@@ -101,10 +101,11 @@ class Client:
     def _recv(self, mtu=65535):
         return self.socket.recv(mtu)
 
-    def send(self, response):
+    def send(self, id, status, message, data):
         try:
-            response = self.AEScipher.encrypt(response)
-            self._send(response)
+            resp = Response.createResp(id, status, message, data)
+            resp = self.AEScipher.encrypt(resp)
+            self._send(resp)
             return True
         except:
             return False
