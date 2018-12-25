@@ -24,9 +24,25 @@ class IntentNERModel(am.Model):
             'n_ner_output': 8
         }
 
-    def __init__(self, model_config, data, restore_path=None):
+    def __init__(self):
 
-        super().__init__(model_config, data, restore_path=restore_path)
+        super().__init__()
+
+        self.x = None
+        self.x_length = None
+        self.y_intent = None
+        self.y_ner = None
+        self.predict = None
+        self.train_op = None
+        self.cost = None
+        self.tb_merged = None
+
+    def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
+
+        self.config = model_config.config
+        self.model_structure = model_config.model_structure
+        self.hyperparameters = model_config.hyperparameters
+        self.data = data
 
         def test_model_structure(key, lambda_value):
             if key in self.model_structure:
@@ -37,96 +53,112 @@ class IntentNERModel(am.Model):
                 self.model_structure[key] = lambda_value()
                 return lambda_value()
 
-        graph = tf.Graph()
+        if graph is None:
+            graph = tf.Graph()
+
         with graph.as_default():
-            self.n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
-            self.word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+
+            if embedding_tensor is None:
+                n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
+                word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
+                word_embedding = tf.Variable(tf.constant(0.0, shape=(word_count, n_vector)),
+                                             trainable=False, name='word_embedding')
+            else:
+                word_count, n_vector = embedding_tensor.shape
+                word_embedding = embedding_tensor
 
             # Tensorflow placeholders
-            self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']], name='input_x')  # [batch size, sequence length]
+            self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']],
+                                    name='input_x')  # [batch size, sequence length]
             self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
-            self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']])               # [batch size, intent]
-            self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'], self.model_structure['n_ner_output']])
-            self.word_embedding = tf.Variable(tf.constant(0.0, shape=(self.word_count, self.n_vector)), trainable=False, name='word_embedding')
+            self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']],
+                                           name='train_y_intent')  # [batch size, intent]
+            self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'],
+                                                  self.model_structure['n_ner_output']], name='train_y_ner')
 
             # Network parameters
-            self.weights = {  # LSTM weights are created automatically by tensorflow
-                "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_hidden'], self.model_structure['n_intent_output']])),
-                "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_hidden'] + self.model_structure['n_intent_output'], self.model_structure['n_ner_output']]))
+            weights = {  # LSTM weights are created automatically by tensorflow
+                "out_intent": tf.Variable(
+                    tf.random_normal([self.model_structure['n_hidden'], self.model_structure['n_intent_output']])),
+                "out_ner": tf.Variable(tf.random_normal(
+                    [self.model_structure['n_hidden'] + self.model_structure['n_intent_output'],
+                     self.model_structure['n_ner_output']]))
             }
 
-            self.biases = {
+            biases = {
                 "out_intent": tf.Variable(tf.random_normal([self.model_structure['n_intent_output']])),
                 "out_ner": tf.Variable(tf.random_normal([self.model_structure['n_ner_output']]))
             }
 
-            self.cell_fw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
-            self.cell_bw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+            cell_fw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+            cell_bw = tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
+
+            # Setup model network
+
+            def network():
+
+                embedded_x = tf.nn.embedding_lookup(word_embedding, self.x)
+                batch_size = tf.shape(self.x)[0]
+
+                outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
+                                                             cell_bw,
+                                                             inputs=embedded_x,
+                                                             dtype=tf.float32,
+                                                             sequence_length=self.x_length,
+                                                             swap_memory=True)
+                # see https://www.tensorflow.org/api_docs/python/tf/nn/bidirectional_dynamic_rnn
+                # swap_memory is optional.
+
+                outputs_fw, output_bw = outputs  # outputs is a tuple (output_fw, output_bw)
+
+                # get last time steps
+                indexes = tf.reshape(tf.range(0, batch_size), [batch_size, 1])
+                last_time_steps = tf.reshape(tf.add(self.x_length, -1), [batch_size, 1])
+                last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
+
+                # apply linear
+                outputs_intent = tf.add(
+                    tf.matmul(
+                        tf.gather_nd(outputs_fw, last_time_step_indexes),
+                        weights["out_intent"]
+                    ),
+                    biases["out_intent"]
+                )
+
+                entities = tf.concat(
+                    [output_bw,
+                     tf.tile(tf.expand_dims(outputs_intent, 1), [1, self.model_structure['max_sequence'], 1])], -1
+                )
+                outputs_entities = tf.add(
+                    tf.einsum('ijk,kl->ijl', entities, weights["out_ner"]),
+                    biases["out_ner"]
+                )
+
+                return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
 
             # Optimization
-            logits_intent, logits_ner = self.network()
-            self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=self.y_intent)) + \
-            tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_ner))
+            logits_intent, logits_ner = network()
+            self.cost = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_intent, labels=self.y_intent)
+            ) + tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits_ner, labels=self.y_ner),
+                name='train_cost'
+            )
 
             optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
             gradients, variables = zip(*optimizer.compute_gradients(self.cost))
             gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
-            self.train_op = optimizer.apply_gradients(zip(gradients, variables))
-
-            self.prediction = tf.nn.softmax(logits_intent, name='output_intent'),\
+            self.train_op = optimizer.apply_gradients(zip(gradients, variables), name='train_op')
+            self.predict = tf.nn.softmax(logits_intent, name='output_intent'),\
                 tf.nn.softmax(logits_ner, name='output_ner')
 
             # Tensorboard
             if self.config['tensorboard'] is not None:
                 tf.summary.scalar('cost', self.cost)
-                self.merged = tf.summary.merge_all()
+                self.tb_merged = tf.summary.merge_all()
 
-        self.init_tensorflow(graph=graph)
-
-        self.init_hyerdash(self.config['hyperdash'])
-
-        # restore model data values
-        self.init_restore(restore_path, self.word_embedding)
-
-    def network(self):
-
-        embedded_x = tf.nn.embedding_lookup(self.word_embedding, self.x)
-        batch_size = tf.shape(self.x)[0]
-
-        outputs, _ = tf.nn.bidirectional_dynamic_rnn(self.cell_fw,
-                                                     self.cell_bw,
-                                                     inputs=embedded_x,
-                                                     dtype=tf.float32,
-                                                     sequence_length=self.x_length,
-                                                     swap_memory=True)
-        # see https://www.tensorflow.org/api_docs/python/tf/nn/bidirectional_dynamic_rnn
-        # swap_memory is optional.
-
-        outputs_fw, output_bw = outputs  # outputs is a tuple (output_fw, output_bw)
-
-        # get last time steps
-        indexes = tf.reshape(tf.range(0, batch_size), [batch_size, 1])
-        last_time_steps = tf.reshape(tf.add(self.x_length, -1), [batch_size, 1])
-        last_time_step_indexes = tf.concat([indexes, last_time_steps], axis=1)
-
-        # apply linear
-        outputs_intent = tf.add(
-            tf.matmul(
-                tf.gather_nd(outputs_fw, last_time_step_indexes),
-                self.weights["out_intent"]
-            ),
-            self.biases["out_intent"]
-        )
-
-        entities = tf.concat(
-            [output_bw, tf.tile(tf.expand_dims(outputs_intent, 1), [1, self.model_structure['max_sequence'], 1])], -1
-        )
-        outputs_entities = tf.add(
-            tf.einsum('ijk,kl->ijl', entities, self.weights["out_ner"]),
-            self.biases["out_ner"]
-        )
-
-        return outputs_intent, outputs_entities  # linear/no activation as there will be a softmax layer
+        self.graph = graph
+        return graph
 
     def train(self, epochs=200):
 
@@ -174,7 +206,7 @@ class IntentNERModel(am.Model):
                     })
 
             if self.config['tensorboard'] is not None:
-                summary = self.sess.run(self.merged, feed_dict={
+                summary = self.sess.run(self.tb_merged, feed_dict={
                     self.x: mini_batches_x[0],
                     self.x_length: mini_batches_x_length[0],
                     self.y_intent: mini_batches_y_intent[0],
@@ -184,9 +216,43 @@ class IntentNERModel(am.Model):
 
             self.config['epoch'] += 1
 
+    @classmethod
+    def load(cls, directory, data=None):
+        if data is None:
+            print('IntentNER model load failed. Data cannot be None.')
+            return
+
+        model = IntentNERModel()
+        model.restore_config(directory)
+        model.data = data
+
+        graph = tf.Graph()
+
+        checkpoint = tf.train.get_checkpoint_state(directory)
+        input_checkpoint = checkpoint.model_checkpoint_path
+
+        with graph.as_default():
+            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+
+        model.saver.restore(model.sess, input_checkpoint)
+
+        # set up self attributes used by other methods
+        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
+        model.x_length = model.sess.graph.get_tensor_by_name('input_x_length:0')
+        model.y_intent = model.sess.graph.get_tensor_by_name('train_y_intent:0')
+        model.y_ner = model.sess.graph.get_tensor_by_name('train_y_ner:0')
+        model.train_op = model.sess.graph.get_operation_by_name('train_op')
+        model.cost = model.sess.graph.get_tensor_by_name('train_cost')
+        model.predict = model.sess.graph.get_tensor_by_name('output_intent:0'),\
+                        model.sess.graph.get_tensor_by_name('output_ner:0')
+
+        model.init_tensorflow(graph)
+
+        return model
+
     def predict(self, input_data, save_path=None):
 
-        intent, ner = self.sess.run(self.prediction,
+        intent, ner = self.sess.run(self.predict,
                                     feed_dict={
                                         self.x: input_data.values['x'],
                                         self.x_length: input_data.values['x_length']
