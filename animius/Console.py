@@ -15,25 +15,70 @@ class Console:
         self.embeddings = {}
 
     @staticmethod
-    def check_arguments(args, hard_requirements, soft_requirements):
+    def check_arguments(args, hard_requirements=None, soft_requirements=None):
         # Check if the user-provided arguments meet the requirements of the method/command
         # hard_requirement throws ArgumentError if not fulfilled
         # soft_requirement gives a value of None
-        for req in hard_requirements:
-            if req not in args:
-                raise ArgumentError('{0} is required')
+        if hard_requirements is not None:
+            for req in hard_requirements:
+                if req not in args:
+                    raise ArgumentError("{0} is required".format(req))
 
-        for req in soft_requirements:
-            if req not in args:
-                args['req'] = None
+        if soft_requirements is not None:
+            for req in soft_requirements:
+                if req not in args:
+                    args['req'] = None
 
     def create_model_config(self, **kwargs):
-        Console.check_arguments(kwargs, ['name', 'cls'], ['config', 'hyperparameters', 'data'])
+        """
+        Create a model config with the provided values
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config
+        * *cls* (``str``) -- Name of the model class
+        * *config* (``dict``) -- Dictionary of config values
+        * *hyperparameters* (``dict``) -- Dictionary of hyperparameters values
+        * *model_structure* (``model_structure``) -- Dictionary of model_structure values
+          Additional content
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'cls'],
+                                soft_requirements=['config', 'hyperparameters', 'model_structure'])
 
         self.model_configs[kwargs['name']] = am.ModelConfig(kwargs['cls'],
                                                             kwargs['config'],
                                                             kwargs['hyperparameters'],
-                                                            kwargs['data'])
+                                                            kwargs['model_structure'])
+
+    def edit_model_config(self, **kwargs):
+        """
+        Updates a model config with the provided values
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config to edit
+        * *config* (``dict``) -- Dictionary containing the updated config values
+        * *hyperparameters* (``dict``) -- Dictionary containing the updated hyperparameters values
+        * *model_structure* (``model_structure``) -- Dictionary containing the updated model_structure values
+          Additional content
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.model_configs:
+            def update_dict(target, update_values):
+                for key in update_values:
+                    target[key] = update_values[key]
+
+            update_dict(self.model_configs[kwargs['name']].config, kwargs['config'])
+            update_dict(self.model_configs[kwargs['name']].hyperparameters, kwargs['hyperparameters'])
+            update_dict(self.model_configs[kwargs['name']].model_structure, kwargs['model_structure'])
+
+        else:
+            raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
     def handle_network(self, request):
 
