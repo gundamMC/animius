@@ -9,12 +9,18 @@ clients = {}
 def new_client(c, console):
     try:
         print('Establishing connection with: {0}:{1}'.format(c.addr, c.port))
-        if c.pwd != "":
-            recvPwd=c.socket.recv(65535)
-            if recvPwd != pwd:
-                c.close()
+        # initialize AES
         c.initRandomAEScipher()
+        # send AES keys to client
         c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
+
+        # check for password
+        if c.pwd != '':
+            recvPwd = c.recv()
+            if recvPwd != c.pwd:
+                # wrong password, close connection
+                c.close()
+
         while True:
             req = c.recv()
             response = console.handle_network(req)
@@ -28,7 +34,7 @@ def new_client(c, console):
         c.close()
 
 
-def start_server(console, port, local=True, pwd="", max_clients=10):
+def start_server(console, port, local=True, pwd='', max_clients=10):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     if local:
@@ -37,13 +43,13 @@ def start_server(console, port, local=True, pwd="", max_clients=10):
         host = socket.gethostname()
     server.bind((host, port))
 
-    #Start Listening
+    # Start Listening
     server.listen(max_clients)
     print('Sever started. Listening on {0}:{1}'.format(host, port))
 
     while True:
-        #Accept Connection
+        # Accept Connection
         conn, addr = server.accept()
-        c = Client(conn, addr,pwd)
+        c = Client(conn, addr, pwd)
         t = threading.Thread(target=new_client, args=(c, console))
         t.start()
