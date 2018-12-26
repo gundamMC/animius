@@ -41,7 +41,6 @@ class Console:
         * *config* (``dict``) -- Dictionary of config values
         * *hyperparameters* (``dict``) -- Dictionary of hyperparameters values
         * *model_structure* (``model_structure``) -- Dictionary of model_structure values
-          Additional content
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'cls'],
@@ -54,7 +53,7 @@ class Console:
 
     def edit_model_config(self, **kwargs):
         """
-        Updates a model config with the provided values
+        Update a model config with the provided values
 
         :param kwargs:
 
@@ -63,7 +62,6 @@ class Console:
         * *config* (``dict``) -- Dictionary containing the updated config values
         * *hyperparameters* (``dict``) -- Dictionary containing the updated hyperparameters values
         * *model_structure* (``model_structure``) -- Dictionary containing the updated model_structure values
-          Additional content
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
@@ -79,6 +77,43 @@ class Console:
 
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
+
+    def delete_model_config(self, **kwargs):
+        """
+        Delete a model config
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config to delete
+        """
+        pass
+
+    def create_data(self, **kwargs):
+        """
+        Create a data with empty values
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data
+        * *type* (``str``) -- Type of data (based on the model)
+        * *model_config* (``str``) -- Name of model config
+        """
+        pass
+
+    def create_embedding(self, **kwargs):
+        """
+        Create a word embedding
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of embedding
+        * *path* (``str``) -- Path to embedding file
+        * *vocab_size* (``int``) -- Maximum number of tokens to read from embedding file
+        """
+        pass
 
     def handle_network(self, request):
 
