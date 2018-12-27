@@ -132,8 +132,8 @@ class Console:
                                 soft_requirements=['vocab_size'])
 
         embedding = am.WordEmbedding()
-        embedding.create_embedding(kwargs['name'],kwargs['path'],kwargs['vocab_size'])
-        self.embeddings[kwargs['name']]=embedding
+        embedding.create_embedding(kwargs['path'],kwargs['vocab_size'])
+        self.embeddings[kwargs['name']] = embedding
 
     def handle_network(self, request):
 
