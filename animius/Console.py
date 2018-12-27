@@ -87,7 +87,14 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of model config to delete
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.model_configs:
+            self.model_configs.pop(kwargs['name'])
+
+        else:
+            raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
     def create_data(self, **kwargs):
         """
@@ -100,7 +107,14 @@ class Console:
         * *type* (``str``) -- Type of data (based on the model)
         * *model_config* (``str``) -- Name of model config
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'type', 'model_config'])
+
+        if kwargs['name'] in self.model_configs:
+            self.data[kwargs['name']] = am.ChatbotData(kwargs['model_Config'])
+
+        else:
+            raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
     def create_embedding(self, **kwargs):
         """
@@ -113,7 +127,13 @@ class Console:
         * *path* (``str``) -- Path to embedding file
         * *vocab_size* (``int``) -- Maximum number of tokens to read from embedding file
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['vocab_size'])
+
+        embedding = am.WordEmbedding()
+        embedding.create_embedding(kwargs['name'],kwargs['path'],kwargs['vocab_size'])
+        self.embeddings[kwargs['name']]=embedding
 
     def handle_network(self, request):
 
