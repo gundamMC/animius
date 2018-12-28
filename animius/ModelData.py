@@ -7,8 +7,9 @@ import animius as am
 
 class Data(ABC):
 
-    def __init__(self):
+    def __init__(self, model_config):
         self.values = {}
+        self.model_config = model_config
 
     def __getitem__(self, item):
         return self.values[item]
@@ -23,12 +24,15 @@ class Data(ABC):
     def add_data(self, data):
         pass
 
+    def reset(self):
+        self.__init__(self.model_config)
+
 
 class ChatbotData(Data):
 
     def __init__(self, model_config):
 
-        super().__init__()
+        super().__init__(model_config)
 
         if isinstance(model_config, am.ModelConfig):
             max_seq = model_config.model_structure['max_sequence']
@@ -90,21 +94,33 @@ class ChatbotData(Data):
         self.values['x'] = np.array(x).reshape((1, len(x)))
         self.values['x_length'] = np.array(x_length).reshape(1, )
 
-    def add_parse_file(self, path):
+    def add_parse_file(self, path_x, path_y):
         x = []
         x_length = []
 
-        f = open(path, 'r', encoding='utf8')
+        f = open(path_x, 'r', encoding='utf8')
         for line in f:
             x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
                                                      self.values['embedding'].words_to_index, go=True, eos=True)
             x.append(x_tmp)
             x_length.append(length_tmp)
 
-        self.values['x'] = np.concatenate([self.values['x'], np.array(x)])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], np.array(x_length)])
+        self.add_input_data(np.array(x), np.array(x_length))
 
-    def add_parse_sentence(self, x, y):
+        y = []
+        y_length = []
+
+        f = open(path_y, 'r', encoding='utf8')
+        for line in f:
+            y_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
+                                                              self.values['embedding'].words_to_index, go=True,
+                                                              eos=True)
+            y.append(y_tmp)
+            y_length.append(length_tmp)
+
+        self.add_output_data(np.array(y), np.array(y_length))
+
+    def add_parse_sentences(self, x, y):
         x = am.Chatbot.Parse.split_data(x)
         y = am.Chatbot.Parse.split_data(y)
 
@@ -116,28 +132,28 @@ class ChatbotData(Data):
 
     def add_cornell(self, conversations_path, movie_lines_path, lower_bound=None, upper_bound=None):
         x, y = am.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
-        self.add_parse_sentence(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+        self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
     def add_twitter(self, chat_path, lower_bound=None, upper_bound=None):
         x, y = am.Chatbot.Parse.load_twitter(chat_path)
-        self.add_parse_sentence(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+        self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
 
 class IntentNERData(Data):
 
     def __init__(self, model_config):
 
-        super().__init__()
+        super().__init__(model_config)
 
         if isinstance(model_config, am.ModelConfig):
-            self.max_seq = model_config.model_structure['max_sequence']
+            max_seq = model_config.model_structure['max_sequence']
         else:
             raise TypeError('model_config must be a ModelConfig object')
 
-        self.values['x'] = np.zeros((0, self.max_seq))
+        self.values['x'] = np.zeros((0, max_seq))
         self.values['x_length'] = np.zeros((0,))
         self.values['y_intent'] = np.zeros((0, model_config.model_structure['n_intent_output']))
-        self.values['y_ner'] = np.zeros((0, self.max_seq, model_config.model_structure['n_ner_output']))
+        self.values['y_ner'] = np.zeros((0, max_seq, model_config.model_structure['n_ner_output']))
 
     def add_data(self, data):
         self.add_input_data(data[0], data[1])
@@ -163,7 +179,9 @@ class IntentNERData(Data):
 
     def add_parse_data_folder(self, folder_directory):
 
-        x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory, self.values['embedding'], self.max_seq)
+        x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory,
+                                                                   self.values['embedding'],
+                                                                   self.model_config.model_structure['max_sequence'])
 
         self.add_data([x, x_length, y_intent, y_ner])
 
@@ -187,7 +205,7 @@ class SpeakerVerificationData(Data):
 
     def __init__(self, model_config):
 
-        super().__init__()
+        super().__init__(model_config)
 
         self.mfcc_window = model_config.model_structure['input_window']
         self.mfcc_cepstral = model_config.model_structure['input_cepstral']
@@ -220,21 +238,20 @@ class SpeakerVerificationData(Data):
         count = 0
 
         for path in paths:
-            try:
-                count += self.add_parse_input_file(path)
-            except Exception as e:
-                print(e)
+            count += self.add_parse_input_file(path)
 
-        if output is True:
-            self.add_output_data(np.expand_dims(np.tile([1], count), -1))
-        elif output is False:
-            self.add_output_data(np.expand_dims(np.tile([0], count), -1))
+        if output is not None:
+            if output is True:
+                self.add_output_data(np.expand_dims(np.tile([1], count), -1))
+            elif output is False:
+                self.add_output_data(np.expand_dims(np.tile([0], count), -1))
 
     def add_parse_data_file(self, path, output=None, encoding='utf-8'):
         self.add_parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
 
 
 # Prediction data for CombinedPredictionModel (use ChatbotData for CombinedChatbotModel)
+# You are not supposed to manually create this. Use CombinedPredictionModel for prediction.
 class CombinedPredictionData(Data):
 
     def __init__(self, model_config):
