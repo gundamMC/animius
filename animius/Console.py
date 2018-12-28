@@ -290,7 +290,7 @@ class Console:
 
     def intentNER_data_add_parse_data_folder(self, **kwargs):
         """
-        Parse raw sentences from text files and add them to a chatbot data.
+        Parse files from a folder and add them to a chatbot data.
 
         :param kwargs:
 
@@ -303,31 +303,7 @@ class Console:
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']], am.IntentNERData):
-                pass
                 self.data[kwargs['name']].add_parse_data_folder(kwargs['folder_directory'])
-            else:
-                raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
-        else:
-            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
-
-    def intentNER_data_add_parse_input_file(self, **kwargs):
-        """
-        Parse raw sentences from text files and add them to a chatbot data.
-
-        :param kwargs:
-
-        :Keyword Arguments:
-        * *name* (``str``) -- Name of data to add on
-        * *x_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence input on each line
-        * *y_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence output on each line
-        """
-        Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'x_path', 'y_path'])
-        #????
-        if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.IntentNERData):
-                pass
-                #self.data[kwargs['name']].add_parse_data_folder(kwargs['x_path'], kwargs['y_path'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
