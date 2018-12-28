@@ -111,8 +111,14 @@ class Console:
                                 hard_requirements=['name', 'type', 'model_config'])
 
         if kwargs['name'] in self.model_configs:
-            self.data[kwargs['name']] = am.ChatbotData(kwargs['model_Config'])
-
+            if kwargs['type'] == 'ChatbotData':
+                self.data[kwargs['name']] = am.ChatbotData(kwargs['model_Config'])
+            elif kwargs['type'] == 'IntentNERData':
+                self.data[kwargs['name']] = am.IntentNERData(kwargs['model_Config'])
+            elif kwargs['type'] == 'SpeakerVerificationData':
+                self.data[kwargs['name']] = am.SpeakerVerificationData(kwargs['model_Config'])
+            else:
+                raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
@@ -126,7 +132,16 @@ class Console:
         * *name* (``str``) -- Name of data to add on
         * *name_embedding* (``str``) -- Name of the embedding to add to data
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'name_embedding'])
+
+        if kwargs['name'] in self.data:
+            if kwargs['name_embedding'] in self.embeddings:
+                self.data[kwargs['name']].add_embedding_class(self.embeddings[kwargs['name_embedding']])
+            else:
+                raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name_embedding']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def data_reset(self, **kwargs):
         """
@@ -137,7 +152,13 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to reset
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.data:
+            self.data[kwargs['name']].reset()
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def chatbot_data_add_twitter(self, **kwargs):
         """
@@ -149,7 +170,16 @@ class Console:
         * *name* (``str``) -- Name of data to add on
         * *path* (``str``) -- Path to twitter file
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.ChatbotData):
+                self.data[kwargs['name']].add_twitter(kwargs['path'])
+            else:
+                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def chatbot_data_add_cornell(self, **kwargs):
         """
@@ -162,7 +192,16 @@ class Console:
         * *movie_conversations_path* (``str``) -- Path to movie_conversations.txt in the Cornell dataset
         * *movie_lines_path* (``str``) -- Path to movie_lines.txt in the Cornell dataset
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'movie_conversations_path', 'movie_lines_path'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.ChatbotData):
+                self.data[kwargs['name']].add_cornell(kwargs['movie_conversations_path'], kwargs['movie_lines_path'])
+            else:
+                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def chatbot_data_add_parse_sentences(self, **kwargs):
         """
@@ -175,7 +214,16 @@ class Console:
         * *x* (``list<str>``) -- List of strings, each representing a sentence input
         * *y* (``list<str>``) -- List of strings, each representing a sentence output
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x', 'y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.ChatbotData):
+                self.data[kwargs['name']].add_parse_sentences(kwargs['x'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def chatbot_data_add_parse_file(self, **kwargs):
         """
@@ -188,7 +236,16 @@ class Console:
         * *x_path* (``str``) -- Path to a UTF-8 file containing a raw sentence input on each line
         * *y_path* (``str``) -- Path to a UTF-8 file containing a raw sentence output on each line
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x_path', 'y_path'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.ChatbotData):
+                self.data[kwargs['name']].add_parse_file(kwargs['x_path'], kwargs['y_path'])
+            else:
+                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def chatbot_data_add_parse_input(self, **kwargs):
         """
@@ -200,7 +257,16 @@ class Console:
         * *name* (``str``) -- Name of data to add on
         * *x* (``str``) -- Raw sentence input
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.ChatbotData):
+                self.data[kwargs['name']].add_parse_input(kwargs['x'])
+            else:
+                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def chatbot_data_set_parse_input(self, **kwargs):
         """
@@ -212,7 +278,16 @@ class Console:
         * *name* (``str``) -- Name of data to set
         * *x* (``str``) -- Raw sentence input
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.ChatbotData):
+                self.data[kwargs['name']].set_parse_input(kwargs['x'])
+            else:
+                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def intentNER_data_add_parse_data_folder(self, **kwargs):
         """
@@ -225,7 +300,17 @@ class Console:
         * *x_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence input on each line
         * *y_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence output on each line
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x_path', 'y_path'])
+        #?????
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.IntentNERData):
+                pass
+                #self.data[kwargs['name']].add_parse_data_folder(kwargs['x_path'], kwargs['y_path'])
+            else:
+                raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def intentNER_data_add_parse_input_file(self, **kwargs):
         """
@@ -238,7 +323,17 @@ class Console:
         * *x_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence input on each line
         * *y_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence output on each line
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x_path', 'y_path'])
+        #????
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.IntentNERData):
+                pass
+                #self.data[kwargs['name']].add_parse_data_folder(kwargs['x_path'], kwargs['y_path'])
+            else:
+                raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def intentNER_data_add_parse_input(self, **kwargs):
         """
@@ -250,7 +345,16 @@ class Console:
         * *name* (``str``) -- Name of data to add on
         * *x* (``str``) -- Raw sentence input
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.IntentNERData):
+                self.data[kwargs['name']].add_parse_input(kwargs['x'])
+            else:
+                raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def intentNER_data_set_parse_input(self, **kwargs):
         """
@@ -262,7 +366,16 @@ class Console:
         * *name* (``str``) -- Name of data to set
         * *x* (``str``) -- Raw sentence input
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'x'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.IntentNERData):
+                self.data[kwargs['name']].set_parse_input(kwargs['x'])
+            else:
+                raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def speakerVerification_data_add_data_paths(self, **kwargs):
         """
@@ -275,7 +388,17 @@ class Console:
         * *paths* (``list<str>``) -- List of string paths to raw audio files
         * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'paths'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.SpeakerVerificationData):
+                self.data[kwargs['name']].add_parse_data_paths(kwargs['paths'],kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def speakerVerification_data_add_data_file(self, **kwargs):
         """
@@ -288,7 +411,17 @@ class Console:
         * *path* (``str``) -- Path to file containing a path of a raw audio file on each line
         * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'paths'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']], am.SpeakerVerificationData):
+                self.data[kwargs['name']].add_parse_data_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def delete_data(self, **kwargs):
         """
@@ -299,7 +432,14 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to delete
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.data:
+            self.data.pop(kwargs['name'])
+
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def create_embedding(self, **kwargs):
         """
@@ -316,8 +456,11 @@ class Console:
                                 hard_requirements=['name', 'path'],
                                 soft_requirements=['vocab_size'])
 
+        if kwargs['vocab_size'] is None:
+            kwargs['vocab_size'] = 10000
+
         embedding = am.WordEmbedding()
-        embedding.create_embedding(kwargs['path'],kwargs['vocab_size'])
+        embedding.create_embedding(kwargs['path'], kwargs['vocab_size'])
         self.embeddings[kwargs['name']] = embedding
 
     def delete_embedding(self, **kwargs):
@@ -329,7 +472,15 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of embedding to delete
         """
-        pass
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.embeddings:
+            self.embeddings.pop(kwargs['name'])
+
+        else:
+            raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name']))
+
 
     def handle_network(self, request):
 

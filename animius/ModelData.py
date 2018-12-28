@@ -82,7 +82,7 @@ class ChatbotData(Data):
 
     def add_parse_input(self, input_x):
         x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                           self.values['embedding'].words_to_index, go=True, eos=True)
+                                                    self.values['embedding'].words_to_index, go=True, eos=True)
 
         self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
 
@@ -101,7 +101,7 @@ class ChatbotData(Data):
         f = open(path_x, 'r', encoding='utf8')
         for line in f:
             x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
-                                                     self.values['embedding'].words_to_index, go=True, eos=True)
+                                                self.values['embedding'].words_to_index, go=True, eos=True)
             x.append(x_tmp)
             x_length.append(length_tmp)
 
