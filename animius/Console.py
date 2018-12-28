@@ -116,6 +116,191 @@ class Console:
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
+    def data_add_embedding(self, **kwargs):
+        """
+        Add twitter dataset to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *name_embedding* (``str``) -- Name of the embedding to add to data
+        """
+        pass
+
+    def data_reset(self, **kwargs):
+        """
+        Reset a data, clearing all stored data values.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to reset
+        """
+        pass
+
+    def chatbot_data_add_twitter(self, **kwargs):
+        """
+        Add twitter dataset to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to twitter file
+        """
+        pass
+
+    def chatbot_data_add_cornell(self, **kwargs):
+        """
+        Add Cornell dataset to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *movie_conversations_path* (``str``) -- Path to movie_conversations.txt in the Cornell dataset
+        * *movie_lines_path* (``str``) -- Path to movie_lines.txt in the Cornell dataset
+        """
+        pass
+
+    def chatbot_data_add_parse_sentences(self, **kwargs):
+        """
+        Parse raw sentences and add them to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *x* (``list<str>``) -- List of strings, each representing a sentence input
+        * *y* (``list<str>``) -- List of strings, each representing a sentence output
+        """
+        pass
+
+    def chatbot_data_add_parse_file(self, **kwargs):
+        """
+        Parse raw sentences from text files and add them to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *x_path* (``str``) -- Path to a UTF-8 file containing a raw sentence input on each line
+        * *y_path* (``str``) -- Path to a UTF-8 file containing a raw sentence output on each line
+        """
+        pass
+
+    def chatbot_data_add_parse_input(self, **kwargs):
+        """
+        Parse a raw sentence as input and add it to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *x* (``str``) -- Raw sentence input
+        """
+        pass
+
+    def chatbot_data_set_parse_input(self, **kwargs):
+        """
+        Parse a raw sentence as input and set it as a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to set
+        * *x* (``str``) -- Raw sentence input
+        """
+        pass
+
+    def intentNER_data_add_parse_data_folder(self, **kwargs):
+        """
+        Parse raw sentences from text files and add them to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *x_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence input on each line
+        * *y_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence output on each line
+        """
+        pass
+
+    def intentNER_data_add_parse_input_file(self, **kwargs):
+        """
+        Parse raw sentences from text files and add them to a chatbot data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *x_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence input on each line
+        * *y_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence output on each line
+        """
+        pass
+
+    def intentNER_data_add_parse_input(self, **kwargs):
+        """
+        Parse a raw sentence as input and add it to an intent NER data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *x* (``str``) -- Raw sentence input
+        """
+        pass
+
+    def intentNER_data_set_parse_input(self, **kwargs):
+        """
+        Parse a raw sentence as input and set it as an intent NER data.
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to set
+        * *x* (``str``) -- Raw sentence input
+        """
+        pass
+
+    def speakerVerification_data_add_data_paths(self, **kwargs):
+        """
+        Parse and add raw audio files to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *paths* (``list<str>``) -- List of string paths to raw audio files
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+        pass
+
+    def speakerVerification_data_add_data_file(self, **kwargs):
+        """
+        Read paths to raw audio files and add them to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to file containing a path of a raw audio file on each line
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+        pass
+
+    def delete_data(self, **kwargs):
+        """
+        Delete a data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to delete
+        """
+        pass
+
     def create_embedding(self, **kwargs):
         """
         Create a word embedding
@@ -134,6 +319,17 @@ class Console:
         embedding = am.WordEmbedding()
         embedding.create_embedding(kwargs['path'],kwargs['vocab_size'])
         self.embeddings[kwargs['name']] = embedding
+
+    def delete_embedding(self, **kwargs):
+        """
+        Delete a word embedding
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of embedding to delete
+        """
+        pass
 
     def handle_network(self, request):
 
