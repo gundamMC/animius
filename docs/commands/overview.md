@@ -207,8 +207,16 @@ Keyword Arguments:
 
 * *x* (``str``) -- Raw sentence input
 
-###intentNER_data_add_parse_data_folder
-###intentNER_data_add_parse_input_file
+###Add Parse Data Folder To IntentNER Data
+Parse files from a folder and add them to a chatbot data.
+```
+intentNERDataAddParseDatafolder --name='myData' --folder_directory=''
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of data to add on
+
+* *folder_directory* (``str``) -- Path to a folder contains input files
 
 ##SpeakerVerification Data
 ###Add Data Paths To SpeakerVerification Data
