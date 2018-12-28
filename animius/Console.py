@@ -92,7 +92,6 @@ class Console:
 
         if kwargs['name'] in self.model_configs:
             self.model_configs.pop(kwargs['name'])
-
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
@@ -297,16 +296,15 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *x_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence input on each line
-        * *y_path* (``list<str>``) -- Path to a UTF-8 file containing a raw sentence output on each line
+        * *folder_directory* (``str``) -- Path to a folder contains input files
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'x_path', 'y_path'])
-        #?????
+                                hard_requirements=['name', 'folder_directory'])
+
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']], am.IntentNERData):
                 pass
-                #self.data[kwargs['name']].add_parse_data_folder(kwargs['x_path'], kwargs['y_path'])
+                self.data[kwargs['name']].add_parse_data_folder(kwargs['folder_directory'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
