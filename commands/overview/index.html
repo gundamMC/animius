@@ -472,15 +472,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#intentner_data_add_parse_data_folder" title="intentNER_data_add_parse_data_folder" class="md-nav__link">
-    intentNER_data_add_parse_data_folder
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#intentner_data_add_parse_input_file" title="intentNER_data_add_parse_input_file" class="md-nav__link">
-    intentNER_data_add_parse_input_file
+  <a href="#add-parse-data-folder-to-intentner-data" title="Add Parse Data Folder To IntentNER Data" class="md-nav__link">
+    Add Parse Data Folder To IntentNER Data
   </a>
   
 </li>
@@ -817,15 +810,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#intentner_data_add_parse_data_folder" title="intentNER_data_add_parse_data_folder" class="md-nav__link">
-    intentNER_data_add_parse_data_folder
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#intentner_data_add_parse_input_file" title="intentNER_data_add_parse_input_file" class="md-nav__link">
-    intentNER_data_add_parse_input_file
+  <a href="#add-parse-data-folder-to-intentner-data" title="Add Parse Data Folder To IntentNER Data" class="md-nav__link">
+    Add Parse Data Folder To IntentNER Data
   </a>
   
 </li>
@@ -1175,8 +1161,21 @@ In the console, a command could look something like this:</p>
 <p><em>x</em> (<code class="codehilite">str</code>) -- Raw sentence input</p>
 </li>
 </ul>
-<h3 id="intentner_data_add_parse_data_folder">intentNER_data_add_parse_data_folder</h3>
-<h3 id="intentner_data_add_parse_input_file">intentNER_data_add_parse_input_file</h3>
+<h3 id="add-parse-data-folder-to-intentner-data">Add Parse Data Folder To IntentNER Data</h3>
+<p>Parse files from a folder and add them to a chatbot data.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>intentNERDataAddParseDatafolder --name=&#39;myData&#39; --folder_directory=&#39;&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of data to add on</p>
+</li>
+<li>
+<p><em>folder_directory</em> (<code class="codehilite">str</code>) -- Path to a folder contains input files</p>
+</li>
+</ul>
 <h2 id="speakerverification-data">SpeakerVerification Data</h2>
 <h3 id="add-data-paths-to-speakerverification-data">Add Data Paths To SpeakerVerification Data</h3>
 <p>Parse and add raw audio files to a speaker verification data.</p>
