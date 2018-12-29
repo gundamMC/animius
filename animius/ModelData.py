@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
+from os import mkdir
+from os.path import join
+import errno
 
 import numpy as np
+import json
 
 import animius as am
 
@@ -10,6 +14,7 @@ class Data(ABC):
     def __init__(self, model_config):
         self.values = {}
         self.model_config = model_config
+        self.saved_directory = None
 
     def __getitem__(self, item):
         return self.values[item]
@@ -26,6 +31,132 @@ class Data(ABC):
 
     def reset(self):
         self.__init__(self.model_config)
+
+    def save(self, directory=None, name='model_data', compress=False, save_embedding=False, save_model_config=False):
+        """
+        Save a model data object to a directory
+
+        :param directory: directory to save the data
+        :param name: string to name the saved files
+        :param compress: whether to compress the numpy arrays
+        :param save_embedding: whether to save a separate copy of the word embedding
+        :param save_model_config: whether to save a separate copy of the model config
+        :return: the directory in which the data is saved
+        """
+        if directory is None:
+            if self.saved_directory is None:
+                raise ValueError("Directory must be provided when saving for the first time")
+            else:
+                directory = self.saved_directory
+
+        try:
+            # create directory if it does not already exist
+            mkdir(directory)
+        except OSError as exc:
+            if exc.errno != errno.EEXIST:
+                raise exc
+
+        tmp_embedding = None
+
+        if 'embedding' in self.values:
+            # temporarily remove embedding to prevent it from being saved with the rest of the values
+            tmp_embedding = self.values.pop('embedding')
+
+        if compress:
+            np.savez_compressed(join(directory, name + '_np_arrays.npz'), self.values)
+        else:
+            np.savez(join(directory, name + '_np_arrays.npz'), self.values)
+
+        # dictionary of configs to save as json
+        save_dict = {'cls': type(self).__name__}
+
+        # adds embedding back
+        if tmp_embedding is not None:
+            self.values['embedding'] = tmp_embedding
+
+            # Save it if embedding is not saved or if the user wants to save a separate copy
+            if self.values['embedding'].saved_directory is None or save_embedding:
+                saved_embedding_directory = join(directory, 'embedding')
+                self.values['embedding'].save(saved_embedding_directory, name=name)
+
+            # add embedding values to json
+            save_dict['embedding_directory'] = self.values['embedding'].saved_directory
+            save_dict['embedding_name'] = self.values['embedding'].saved_name
+
+        # same as embedding
+        if self.model_config.saved_directory is None or save_model_config:
+            saved_model_config_directory = join(directory, 'model_config')
+            self.model_config.save(saved_model_config_directory, name=name)
+
+        # add model config values to json
+        save_dict['model_config_directory'] = self.model_config.saved_directory
+        save_dict['model_config_name'] = self.model_config.saved_name
+
+        with open(join(directory, name + '.json'), 'w') as f:
+            json.dump(save_dict, f, indent=4)
+
+        return directory
+
+    @staticmethod
+    def load(directory, name='model_data', console=None):
+        """
+        Load a model data object from a saved directory
+
+        :param directory: path to the directory in which the model data is saved
+        :param name: name of the saved files
+        :param console: a console object used to check if objects have already been loaded in the console.
+        :return: a model data object
+        """
+        with open(join(directory, name + '.json'), 'r') as f:
+            stored = json.load(f)
+
+        model_config = None
+
+        # find if model config is already loaded in the console
+        if console is not None:
+            for i in console.model_configs:
+                if i.saved_directory is not None and \
+                        i.saved_directory == stored['model_config_directory'] and \
+                        i.saved_name == stored['model_config_name']:
+                    model_config = i
+                    break
+
+        # No matching model config found
+        if model_config is None:
+            model_config = am.ModelConfig.load(directory=stored['model_config_directory'],
+                                               name=stored['model_config_name'])
+
+        if stored['cls'] == 'ChatbotData':
+            data = ChatbotData(model_config)
+        elif stored['cls'] == 'IntentNERData':
+            data = IntentNERData(model_config)
+        elif stored['cls'] == 'SpeakerVerificationData':
+            data = SpeakerVerificationData(model_config)
+        elif stored['cls'] == 'CombinedPredictionData':
+            data = CombinedPredictionData(model_config)
+        else:
+            raise ValueError("Data class not found.")
+
+        # Load data values
+        data.values = np.load(name + '_np_arrays.npz')
+
+        if 'embedding_directory' in stored:
+
+            # find if embedding is already loaded in the console
+            if console is not None:
+                for i in console.embeddings:
+                    if i.saved_directory is not None and \
+                            i.saved_directory == stored['embedding_directory'] and \
+                            i.saved_name == stored['embedding_name']:
+                        data.add_embedding_class(i)
+                        break
+
+            # No matching embedding found
+            if 'embedding' not in data.values:
+                data.add_embedding_class(am.WordEmbedding.load(directory=stored['embedding_directory'],
+                                                               name=stored['embedding_name']))
+
+        return data
 
 
 class ChatbotData(Data):
