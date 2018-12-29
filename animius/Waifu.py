@@ -18,6 +18,9 @@ class Waifu:
 
         self.config = {'name': name, 'models': models}
 
+        self.saved_directory = None
+        self.saved_name = None
+
     def add_combined_prediction_model(self, directory):
 
         if self.combined_prediction is not None:
@@ -53,33 +56,43 @@ class Waifu:
 
         return self.combined_prediction.predict(self.input_data)
 
-    def save(self, directory):
+    def save(self, directory, name='waifu'):
+
+        if directory is None:
+            if self.saved_directory is None:
+                raise ValueError("Directory must be provided when saving for the first time")
+            else:
+                directory = self.saved_directory
+
+        if self.saved_name is not None:
+            name = self.saved_name
 
         try:
+            # create directory if it does not already exist
             mkdir(directory)
-            with open(join(directory, 'waifu.json'), 'w') as f:
-                json.dump(self.config, f, indent=4)
-
         except OSError as exc:
             if exc.errno != errno.EEXIST:
-                print('OS error: {0}'.format(exc))
-                return
-            pass
+                raise exc
+
+        with open(join(directory, name + '_waifu_config.json'), 'w') as f:
+            json.dump(self.config, f, indent=4)
+
+        self.saved_directory = directory
+        self.saved_name = name
+
+        return directory
 
     @classmethod
-    def load(cls, directory):
-        try:
-            with open(join(directory, 'waifu.json'), 'r') as f:
-                config = json.load(f)
+    def load(cls, directory, name='waifu'):
+        with open(join(directory, name + '_waifu_config.json'), 'r') as f:
+            config = json.load(f)
 
-                waifu = cls(config['name'], config['models'])
+        waifu = cls(config['name'], config['models'])
 
-                if 'CombinedPrediction' in config['models']:
-                    waifu.load_combined_prediction_model()
+        if 'CombinedPrediction' in config['models']:
+            waifu.load_combined_prediction_model()
 
-                return waifu
+        waifu.saved_directory = directory
+        waifu.saved_name = name
 
-        except OSError as exc:
-            print('OS error: {0}'.format(exc))
-        except KeyError:
-            print('Load failed. Waifu.json is missing values (\'name\' and \'models\')')
+        return waifu

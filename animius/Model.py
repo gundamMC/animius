@@ -53,6 +53,10 @@ class Model(ABC):
         # prep for hyperdash
         self.hyperdash = None
 
+        # save/load
+        self.saved_directory = None
+        self.saved_name = None
+
     @abstractmethod
     def build_graph(self, model_config, data):
         pass
@@ -98,8 +102,8 @@ class Model(ABC):
     def predict(self, input_data, save_path=None):
         pass
 
-    def restore_config(self, directory='./model'):
-        with open(join(directory, 'model_config.json'), 'r') as f:
+    def restore_config(self, directory, name='model'):
+        with open(join(directory, name + '_model_config.json'), 'r') as f:
             stored = json.load(f)
             self.config = stored['config']
             self.model_structure = stored['model_structure']
@@ -111,32 +115,45 @@ class Model(ABC):
     def set_data(self, data):
         self.data = data
 
-    def save(self, directory='./model/', meta=True, graph=False):
+    def save(self, directory=None, name='model', meta=True, graph=False):
+
+        if directory is None:
+            if self.saved_directory is None:
+                raise ValueError("Directory must be provided when saving for the first time")
+            else:
+                directory = self.saved_directory
+
+        if self.saved_name is not None:
+            name = self.saved_name
 
         try:
+            # create directory if it does not already exist
             mkdir(directory)
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise exc
-            pass
 
-        self.saver.save(self.sess, join(directory, 'model'), global_step=self.config['epoch'], write_meta_graph=meta)
+        self.saver.save(self.sess, join(directory, name), global_step=self.config['epoch'], write_meta_graph=meta)
 
         if graph:
-            tf.train.write_graph(self.sess.graph.as_graph_def(), directory, 'model_graph.pb', as_text=False)
-            self.config['graph'] = join(directory, 'model_graph.pb')
+            tf.train.write_graph(self.sess.graph.as_graph_def(), directory, name + '_graph.pb', as_text=False)
+            self.config['graph'] = join(directory, name + '_graph.pb')
 
-        with open(join(directory, 'model_config.json'), 'w') as f:
+        # saving an individual copy because config has been changed
+        with open(join(directory, name + '_model_config.json'), 'w') as f:
             json.dump({
                 'config': self.config,
                 'model_structure': self.model_structure,
                 'hyperparameters': self.hyperparameters
             }, f, indent=4)
 
-        print('Model saved at ' + directory)
+        self.saved_directory = directory
+        self.saved_name = name
+
+        return directory
 
     @classmethod
-    def load(cls, directory, data=None):
+    def load(cls, directory, name='model', data=None):
         pass
 
     def close(self):

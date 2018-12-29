@@ -8,12 +8,14 @@ from .ChatbotModel import ChatbotModel
 # and use the CombinedPredictionModel class instead.
 class CombinedChatbotModel(ChatbotModel):
 
-    def __init__(self, model_config, data, restore_directory=None):
+    def __init__(self, model_config, data, restore_directory=None, restore_name='model'):
+
+        super().__init__()
 
         # restoring graph
         if restore_directory is not None:
 
-            self.restore_config(restore_directory)
+            self.restore_config(restore_directory, restore_name)
             self.data = data
 
             config = tf.ConfigProto()
@@ -56,8 +58,6 @@ class CombinedChatbotModel(ChatbotModel):
         intent_ner_graph = tf.Graph()
         with intent_ner_graph.as_default():
             tf.import_graph_def(intent_ner_graph_def, name='intent')
-
-        super().__init__()
 
         self.build_graph(model_config,
                          data,

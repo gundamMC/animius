@@ -218,13 +218,13 @@ class IntentNERModel(am.Model):
             self.config['epoch'] += 1
 
     @classmethod
-    def load(cls, directory, data=None):
+    def load(cls, directory, name='model', data=None):
         if data is None:
             print('IntentNER model load failed. Data cannot be None.')
             return
 
         model = IntentNERModel()
-        model.restore_config(directory)
+        model.restore_config(directory, name)
         model.data = data
 
         graph = tf.Graph()
@@ -248,6 +248,9 @@ class IntentNERModel(am.Model):
                         model.sess.graph.get_tensor_by_name('output_ner:0')
 
         model.init_tensorflow(graph)
+
+        model.saved_directory = directory
+        model.saved_name = name
 
         return model
 
