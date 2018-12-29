@@ -377,8 +377,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#config-templates" title="Config templates" class="md-nav__link">
-    Config templates
+  <a href="#model-configs" title="Model Configs" class="md-nav__link">
+    Model Configs
   </a>
   
 </li>
@@ -398,8 +398,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tldr" title="TL;DR" class="md-nav__link">
-    TL;DR
+  <a href="#file-tree-example" title="File tree example" class="md-nav__link">
+    File tree example
   </a>
   
 </li>
@@ -510,8 +510,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#config-templates" title="Config templates" class="md-nav__link">
-    Config templates
+  <a href="#model-configs" title="Model Configs" class="md-nav__link">
+    Model Configs
   </a>
   
 </li>
@@ -531,8 +531,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#tldr" title="TL;DR" class="md-nav__link">
-    TL;DR
+  <a href="#file-tree-example" title="File tree example" class="md-nav__link">
+    File tree example
   </a>
   
 </li>
@@ -557,22 +557,22 @@
                 
                 
                 <h1 id="file-structure-overview">File Structure Overview</h1>
-<p>Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects are stored. It should be noted that all config files created by Animius are in JSON.</p>
+<p>Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects are stored by default when using the console (this does not apply when using Animius as a python library or when directories are provided). It should also be noted that all config files created by Animius are in JSON.</p>
 <p>When you start Animius for the first time, the console will prompt you to choose a directory as the storage space for resources. This directory will contain <em>all</em> the files with the exception of <code class="codehilite">\user-config.json</code> being at the root directory.</p>
 <h2 id="configjson">config.json</h2>
-<p>It should be noted that there is a clear distinction between <code class="codehilite">\config.json</code> and <code class="codehilite">\user-config.json</code>. <code class="codehilite">\config.json</code> serves as a template for <code class="codehilite">\user-config.json</code>, which should be created either manually or automatically at first launch. This way, when the user pulls updates from git, their configs will not be overwritten.</p>
+<p>It should be noted that there is a clear distinction between <code class="codehilite">\config.json</code> and <code class="codehilite">\user-config.json</code>. <code class="codehilite">\config.json</code> serves as a template for <code class="codehilite">\user-config.json</code>, which should be created either manually or automatically at first launch. This way, when the user pulls updates from git, the configs will not be overwritten.</p>
 <h2 id="waifus-or-waifu-tachi">Waifus (or Waifu-tachi)</h2>
-<p>A Waifu, as the name suggests, is a set of models that are linked together to create an artificial intelligence agent — a Waifu. All Waifus are stored in a single file, <code class="codehilite">\Waifus.json</code>, at the root of the resource directory. This allows and encourages users to reuse models and data across different Waifus.</p>
+<p>A Waifu, as the name suggests, is a set of models that are linked together to create an artificial intelligence agent — a Waifu. While waifus are stored individually as JSON files in the <code class="codehilite">waifus</code> folder, the <code class="codehilite">\waifus.json</code> file contains information on all waifus for console usage.</p>
 <h2 id="models">Models</h2>
-<p>Unlike the Waifus, each model gets its own folder under the <code class="codehilite">\Models\</code>. A single file, <code class="codehilite">\Models\Models.json</code> stores information of all of the models. This also allows for models being stored outside of <code class="codehilite">\Models\</code> (although this is strongly discouraged). For the sake of an example, we will have a single model named <code class="codehilite">myModel</code>. <code class="codehilite">\Models\myModel\</code> will include a file <code class="codehilite">\Models\myModel\myModel.json</code> containing its config.</p>
-<p>Model checkpoints and Tensorboard information, if not manually changed, will be stored in the models' folders such as <code class="codehilite">\Models\myModel\Checkpoints</code> and <code class="codehilite">\Models\myModel\Tensorboard</code>.</p>
-<h2 id="config-templates">Config templates</h2>
-<p>Config templates, located under <code class="codehilite">\Configs\</code> can be used to quickly build new identical models. Each templates is an individual JSON file that is very similar to the config file of models, with the few exceptions of model-specific values such as names and epochs.</p>
+<p>Unlike the Waifus, each model gets its own folder under the <code class="codehilite">\models\</code>. A single file, <code class="codehilite">\models\models.json</code> stores information of all of the models. This also allows for models being stored outside of <code class="codehilite">\Models\</code> (although this is strongly discouraged). For the sake of an example, we will have a single model named <code class="codehilite">myModel</code>. <code class="codehilite">\models\myModel\</code> will include a file <code class="codehilite">\Models\myModel\myModel.json</code> containing its config. Model checkpoints and graphs will be stored in the same folder as <code class="codehilite">myModel.json</code> by default, while Tensorboard files will be stored in a folder defined by the user in model config.</p>
+<h2 id="model-configs">Model Configs</h2>
+<p>Model configs, located under <code class="codehilite">\model_configs\</code> have very similar structures as waifus: individual user-named JSON configs and a main <code class="codehilite">model_configs.json</code>. Each model config is an individual JSON file that is very similar to the config file of models, with the few exceptions of model-specific values such as names and epochs.</p>
 <h2 id="data">Data</h2>
-<p>It is often encouraged to store data in their raw forms, such as audio or words, so they can always be regenerated after changes in model structure. In the rare case of wanting to store processed data in the form of numpy ndarrays, the files will be found in the <code class="codehilite">\Data\</code> folder within their individual folders configed by <code class="codehilite">\Data\Data.config</code>. Each folder will contain a JSON config, with the name of the data object, and files generated by numpy.  </p>
+<p>It is often encouraged to store data in their raw forms, such as audio or words, so they can always be regenerated after changes in model structure. Nevertheless, it may be more convenient to store parsed data as numpy arrays. The saved files will be found in the <code class="codehilite">\Data\</code> folder within their individual folders indicated in <code class="codehilite">\data\data.json</code>. Each folder will contain a JSON config and a <code class="codehilite"><span class="na">.npz</span></code> file generated by numpy.</p>
+<p>When storing data, there are also the options of saving separate copies of the model config and word embedding. This is to prevent changes that may be incompatible with the parsed data, such as sequence lengths and token indexes. These individual copies will be stored in folders within the directory of the JSON config and the <code class="codehilite"><span class="na">.npz</span></code> file.</p>
 <h2 id="word-embeddings">Word Embeddings</h2>
-<p>Word embeddings, contrary to other data, should be stored, as it can take a while to process large embeddings. Embeddings are stored under the <code class="codehilite">\Embeddings\</code> folder with a <code class="codehilite">\Embeddings\Embeddings.json</code> config. Each embedding has an individual folder containig a JSON config and a numpy ndarrary file.</p>
-<h2 id="tldr">TL;DR</h2>
+<p>Embeddings are stored under the <code class="codehilite">\embeddings\</code> folder with a <code class="codehilite">\embeddings\embeddings.json</code> config. Each embedding has an individual folder containing a <code class="codehilite"><span class="na">.npy</span></code> numpy ndarrary file and two <code class="codehilite"><span class="na">.pkl</span></code> pickle files. No individual JSON file is stored for embeddings. </p>
+<h2 id="file-tree-example">File tree example</h2>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
  3
@@ -595,29 +595,35 @@
 20
 21
 22
-23</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>Resources
-├─── Waifus.json
-├─── Models
-│    ├─── Models.json
+23
+24
+25
+26</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>Resources
+├─── waifus
+│    ├─── waifus.json
+│    └─── yukino_waifu_config.json
+├─── models
+│    ├─── models.json
 │    └─── myModel
+│         ├─── checkpoint
 │         ├─── myModel.json
-│         ├─── Checkpoints
-│         │     checkpoint
-│         │     model-0.data-00000
-│         └─── Tensorboard     
-├─── Configs
-│    └─── myConfigTemplate.json
-├─── Data
-│    ├─── Data.json
+│         ├─── myModel_graph.pb
+│         ├─── myModel-0.data-00000
+│         └─── myModel-0.meta
+├─── model_configs
+│    ├─── model_configs.json
+│    └─── myModelConfig.json
+├─── data
+│    ├─── data.json
 │    └─── myData
 │         ├─── myData.json
-│         ├─── x.npy
-│         └─── y.npy
-└─── Embeddings
-     ├─── Embeddings.json
+│         └─── myData_np_arrays.npz
+└─── embeddings
+     ├─── embeddings.json
      └─── myEmbedding
-          ├─── myEmbedding.json
-          └─── myEmbedding.npy
+          ├─── myEmbedding.npy
+          ├─── myEmbedding_words.pkl_
+          └─── myEmbedding_words_to_index.pkl
 </pre></div>
 </td></tr></table>
                 

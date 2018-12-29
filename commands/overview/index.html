@@ -348,6 +348,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#save-model-config" title="Save Model Config" class="md-nav__link">
+    Save Model Config
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-model-config" title="Load Model Config" class="md-nav__link">
+    Load Model Config
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -385,6 +399,20 @@
           <li class="md-nav__item">
   <a href="#delete-data" title="Delete Data" class="md-nav__link">
     Delete Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-data" title="Save Data" class="md-nav__link">
+    Save Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-data" title="Load Data" class="md-nav__link">
+    Load Data
   </a>
   
 </li>
@@ -525,15 +553,29 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
+          <li class="md-nav__item">
   <a href="#delete-embedding" title="Delete Embedding" class="md-nav__link">
     Delete Embedding
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-embedding" title="Save Embedding" class="md-nav__link">
+    Save Embedding
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-embedding" title="Load Embedding" class="md-nav__link">
+    Load Embedding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -686,6 +728,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#save-model-config" title="Save Model Config" class="md-nav__link">
+    Save Model Config
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-model-config" title="Load Model Config" class="md-nav__link">
+    Load Model Config
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -723,6 +779,20 @@
           <li class="md-nav__item">
   <a href="#delete-data" title="Delete Data" class="md-nav__link">
     Delete Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-data" title="Save Data" class="md-nav__link">
+    Save Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-data" title="Load Data" class="md-nav__link">
+    Load Data
   </a>
   
 </li>
@@ -863,15 +933,29 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
+          <li class="md-nav__item">
   <a href="#delete-embedding" title="Delete Embedding" class="md-nav__link">
     Delete Embedding
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-embedding" title="Save Embedding" class="md-nav__link">
+    Save Embedding
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-embedding" title="Load Embedding" class="md-nav__link">
+    Load Embedding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -976,6 +1060,36 @@ In the console, a command could look something like this:</p>
 <ul>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of model config to delete</li>
 </ul>
+<h3 id="save-model-config">Save Model Config</h3>
+<p>Save a model config object to a directory.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModelConfig  --directory=&#39;&#39; --name=&#39;myModel&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>directory</em> (<code class="codehilite">str</code>) --  Directory to save the config</p>
+</li>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) --  String to name the saved files</p>
+</li>
+</ul>
+<h3 id="load-model-config">Load Model Config</h3>
+<p>Load a model config object from a saved directory.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModelConfig  --directory=&#39;&#39; --name=&#39;myModel&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>directory</em> (<code class="codehilite">str</code>) --  Path to the directory in which the model config is saved</p>
+</li>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) --  Name of the saved files</p>
+</li>
+</ul>
 <h2 id="data">Data</h2>
 <h3 id="create-data">Create Data</h3>
 <p>Create a data with empty values.</p>
@@ -1029,6 +1143,45 @@ In the console, a command could look something like this:</p>
 <p>Keyword Arguments:</p>
 <ul>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of data to delete</li>
+</ul>
+<h3 id="save-data">Save Data</h3>
+<p>Save a model data object to a directory.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveData --directory=&#39;&#39; --name=&#39;myData&#39; 
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>directory</em> (<code class="codehilite">str</code>) -- Directory to save the data</p>
+</li>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) --  String to name the saved files</p>
+</li>
+<li>
+<p><em>compress</em> (<code class="codehilite">bool</code>) -- Whether to compress the numpy arrays</p>
+</li>
+<li>
+<p><em>save_embedding</em> (<code class="codehilite">bool</code>) -- Whether to save a separate copy of the word embedding</p>
+</li>
+<li>
+<p><em>save_model_config</em> (<code class="codehilite">bool</code>) -- Whether to save a separate copy of the model config</p>
+</li>
+</ul>
+<h3 id="load-data">Load Data</h3>
+<p>Load a model data object from a saved directory.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadData --directory=&#39;&#39; --name=&#39;myData&#39; 
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>directory</em> (<code class="codehilite">str</code>) -- Path to the directory in which the model data is saved</p>
+</li>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) --  Name of the saved files</p>
+</li>
 </ul>
 <h2 id="chatbot-data">Chatbot Data</h2>
 <h3 id="add-twitter-to-chatbot-data">Add Twitter To Chatbot Data</h3>
@@ -1232,7 +1385,7 @@ In the console, a command could look something like this:</p>
 <p><em>vocab_size</em> (<code class="codehilite">int</code>) -- Maximum number of tokens to read from embedding file (Optional)</p>
 </li>
 </ul>
-<h2 id="delete-embedding">Delete Embedding</h2>
+<h3 id="delete-embedding">Delete Embedding</h3>
 <p>Delete a word embedding.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>deleteEmbedding --name=&#39;myEmbedding&#39;
 </pre></div>
@@ -1241,6 +1394,36 @@ In the console, a command could look something like this:</p>
 <p>Keyword Arguments:</p>
 <ul>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of embedding to delete</li>
+</ul>
+<h3 id="save-embedding">Save Embedding</h3>
+<p>Save an embedding object to a directory.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveEmbedding --directory=&#39;&#39; --name=&#39;myEmbedding&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>directory</em> (<code class="codehilite">str</code>) -- Directory to save the embedding</p>
+</li>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- String to name the saved files</p>
+</li>
+</ul>
+<h3 id="load-embedding">Load Embedding</h3>
+<p>Load an embedding object from a saved directory.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadEmbedding --directory=&#39;&#39; --name=&#39;myEmbedding&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>directory</em> (<code class="codehilite">str</code>) -- Path to the directory in which the embedding is saved</p>
+</li>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of the saved files</p>
+</li>
 </ul>
                 
                   
