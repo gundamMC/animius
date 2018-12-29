@@ -43,6 +43,13 @@ class ModelConfig:
                 self.model_structure[key] = default_value
 
     def save(self, directory=None, name='model_config'):
+        """
+        Save a model config object to a directory
+
+        :param directory: directory to save the config
+        :param name: string to name the saved files
+        :return: the directory in which the config is saved
+        """
 
         if directory is None:
             if self.saved_directory is None:
@@ -74,6 +81,14 @@ class ModelConfig:
 
     @classmethod
     def load(cls, directory, name='model_config'):
+        """
+        Load a model config object from a saved directory
+
+        :param directory: path to the directory in which the model config is saved
+        :param name: name of the saved files
+        :return: a model config object
+        """
+
         with open(join(directory, name + '.json'), 'r') as f:
             stored = json.load(f)
 

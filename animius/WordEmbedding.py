@@ -63,7 +63,13 @@ class WordEmbedding:
         assert self.embedding.shape[0] == len(self.words_to_index)
 
     def save(self, directory=None, name='embedding'):
+        """
+        Save an embedding object to a directory
 
+        :param directory: directory to save the embedding
+        :param name: string to name the saved files
+        :return: the directory in which the embedding is saved
+        """
         if directory is None:
             if self.saved_directory is None:
                 raise ValueError("Directory must be provided when saving for the first time")
@@ -95,6 +101,13 @@ class WordEmbedding:
 
     @classmethod
     def load(cls, directory, name='embedding'):
+        """
+        Load an embedding object from a saved directory
+
+        :param directory: path to the directory in which the embedding is saved
+        :param name: name of the saved files
+        :return: an embedding object
+        """
 
         embedding = cls()
 
@@ -104,6 +117,7 @@ class WordEmbedding:
             embedding.words_to_index = pickle.load(f)
         embedding.embedding = np.load(join(directory, name + '.npy'))
 
+        # remember saved location for identification and saving in the future
         embedding.saved_directory = directory
         embedding.saved_name = name
 
