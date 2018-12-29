@@ -1,18 +1,91 @@
 import animius as am
+import os
+import json
 
 
 class ArgumentError(Exception):
     pass
 
 
+class NameAlreadyExistError(Exception):
+    pass
+
+
+class _ConsoleItem:
+    def __init__(self, item=None):
+        self.item = item
+
+        self.loaded = item is not None
+
+        self.saved_directory = None
+        self.saved_name = None
+
+
 class Console:
 
-    def __init__(self):
+    def __init__(self, init_directory=None):
+
+        animius_dir = os.path.dirname(os.path.realpath(__file__))
+        self.config_dir = os.path.join(animius_dir, 'user-config.json')
+
+        sub_dirs = {'waifus', 'models', 'model_configs', 'data', 'embeddings'}
+
         self.models = {}
-        self.waifu = {}
+        self.waifus = {}
         self.model_configs = {}
         self.data = {}
         self.embeddings = {}
+
+        # No config / first time initializing
+        if not os.path.exists(self.config_dir):
+
+            if init_directory is None:
+                print("Please enter the data directory to save data in:")
+                print("Default ({0})".format(os.path.join(animius_dir, 'resources')))
+                init_directory = input()
+
+            if not init_directory.strip():
+                init_directory = os.path.join(animius_dir, 'resources')
+
+            self.directories = {}
+
+            # create sub directories
+            for sub_dir in sub_dirs:
+                sub_dir_path = os.path.join(init_directory, sub_dir)
+                if not os.path.exists(sub_dir_path):
+                    os.mkdir(sub_dir_path)
+                self.directories[sub_dir] = sub_dir_path
+
+        else:  # load config
+
+            with open(self.config_dir, 'r') as f:
+                stored = json.load(f)
+
+            self.directories = stored['directories']
+
+            # read all saved items
+            for sub_dir in sub_dirs:
+                with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'r'):
+                    stored = json.load(f)
+                for item in stored['items']:
+                    console_item = _ConsoleItem()
+                    console_item.saved_directory = stored['items'][item]['saved_directory']
+                    console_item.saved_name = stored['items'][item]['saved_name']
+                    # get the self. dictionary from sub_dir name
+                    getattr(self, sub_dir)[item] = console_item
+
+    def save(self):
+        with open(self.config_dir, 'w') as f:
+            json.dump({'directories': self.directories}, f, indent=4)
+
+        # save all items
+        for sub_dir in {'waifus', 'models', 'model_configs', 'data', 'embeddings'}:
+            tmp_dict = {}
+            for item_name, console_item in getattr(self, sub_dir).items():
+                tmp_dict[item_name] = {'saved_directory': console_item.saved_directory,
+                                       'saved_name': console_item.saved_name}
+            with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'w') as f:
+                json.dump({'items': tmp_dict}, f)
 
     @staticmethod
     def check_arguments(args, hard_requirements=None, soft_requirements=None):
@@ -46,10 +119,22 @@ class Console:
                                 hard_requirements=['name', 'cls'],
                                 soft_requirements=['config', 'hyperparameters', 'model_structure'])
 
-        self.model_configs[kwargs['name']] = am.ModelConfig(kwargs['cls'],
-                                                            kwargs['config'],
-                                                            kwargs['hyperparameters'],
-                                                            kwargs['model_structure'])
+        if kwargs['name'] in self.model_configs:
+            raise NameAlreadyExistError("The name {0} is already used by another model config".format(kwargs['name']))
+
+        model_config = am.ModelConfig(kwargs['cls'],
+                                      kwargs['config'],
+                                      kwargs['hyperparameters'],
+                                      kwargs['model_structure'])
+
+        # saving it first to set up its saving location
+        model_config.save(self.directories['model_configs'], kwargs['name'])
+
+        console_item = _ConsoleItem(model_config)
+        console_item.saved_directory = self.directories['model_configs']
+        console_item.saved_name = kwargs['name']
+
+        self.model_configs[kwargs['name']] = console_item
 
     def edit_model_config(self, **kwargs):
         """
@@ -71,9 +156,9 @@ class Console:
                 for key in update_values:
                     target[key] = update_values[key]
 
-            update_dict(self.model_configs[kwargs['name']].config, kwargs['config'])
-            update_dict(self.model_configs[kwargs['name']].hyperparameters, kwargs['hyperparameters'])
-            update_dict(self.model_configs[kwargs['name']].model_structure, kwargs['model_structure'])
+            update_dict(self.model_configs[kwargs['name']].item.config, kwargs['config'])
+            update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['hyperparameters'])
+            update_dict(self.model_configs[kwargs['name']].item.model_structure, kwargs['model_structure'])
 
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
@@ -109,17 +194,30 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'type', 'model_config'])
 
-        if kwargs['name'] in self.model_configs:
+        if kwargs['name'] in self.data:
+            raise NameAlreadyExistError("The name {0} is already used by another data".format(kwargs['name']))
+
+        if kwargs['model_config'] in self.model_configs:
             if kwargs['type'] == 'ChatbotData':
-                self.data[kwargs['name']] = am.ChatbotData(kwargs['model_Config'])
+                data = am.ChatbotData(kwargs['model_config'])
             elif kwargs['type'] == 'IntentNERData':
-                self.data[kwargs['name']] = am.IntentNERData(kwargs['model_Config'])
+                data = am.IntentNERData(kwargs['model_config'])
             elif kwargs['type'] == 'SpeakerVerificationData':
-                self.data[kwargs['name']] = am.SpeakerVerificationData(kwargs['model_Config'])
+                data = am.SpeakerVerificationData(kwargs['model_config'])
             else:
                 raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
+
+        # saving it first to set up its saving location
+        save_dir = os.path.join(self.directories['data'], kwargs['name'])
+        data.save(save_dir, kwargs['name'])
+
+        console_item = _ConsoleItem(data)
+        console_item.saved_directory = save_dir
+        console_item.saved_name = kwargs['name']
+
+        self.data[kwargs['name']] = console_item
 
     def data_add_embedding(self, **kwargs):
         """
@@ -136,7 +234,7 @@ class Console:
 
         if kwargs['name'] in self.data:
             if kwargs['name_embedding'] in self.embeddings:
-                self.data[kwargs['name']].add_embedding_class(self.embeddings[kwargs['name_embedding']])
+                self.data[kwargs['name']].item.add_embedding_class(self.embeddings[kwargs['name_embedding']].item)
             else:
                 raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name_embedding']))
         else:
@@ -155,7 +253,7 @@ class Console:
                                 hard_requirements=['name'])
 
         if kwargs['name'] in self.data:
-            self.data[kwargs['name']].reset()
+            self.data[kwargs['name']].item.reset()
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
@@ -173,8 +271,8 @@ class Console:
                                 hard_requirements=['name', 'path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.ChatbotData):
-                self.data[kwargs['name']].add_twitter(kwargs['path'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+                self.data[kwargs['name']].item.add_twitter(kwargs['path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -195,8 +293,8 @@ class Console:
                                 hard_requirements=['name', 'movie_conversations_path', 'movie_lines_path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.ChatbotData):
-                self.data[kwargs['name']].add_cornell(kwargs['movie_conversations_path'], kwargs['movie_lines_path'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+                self.data[kwargs['name']].item.add_cornell(kwargs['movie_conversations_path'], kwargs['movie_lines_path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -217,8 +315,8 @@ class Console:
                                 hard_requirements=['name', 'x', 'y'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.ChatbotData):
-                self.data[kwargs['name']].add_parse_sentences(kwargs['x'], kwargs['y'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+                self.data[kwargs['name']].item.add_parse_sentences(kwargs['x'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -239,8 +337,8 @@ class Console:
                                 hard_requirements=['name', 'x_path', 'y_path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.ChatbotData):
-                self.data[kwargs['name']].add_parse_file(kwargs['x_path'], kwargs['y_path'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+                self.data[kwargs['name']].item.add_parse_file(kwargs['x_path'], kwargs['y_path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -260,8 +358,8 @@ class Console:
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.ChatbotData):
-                self.data[kwargs['name']].add_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+                self.data[kwargs['name']].item.add_parse_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -281,8 +379,8 @@ class Console:
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.ChatbotData):
-                self.data[kwargs['name']].set_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+                self.data[kwargs['name']].item.set_parse_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -302,8 +400,8 @@ class Console:
                                 hard_requirements=['name', 'folder_directory'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.IntentNERData):
-                self.data[kwargs['name']].add_parse_data_folder(kwargs['folder_directory'])
+            if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
+                self.data[kwargs['name']].item.add_parse_data_folder(kwargs['folder_directory'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
@@ -323,8 +421,8 @@ class Console:
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.IntentNERData):
-                self.data[kwargs['name']].add_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
+                self.data[kwargs['name']].item.add_parse_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
@@ -344,8 +442,8 @@ class Console:
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.IntentNERData):
-                self.data[kwargs['name']].set_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
+                self.data[kwargs['name']].item.set_parse_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
@@ -367,8 +465,8 @@ class Console:
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.SpeakerVerificationData):
-                self.data[kwargs['name']].add_parse_data_paths(kwargs['paths'],kwargs['y'])
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.add_parse_data_paths(kwargs['paths'],kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
@@ -390,8 +488,8 @@ class Console:
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']], am.SpeakerVerificationData):
-                self.data[kwargs['name']].add_parse_data_file(kwargs['paths'], kwargs['y'])
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.add_parse_data_file(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
@@ -430,12 +528,21 @@ class Console:
                                 hard_requirements=['name', 'path'],
                                 soft_requirements=['vocab_size'])
 
-        if kwargs['vocab_size'] is None:
-            kwargs['vocab_size'] = 10000
-
         embedding = am.WordEmbedding()
-        embedding.create_embedding(kwargs['path'], kwargs['vocab_size'])
-        self.embeddings[kwargs['name']] = embedding
+        if kwargs['vocab_size'] is not None:
+            embedding.create_embedding(kwargs['path'], kwargs['vocab_size'])
+        else:
+            embedding.create_embedding(kwargs['path'])
+
+        # saving it first to set up its saving location
+        save_dir = os.path.join(self.directories['embeddings'], kwargs['name'])
+        embedding.save(save_dir, kwargs['name'])
+
+        console_item = _ConsoleItem(embedding)
+        console_item.saved_directory = save_dir
+        console_item.saved_name = kwargs['name']
+
+        self.embeddings[kwargs['name']] = console_item
 
     def delete_embedding(self, **kwargs):
         """
@@ -454,7 +561,6 @@ class Console:
 
         else:
             raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name']))
-
 
     def handle_network(self, request):
 
