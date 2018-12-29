@@ -104,7 +104,7 @@ class Data(ABC):
 
         :param directory: path to the directory in which the model data is saved
         :param name: name of the saved files
-        :param console: a console object used to check if objects have already been loaded in the console.
+        :param console: console object used to check if embeddings and configs have already been loaded in the console
         :return: a model data object
         """
         with open(join(directory, name + '.json'), 'r') as f:
