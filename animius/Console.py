@@ -11,14 +11,25 @@ class NameAlreadyExistError(Exception):
     pass
 
 
+class NameNotFoundError(Exception):
+    pass
+
+
+class NotLoadedError(Exception):
+    pass
+
+
 class _ConsoleItem:
-    def __init__(self, item=None):
+    def __init__(self, item=None, save_directory=None, save_name=None):
         self.item = item
 
         self.loaded = item is not None
 
-        self.saved_directory = None
-        self.saved_name = None
+        self.saved_directory = save_directory
+        self.saved_name = save_name
+
+    def save(self):
+        self.item.save(self.saved_directory, self.saved_name)
 
 
 class Console:
@@ -127,12 +138,9 @@ class Console:
                                       kwargs['hyperparameters'],
                                       kwargs['model_structure'])
 
+        console_item = _ConsoleItem(model_config, self.directories['model_configs'], kwargs['name'])
         # saving it first to set up its saving location
-        model_config.save(self.directories['model_configs'], kwargs['name'])
-
-        console_item = _ConsoleItem(model_config)
-        console_item.saved_directory = self.directories['model_configs']
-        console_item.saved_name = kwargs['name']
+        console_item.save()
 
         self.model_configs[kwargs['name']] = console_item
 
@@ -149,7 +157,8 @@ class Console:
         * *model_structure* (``model_structure``) -- Dictionary containing the updated model_structure values
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name'])
+                                hard_requirements=['name'],
+                                soft_requirements=['config, hyperparameters, model_structure'])
 
         if kwargs['name'] in self.model_configs:
             def update_dict(target, update_values):
@@ -179,6 +188,45 @@ class Console:
             self.model_configs.pop(kwargs['name'])
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
+
+    def save_model_config(self, **kwargs):
+        """
+        Save a model config
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config to save
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.model_configs:
+            raise NameNotFoundError("Model config \"{0}\" not found".format(kwargs['name']))
+
+        self.model_configs[kwargs['name']].save()
+
+    def load_model_config(self, **kwargs):
+        """
+        load a model config
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config to load
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.model_configs:
+            raise NameNotFoundError("Model config \"{0}\" not found".format(kwargs['name']))
+
+        model_config = am.ModelConfig.load(
+            self.model_configs[kwargs['name']].saved_directory,
+            self.model_configs[kwargs['name']].saved_name)
+
+        self.model_configs[kwargs['name']].item = model_config
+        self.model_configs[kwargs['name']].loaded = True
 
     def create_data(self, **kwargs):
         """
@@ -210,14 +258,49 @@ class Console:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
 
         # saving it first to set up its saving location
-        save_dir = os.path.join(self.directories['data'], kwargs['name'])
-        data.save(save_dir, kwargs['name'])
-
-        console_item = _ConsoleItem(data)
-        console_item.saved_directory = save_dir
-        console_item.saved_name = kwargs['name']
+        console_item = _ConsoleItem(data, os.path.join(self.directories['data'], kwargs['name']), kwargs['name'])
+        console_item.save()
 
         self.data[kwargs['name']] = console_item
+
+    def save_data(self, **kwargs):
+        """
+        Save a data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to save
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.data:
+            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['name']))
+
+        self.data[kwargs['name']].save()
+
+    def load_data(self, **kwargs):
+        """
+        load a data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to load
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.data:
+            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['name']))
+
+        data = am.Data.load(
+            self.data[kwargs['name']].saved_directory,
+            self.data[kwargs['name']].saved_name)
+
+        self.data[kwargs['name']].item = data
+        self.data[kwargs['name']].loaded = True
 
     def data_add_embedding(self, **kwargs):
         """
@@ -535,14 +618,51 @@ class Console:
             embedding.create_embedding(kwargs['path'])
 
         # saving it first to set up its saving location
-        save_dir = os.path.join(self.directories['embeddings'], kwargs['name'])
-        embedding.save(save_dir, kwargs['name'])
-
-        console_item = _ConsoleItem(embedding)
-        console_item.saved_directory = save_dir
-        console_item.saved_name = kwargs['name']
+        console_item = _ConsoleItem(embedding,
+                                    os.path.join(self.directories['embeddings'], kwargs['name']),
+                                    kwargs['name'])
+        console_item.save()
 
         self.embeddings[kwargs['name']] = console_item
+
+    def save_embedding(self, **kwargs):
+        """
+        Save an embedding
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of embedding to save
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.embeddings:
+            raise NameNotFoundError("Embedding \"{0}\" not found".format(kwargs['name']))
+
+        self.embeddings[kwargs['name']].save()
+
+    def load_embedding(self, **kwargs):
+        """
+        load an embedding
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of embedding to load
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.embeddings:
+            raise NameNotFoundError("Embedding \"{0}\" not found".format(kwargs['name']))
+
+        embedding = am.WordEmbedding.load(
+            self.embeddings[kwargs['name']].saved_directory,
+            self.embeddings[kwargs['name']].saved_name)
+
+        self.embeddings[kwargs['name']].item = embedding
+        self.embeddings[kwargs['name']].loaded = True
 
     def delete_embedding(self, **kwargs):
         """
