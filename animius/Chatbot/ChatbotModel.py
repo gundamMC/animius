@@ -283,13 +283,13 @@ class ChatbotModel(am.Model):
             self.config['epoch'] += 1
 
     @classmethod
-    def load(cls, directory, data=None):
+    def load(cls, directory, name='model', data=None):
         if data is None:
             print('Chatbot model load failed. Data cannot be None.')
             return
 
         model = ChatbotModel()
-        model.restore_config(directory)
+        model.restore_config(directory, name)
         model.data = data
 
         graph = tf.Graph()
@@ -313,6 +313,9 @@ class ChatbotModel(am.Model):
         model.infer = model.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
 
         model.init_tensorflow(graph)
+
+        model.saved_directory = directory
+        model.saved_name = name
 
         return model
 
