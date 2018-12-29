@@ -15,6 +15,7 @@ class Data(ABC):
         self.values = {}
         self.model_config = model_config
         self.saved_directory = None
+        self.saved_name = None
 
     def __getitem__(self, item):
         return self.values[item]
@@ -48,6 +49,9 @@ class Data(ABC):
                 raise ValueError("Directory must be provided when saving for the first time")
             else:
                 directory = self.saved_directory
+
+        if self.saved_name is not None:
+            name = self.saved_name
 
         try:
             # create directory if it does not already exist
@@ -83,7 +87,7 @@ class Data(ABC):
             save_dict['embedding_directory'] = self.values['embedding'].saved_directory
             save_dict['embedding_name'] = self.values['embedding'].saved_name
 
-        # same as embedding
+        # save model config
         if self.model_config.saved_directory is None or save_model_config:
             saved_model_config_directory = join(directory, 'model_config')
             self.model_config.save(saved_model_config_directory, name=name)
@@ -94,6 +98,9 @@ class Data(ABC):
 
         with open(join(directory, name + '.json'), 'w') as f:
             json.dump(save_dict, f, indent=4)
+
+        self.saved_directory = directory
+        self.saved_name = name
 
         return directory
 
@@ -155,6 +162,9 @@ class Data(ABC):
             if 'embedding' not in data.values:
                 data.add_embedding_class(am.WordEmbedding.load(directory=stored['embedding_directory'],
                                                                name=stored['embedding_name']))
+
+        data.saved_directory = directory
+        data.saved_name = name
 
         return data
 
