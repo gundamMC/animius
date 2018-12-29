@@ -74,7 +74,7 @@ class Waifu:
             if exc.errno != errno.EEXIST:
                 raise exc
 
-        with open(join(directory, name + '_waifu_config.json'), 'w') as f:
+        with open(join(directory, name + '.json'), 'w') as f:
             json.dump(self.config, f, indent=4)
 
         self.saved_directory = directory
@@ -84,7 +84,7 @@ class Waifu:
 
     @classmethod
     def load(cls, directory, name='waifu'):
-        with open(join(directory, name + '_waifu_config.json'), 'r') as f:
+        with open(join(directory, name + '.json'), 'r') as f:
             config = json.load(f)
 
         waifu = cls(config['name'], config['models'])

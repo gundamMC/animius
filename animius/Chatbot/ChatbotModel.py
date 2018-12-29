@@ -46,9 +46,10 @@ class ChatbotModel(am.Model):
 
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
 
-        self.config = model_config.config
-        self.model_structure = model_config.model_structure
-        self.hyperparameters = model_config.hyperparameters
+        # make copies of the dictionaries since we will be editing it
+        self.config = dict(model_config.config)
+        self.model_structure = dict(model_config.model_structure)
+        self.hyperparameters = dict(model_config.hyperparameters)
         self.data = data
 
         def test_model_structure(key, lambda_value):

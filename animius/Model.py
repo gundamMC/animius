@@ -103,13 +103,13 @@ class Model(ABC):
         pass
 
     def restore_config(self, directory, name='model'):
-        with open(join(directory, name + '_model_config.json'), 'r') as f:
+        with open(join(directory, name + '.json'), 'r') as f:
             stored = json.load(f)
             self.config = stored['config']
             self.model_structure = stored['model_structure']
             self.hyperparameters = stored['hyperparameters']
 
-    def restore_model(self, directory='./model'):
+    def restore_model(self, directory):
         self.saver.restore(self.sess, tf.train.latest_checkpoint(directory))
 
     def set_data(self, data):
@@ -140,7 +140,7 @@ class Model(ABC):
             self.config['graph'] = join(directory, name + '_graph.pb')
 
         # saving an individual copy because config has been changed
-        with open(join(directory, name + '_model_config.json'), 'w') as f:
+        with open(join(directory, name + '.json'), 'w') as f:
             json.dump({
                 'config': self.config,
                 'model_structure': self.model_structure,
