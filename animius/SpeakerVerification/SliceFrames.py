@@ -28,7 +28,7 @@ def read_wave(path):
             sound = sound.set_channels(1)
             sound.export(path, format='wav')
             wf = wave.open(path, 'rb')
-            
+
         sample_width = wf.getsamamidth()
         assert sample_width == 2
         sample_rate = wf.getframerate()
@@ -51,6 +51,7 @@ def write_wave(path, audio, sample_rate):
 
 class Frame(object):
     """Represents a "frame" of audio data."""
+
     def __init__(self, bytes, timestamp, duration):
         self.bytes = bytes
         self.timestamp = timestamp
@@ -146,24 +147,23 @@ def vad_collector(sample_rate, frame_duration_ms,
 
 
 def main(args):
-
     currentDir = os.path.dirname(os.path.realpath(__file__))
 
     if len(args) < 4:
         sys.stderr.write(
             'Usage: example.py <aggressiveness> <frame length> <padding length> <path to wav file>\n')
         sys.exit(1)
-    
+
     waifuGUI = False
-    if(len(args) > 4 and args[4] == "WaifuGUI"):
+    if (len(args) > 4 and args[4] == "WaifuGUI"):
         count = 0
         waifuGUI = True
 
     for wavPath in args[3].split(","):
 
         folderName = os.path.basename(wavPath).replace(".wav", "")
-        if(".WAV" in folderName):
-            folderName = folderName.replace(".WAV", "") # for the ppl that use all caps
+        if (".WAV" in folderName):
+            folderName = folderName.replace(".WAV", "")  # for the ppl that use all caps
 
         folderPath = currentDir + '/chunks/' + folderName
 
@@ -181,9 +181,10 @@ def main(args):
         print(wavPath + " Done!")
 
         # waifuGUI output
-        if(waifuGUI):
+        if (waifuGUI):
             count += 1
             print("WaifuGUI: " + str(count))
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

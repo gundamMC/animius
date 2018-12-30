@@ -73,7 +73,6 @@ def sentence_to_index(sentence, word_to_index, max_seq=20, go=False, eos=False):
 
 
 def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
-
     if len(sequence) < max_seq:
         sequence.extend([pad] * (max_seq - len(sequence)))
 
@@ -121,7 +120,6 @@ def freeze_graph(model_dir, output_node_names, stored_model_config=None):
 
 
 def optimize(model_dir, input_node_names, output_node_names):
-
     with open(join(model_dir, 'model_config.json'), 'r') as f:
         stored = json.load(f)
 

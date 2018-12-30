@@ -76,7 +76,6 @@ class Parse:
 
         return questions, responses
 
-
     # Used for Marsan-Ma-zz/chat_corpus
     # can also be adopted for any other file w/ a sentence on each line
     @staticmethod

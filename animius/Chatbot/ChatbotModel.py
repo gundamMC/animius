@@ -84,6 +84,7 @@ class ChatbotModel(am.Model):
             self.y = tf.placeholder(tf.int32, [None, max_sequence], name='train_y')
             self.y_length = tf.placeholder(tf.int32, [None], name='train_y_length')
             self.y_target = tf.placeholder(tf.int32, [None, max_sequence], name='train_y_target')
+
             # this is w/o <GO>
 
             # Network parameters
@@ -230,13 +231,13 @@ class ChatbotModel(am.Model):
         for epoch in range(epochs):
             mini_batches_x, mini_batches_x_length, mini_batches_y, mini_batches_y_length, mini_batches_y_target \
                 = get_mini_batches(
-                    shuffle([
-                        self.data['x'],
-                        self.data['x_length'],
-                        self.data['y'],
-                        self.data['y_length'],
-                        self.data['y_target']]),
-                    self.hyperparameters['batch_size'])
+                shuffle([
+                    self.data['x'],
+                    self.data['x_length'],
+                    self.data['y'],
+                    self.data['y_length'],
+                    self.data['y_target']]),
+                self.hyperparameters['batch_size'])
 
             for batch in range(len(mini_batches_x)):
                 batch_x = mini_batches_x[batch]

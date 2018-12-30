@@ -48,6 +48,7 @@ class AEScipher:
 
     def getIv(self):
         return base64.b16encode(self.iv).decode()
+
     @classmethod
     def generateRandom(cls):
         iv = get_random_bytes(16)
@@ -110,7 +111,7 @@ class Client:
             return True
         except:
             return False
-            
+
     def sendWithoutAes(self, id, status, message, data):
         try:
             resp = Response.createResp(id, status, message, data)
@@ -118,7 +119,7 @@ class Client:
             return True
         except:
             return False
-            
+
     def recv(self):
         try:
             req = self.AEScipher.decrypt(self._recv())

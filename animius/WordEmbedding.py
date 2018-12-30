@@ -6,7 +6,6 @@ import errno
 
 
 class WordEmbedding:
-
     UNK = 0
     GO = 1
     EOS = 2

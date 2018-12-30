@@ -9,12 +9,10 @@ from .ChatbotModel import ChatbotModel
 class CombinedChatbotModel(ChatbotModel):
 
     def __init__(self, model_config, data, restore_directory=None, restore_name='model'):
-
         super().__init__()
 
         # restoring graph
         if restore_directory is not None:
-
             self.restore_config(restore_directory, restore_name)
             self.data = data
 
@@ -27,7 +25,6 @@ class CombinedChatbotModel(ChatbotModel):
             input_checkpoint = checkpoint.model_checkpoint_path
 
             with self.sess.graph.as_default():
-
                 self.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
 
                 self.saver.restore(self.sess, input_checkpoint)
