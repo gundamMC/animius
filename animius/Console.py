@@ -113,6 +113,163 @@ class Console:
                 if req not in args:
                     args['req'] = None
 
+    def create_model(self, **kwargs):
+        """
+        Create a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model
+        * *type* (``str``) -- Type of model
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'type'])
+
+        if kwargs['name'] in self.model_configs:
+            raise NameAlreadyExistError("The name {0} is already used by another model".format(kwargs['name']))
+
+        if kwargs['type'] == 'ChatbotModel':
+            model = am.Chatbot.ChatbotModel()
+        elif kwargs['type'] == 'IntentNERModel':
+            model = am.IntentNER.IntentNERModel()
+        elif kwargs['type'] == 'SpeakVerificationModel':
+            model = am.SpeakerVerification.SpeakerVerificationModel()
+        else:
+            raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
+
+        console_item = _ConsoleItem(model, self.directories['model'], kwargs['name'])
+        # saving it first to set up its saving location
+        console_item.save()
+
+        self.models[kwargs['name']] = console_item
+
+    def delete_model(self, **kwargs):
+        """
+        Delete a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to delete
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.models:
+            self.models.pop(kwargs['name'])
+        else:
+            raise KeyError("Model \"{0}\" not found.".format(kwargs['name']))
+
+    def save_model(self, **kwargs):
+        """
+        Save a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to save
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+
+        self.models[kwargs['name']].save()
+
+    def load_model(self, **kwargs):
+        """
+        Load a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to load
+        * *data* (``str``) -- Name of data to load
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'data'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+        if kwargs['data'] not in self.data:
+            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['data']))
+
+        model = am.Model.load(
+            self.models[kwargs['name']].saved_directory,
+            self.models[kwargs['name']].saved_name, self.data[kwargs['data']])
+
+        self.models[kwargs['name']].item = model
+        self.models[kwargs['name']].loaded = True
+
+    def set_data(self, **kwargs):
+        """
+        Set model data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to set
+        * *data* (``str``) -- Name of data to set
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'data'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+        if kwargs['data'] not in self.data:
+            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['data']))
+
+        self.models[kwargs['name']].set_data(self.data[kwargs['data']])
+
+    def train(self, **kwargs):
+        """
+        Train a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to set
+        * *epoch* (``int``) -- Number of epoch
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'],
+                                soft_requirements=['epoch'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+
+        self.models[kwargs['name']].train(kwargs['epoch'])
+
+    def predict(self, **kwargs):
+        """
+        Predict model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to predict
+        * *input_data* (``str``) -- Name of input data
+        * *save_path* (``str``) -- Path to save result
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'input_data'],
+                                soft_requirements=['save_path'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+        if kwargs['input_data'] not in self.data:
+            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
+
+        self.models[kwargs['name']].predict(kwargs['input_data'], kwargs['save_path'])
+
     def create_model_config(self, **kwargs):
         """
         Create a model config with the provided values
@@ -126,6 +283,7 @@ class Console:
         * *hyperparameters* (``dict``) -- Dictionary of hyperparameters values
         * *model_structure* (``model_structure``) -- Dictionary of model_structure values
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'cls'],
                                 soft_requirements=['config', 'hyperparameters', 'model_structure'])
@@ -156,6 +314,7 @@ class Console:
         * *hyperparameters* (``dict``) -- Dictionary containing the updated hyperparameters values
         * *model_structure* (``model_structure``) -- Dictionary containing the updated model_structure values
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'],
                                 soft_requirements=['config, hyperparameters, model_structure'])
@@ -181,6 +340,7 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of model config to delete
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
@@ -239,6 +399,7 @@ class Console:
         * *type* (``str``) -- Type of data (based on the model)
         * *model_config* (``str``) -- Name of model config
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'type', 'model_config'])
 
@@ -282,7 +443,7 @@ class Console:
 
     def load_data(self, **kwargs):
         """
-        load a data
+        Load a data
 
         :param kwargs:
 
@@ -377,7 +538,8 @@ class Console:
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_cornell(kwargs['movie_conversations_path'], kwargs['movie_lines_path'])
+                self.data[kwargs['name']].item.add_cornell(kwargs['movie_conversations_path'],
+                                                           kwargs['movie_lines_path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
@@ -549,7 +711,7 @@ class Console:
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-                self.data[kwargs['name']].item.add_parse_data_paths(kwargs['paths'],kwargs['y'])
+                self.data[kwargs['name']].item.add_parse_data_paths(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
@@ -673,6 +835,7 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of embedding to delete
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
