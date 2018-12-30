@@ -11,13 +11,13 @@ def getData(TruePaths, FalsePaths):
     x0 = np.empty(shape=[0, 390])
     x1 = np.empty(shape=[0, 390])
     for path in TruePaths:
-        x0 = np.append(x0, getMFCC(path, True), axis = 0)
+        x0 = np.append(x0, getMFCC(path, True), axis=0)
 
     for path in FalsePaths:
-        x1 = np.append(x1, getMFCC(path, True), axis = 0)
+        x1 = np.append(x1, getMFCC(path, True), axis=0)
 
-    y0 = np.tile([1,0], (x0.shape[0],1))
-    y1 = np.tile([0,1], (x1.shape[0],1))
+    y0 = np.tile([1, 0], (x0.shape[0], 1))
+    y1 = np.tile([0, 1], (x1.shape[0], 1))
 
     datax = np.append(x0, x1, axis=0)
     datay = np.append(y0, y1, axis=0)
@@ -26,49 +26,47 @@ def getData(TruePaths, FalsePaths):
 
     np.random.shuffle(data)
 
-    return data[:, : 390], data[:, 390 :]
+    return data[:, : 390], data[:, 390:]
 
 
-def shuffle(X ,Y):
+def shuffle(X, Y):
     permutation = list(np.random.permutation(X.shape[0]))
     shuffled_X = X[permutation, :]
     shuffled_Y = Y[permutation, :]
     return shuffled_X, shuffled_Y
 
+
 def random_mini_batches(X, Y, mini_batch_number):
     m = X.shape[0]
     mini_batches_X = []
     mini_batches_Y = []
-    
-    shuffled_X, shuffled_Y = shuffle(X,Y)
+
+    shuffled_X, shuffled_Y = shuffle(X, Y)
 
     mini_batch_size = math.floor(m / mini_batch_number)
 
     for batch in range(0, mini_batch_number):
-        mini_batch_X = shuffled_X[batch * mini_batch_size : (batch + 1) * mini_batch_size, :]
-        mini_batch_Y = shuffled_Y[batch * mini_batch_size : (batch + 1) * mini_batch_size, :]
+        mini_batch_X = shuffled_X[batch * mini_batch_size: (batch + 1) * mini_batch_size, :]
+        mini_batch_Y = shuffled_Y[batch * mini_batch_size: (batch + 1) * mini_batch_size, :]
         mini_batches_X.append(mini_batch_X)
         mini_batches_Y.append(mini_batch_Y)
 
     if m % mini_batch_size != 0:
-        mini_batch_X = shuffled_X[mini_batch_number * mini_batch_size :, :]
-        mini_batch_Y = shuffled_Y[mini_batch_number * mini_batch_size :, :]
+        mini_batch_X = shuffled_X[mini_batch_number * mini_batch_size:, :]
+        mini_batch_Y = shuffled_Y[mini_batch_number * mini_batch_size:, :]
         mini_batches_X.append(mini_batch_X)
         mini_batches_Y.append(mini_batch_Y)
 
     return mini_batches_X, mini_batches_Y
-        
-
 
 
 def main(args):
-
     if len(args) < 7:
         sys.stderr.write(
             'Usage: SpeakerVerificationTrain.py <learning rate> <drop out keep rate> <epoches> <batch size> <adam beta 1> <adam beta 2> <true paths> <false paths>\n')
         sys.exit(1)
 
-    #args:
+    # args:
     # [0] = Learning rate
     # [1] = drop out keep rate
     # [2] = regulariation lambda
@@ -100,7 +98,7 @@ def main(args):
     else:
         batch_number = int(args[4])
 
-    display_epoch = int(epoches/100) # display 100 steps
+    display_epoch = int(epoches / 100)  # display 100 steps
 
     WaifuGUI = False
     if len(args) > 9 and args[9] == "WaifuGUI":
@@ -119,32 +117,32 @@ def main(args):
     keep_prob = tf.placeholder(tf.float32, ())
 
     weights = {
-        'h1' : tf.Variable(tf.random_normal([num_input, num_hidden_1])),
-        'h2' : tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
-        'h3' : tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])),
-        'output' : tf.Variable(tf.random_normal([num_hidden_3, num_output]))
-        }
+        'h1': tf.Variable(tf.random_normal([num_input, num_hidden_1])),
+        'h2': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
+        'h3': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])),
+        'output': tf.Variable(tf.random_normal([num_hidden_3, num_output]))
+    }
 
     biases = {
-        'b1' : tf.Variable(tf.random_normal([num_hidden_1])),
-        'b2' : tf.Variable(tf.random_normal([num_hidden_2])),
-        'b3' : tf.Variable(tf.random_normal([num_hidden_3])),
-        'output' : tf.Variable(tf.random_normal([num_output]))
-        }
+        'b1': tf.Variable(tf.random_normal([num_hidden_1])),
+        'b2': tf.Variable(tf.random_normal([num_hidden_2])),
+        'b3': tf.Variable(tf.random_normal([num_hidden_3])),
+        'output': tf.Variable(tf.random_normal([num_output]))
+    }
 
     # Create model
     def forward_pass(input_x, keep_prob):
         layer_1 = tf.add(tf.matmul(input_x, weights['h1']), biases['b1'])
         layer_1 = tf.nn.relu(layer_1)
-        layer_1 = tf.nn.dropout(layer_1, keep_prob = keep_prob)
-    
+        layer_1 = tf.nn.dropout(layer_1, keep_prob=keep_prob)
+
         layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
         layer_2 = tf.nn.relu(layer_2)
-        layer_2 = tf.nn.dropout(layer_2, keep_prob = keep_prob)
+        layer_2 = tf.nn.dropout(layer_2, keep_prob=keep_prob)
 
         layer_3 = tf.add(tf.matmul(layer_2, weights['h3']), biases['b3'])
         layer_3 = tf.nn.relu(layer_3)
-        layer_3 = tf.nn.dropout(layer_3, keep_prob = keep_prob)
+        layer_3 = tf.nn.dropout(layer_3, keep_prob=keep_prob)
 
         output = tf.add(tf.matmul(layer_3, weights['output']), biases['output'])
         # softmax is applied during tf.nn.softmax_cross_entropy_with_logits
@@ -152,13 +150,13 @@ def main(args):
 
     # optimize
 
-    cost = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits = forward_pass(x, keep_prob), labels = y)) +
-            regularization_rate * 
+    cost = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=forward_pass(x, keep_prob), labels=y)) +
+            regularization_rate *
             (tf.nn.l2_loss(weights["h1"]) +
-            tf.nn.l2_loss(weights["h2"]) +
-            tf.nn.l2_loss(weights["h3"])))
+             tf.nn.l2_loss(weights["h2"]) +
+             tf.nn.l2_loss(weights["h3"])))
 
-    optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
+    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train_op = optimizer.minimize(cost)
 
     # Evaluate model
@@ -173,14 +171,14 @@ def main(args):
     tf.summary.scalar("accuracy", accuracy)
     merged_summary_op = tf.summary.merge_all()
 
-    #Create a saver object which will save all the variables
+    # Create a saver object which will save all the variables
     saver = tf.train.Saver()
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
 
     # Start training
-    with tf.Session(config = config) as sess:
+    with tf.Session(config=config) as sess:
         print('starting training')
         sess.run(init)
 
@@ -194,26 +192,29 @@ def main(args):
                 batch_x = mini_batches_X[i]
                 batch_y = mini_batches_Y[i]
 
-                _, summary  = sess.run([train_op, merged_summary_op], feed_dict={x : batch_x, y : batch_y, keep_prob : dropout_keeprate})
+                _, summary = sess.run([train_op, merged_summary_op],
+                                      feed_dict={x: batch_x, y: batch_y, keep_prob: dropout_keeprate})
 
                 summary_writer.add_summary(summary, epoch * batch_number + i)
 
             if epoch % display_epoch == 0:
-                costprint, acc = sess.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, keep_prob : 1})
+                costprint, acc = sess.run([cost, accuracy], feed_dict={x: batch_x, y: batch_y, keep_prob: 1})
 
                 print('epoch', epoch, '- cost', costprint, '- accuracy', acc)
 
                 if WaifuGUI:
-                    print("WaifuGUI: " + str(epoch) + "-" + str(costprint)) # accuracy doesn't really show the improvements of the network over epoches as they can reach "satisfying" values before the cost does.
+                    print("WaifuGUI: " + str(epoch) + "-" + str(
+                        costprint))  # accuracy doesn't really show the improvements of the network over epoches as they can reach "satisfying" values before the cost does.
 
-            costprint, acc = sess.run([cost, accuracy], feed_dict={x: train_x, y: train_y, keep_prob : 1})
+            costprint, acc = sess.run([cost, accuracy], feed_dict={x: train_x, y: train_y, keep_prob: 1})
 
         saver.save(sess, "./model/model.ckpt")
 
         print('Done! Cost:', costprint, "Accuracy:", acc)
 
         if WaifuGUI:
-            print("WaifuGUI: " + str(epoches) + "-" + str(costprint)) # accuracy doesn't really show the improvements of the network over epoches as they can reach "satisfying" values before the cost does.
+            print("WaifuGUI: " + str(epoches) + "-" + str(
+                costprint))  # accuracy doesn't really show the improvements of the network over epoches as they can reach "satisfying" values before the cost does.
 
 
 if __name__ == '__main__':

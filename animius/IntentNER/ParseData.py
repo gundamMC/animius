@@ -7,20 +7,20 @@ import animius as am
 
 
 class Parse:
-
     entity_to_index = dict(person_name=1, object_name=2, object_type=3, time=4, location_name=5, condition=6, info=7)
     entities = ['none', 'person_name', 'object_name', 'object_type', 'time', 'location_name', 'condition', 'info']
     intent_to_index = dict(Chat=0, Positive=1, Negative=2, GetCreativeWork=3, GetPlace=4, GetWeather=5, PlayMusic=6,
                            GetTime=7, GetHardware=8, OpenExplorer=9, SetReminder=10, GetReminders=11, SetTimer=12,
                            SearchOnline=13, SetNote=14)
-    intents = ['Chat', 'Positive', 'Negative', 'GetCreativeWork', 'GetPlace', 'GetWeather', 'PlayMusic', 'GetTime', 'GetHardware', 'OepnExplorer', 'SetReminder', 'SetTimer', 'SearchOnline', 'SetNote']
+    intents = ['Chat', 'Positive', 'Negative', 'GetCreativeWork', 'GetPlace', 'GetWeather', 'PlayMusic', 'GetTime',
+               'GetHardware', 'OepnExplorer', 'SetReminder', 'SetTimer', 'SearchOnline', 'SetNote']
 
     # TODO: Load entities/intents dynamically
 
     @staticmethod
     def get_ner_data(json_text):
 
-        input_data = []   # words
+        input_data = []  # words
         output_ner = []  # indexes of the classes of each word
 
         for text in json_text:
@@ -44,7 +44,8 @@ class Parse:
             input_data, output_ner = Parse.get_ner_data(i["data"])
             output_ner = am.Utils.set_sequence_length(output_ner, 0, max_seq=max_seq)
             ner_out.append(np.eye(8)[output_ner])
-            input_data, input_length, _ = am.Utils.sentence_to_index(input_data, words_to_index, max_seq=max_seq, go=False, eos=False)
+            input_data, input_length, _ = am.Utils.sentence_to_index(input_data, words_to_index, max_seq=max_seq,
+                                                                     go=False, eos=False)
             result_in.append(input_data)
             result_length.append(input_length)
 
@@ -66,7 +67,9 @@ class Parse:
         for filename in os.listdir(data_folder):
             filename = filename.split('.')[0]
             if filename in Parse.intent_to_index:
-                result_in, result_length, intent_out, ner_out = Parse.get_file_data(filename, word_embedding.words_to_index, data_folder, max_seq)
+                result_in, result_length, intent_out, ner_out = Parse.get_file_data(filename,
+                                                                                    word_embedding.words_to_index,
+                                                                                    data_folder, max_seq)
                 x.append(result_in)
                 x_length.append(result_length)
                 y_intent.append(intent_out)

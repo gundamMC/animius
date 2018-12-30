@@ -81,7 +81,7 @@ class Model(ABC):
             if init_param:
                 self.sess.run(tf.global_variables_initializer())
 
-    def init_hyerdash(self, name):
+    def init_hyperdash(self, name):
         if name is not None:
             from hyperdash import Experiment
             self.hyperdash = Experiment(name)

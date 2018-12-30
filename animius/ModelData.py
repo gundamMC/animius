@@ -242,7 +242,8 @@ class ChatbotData(Data):
         f = open(path_x, 'r', encoding='utf8')
         for line in f:
             x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
-                                                self.values['embedding'].words_to_index, go=True, eos=True)
+                                                              self.values['embedding'].words_to_index, go=True,
+                                                              eos=True)
             x.append(x_tmp)
             x_length.append(length_tmp)
 
@@ -329,9 +330,9 @@ class IntentNERData(Data):
     def add_parse_input(self, input_x):
 
         x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                           self.values['embedding'].words_to_index, go=False, eos=False)
+                                                    self.values['embedding'].words_to_index, go=False, eos=False)
 
-        self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1, )))
+        self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1,)))
 
     def set_parse_input(self, input_x):
 
@@ -361,15 +362,16 @@ class SpeakerVerificationData(Data):
         self.add_output_data(data[1])
 
     def add_input_data(self, input_mfcc):
-        assert(isinstance(input_mfcc, np.ndarray))  # get_MFCC() returns a numpy array
+        assert (isinstance(input_mfcc, np.ndarray))  # get_MFCC() returns a numpy array
         self.values['x'] = np.concatenate([self.values['x'], input_mfcc])
 
     def add_output_data(self, output_label):
-        assert(isinstance(output_label, np.ndarray))
+        assert (isinstance(output_label, np.ndarray))
         self.values['y'] = np.concatenate([self.values['y'], output_label])
 
     def add_parse_input_file(self, path):
-        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, flatten=False)
+        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
+                                                    flatten=False)
         self.add_input_data(data)
         return data.shape[0]
         # return batch number
@@ -425,7 +427,7 @@ class CombinedPredictionData(Data):
         x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
                                                     self.values['embedding'].words_to_index, go=False, eos=True)
 
-        self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1,))
+        self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
 
     def set_parse_input(self, input_x):
         x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),

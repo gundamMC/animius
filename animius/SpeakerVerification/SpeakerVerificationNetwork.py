@@ -55,8 +55,8 @@ class SpeakerVerificationModel(am.Model):
                                                      self.model_structure['num_filter_2']]
                                                     )),
                 # fully connected 1, 15 input layers, 128 outpute nodes
-                'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window']/2) *
-                                                     round(self.model_structure['input_cepstral']/2) *
+                'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window'] / 2) *
+                                                     round(self.model_structure['input_cepstral'] / 2) *
                                                      self.model_structure['num_filter_2'],
                                                      self.model_structure['fully_connected_1']]
                                                     )),
@@ -74,7 +74,8 @@ class SpeakerVerificationModel(am.Model):
             # Optimization
             self.prediction = self.network()
             self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=self.network(), labels=self.y))
-            self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(self.cost)
+            self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(
+                self.cost)
 
             # Tensorboard
             if self.config['tensorboard'] is not None:
@@ -84,7 +85,7 @@ class SpeakerVerificationModel(am.Model):
 
         self.init_tensorflow()
 
-        self.init_hyerdash(self.config['hyperdash'])
+        self.init_hyperdash(self.config['hyperdash'])
 
         # restore model data values
         self.init_restore(restore_path)
@@ -97,19 +98,23 @@ class SpeakerVerificationModel(am.Model):
 
         if self.model_structure['pool_type'] == 'max':
             conv1_pooled = tf.nn.max_pool(conv1,
-                                   ksize=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
-                                          1],
-                                   strides=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
-                                            1],
-                                   padding='SAME')
+                                          ksize=[1, self.model_structure['pool_size_1'],
+                                                 self.model_structure['pool_size_1'],
+                                                 1],
+                                          strides=[1, self.model_structure['pool_size_1'],
+                                                   self.model_structure['pool_size_1'],
+                                                   1],
+                                          padding='SAME')
 
         else:
             conv1_pooled = tf.nn.avg_pool(conv1,
-                                   ksize=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
-                                          1],
-                                   strides=[1, self.model_structure['pool_size_1'], self.model_structure['pool_size_1'],
-                                            1],
-                                   padding='SAME')
+                                          ksize=[1, self.model_structure['pool_size_1'],
+                                                 self.model_structure['pool_size_1'],
+                                                 1],
+                                          strides=[1, self.model_structure['pool_size_1'],
+                                                   self.model_structure['pool_size_1'],
+                                                   1],
+                                          padding='SAME')
 
         conv2 = tf.nn.conv2d(conv1_pooled, self.weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
 
@@ -176,7 +181,6 @@ class SpeakerVerificationModel(am.Model):
                     file.write(str(result[i]) + '\n')
 
         return result
-
 
 # modelConfig = SpeakerVerificationModel.DEFAULT_MODEL_CONFIG()
 # modelConfig.model_structure['input_window'] = 50

@@ -10,4 +10,3 @@ import animius.SpeakerVerification as SpeakerVerification
 import animius.Utils as Utils
 
 from animius.Waifu import Waifu
-

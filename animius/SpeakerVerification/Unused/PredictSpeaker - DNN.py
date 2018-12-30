@@ -17,18 +17,18 @@ num_output = 2
 x = tf.placeholder(tf.float32, [None, 390])
 
 weights = {
-    'h1': tf.Variable(tf.random_normal([num_input, num_hidden_1])) * tf.sqrt(2/num_input),
-    'h2': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])) * tf.sqrt(2/num_hidden_1),
-    'h3': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])) * tf.sqrt(2/num_hidden_2),
-    'output': tf.Variable(tf.random_normal([num_hidden_3, num_output])) * tf.sqrt(2/num_hidden_3)
-    }
+    'h1': tf.Variable(tf.random_normal([num_input, num_hidden_1])) * tf.sqrt(2 / num_input),
+    'h2': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])) * tf.sqrt(2 / num_hidden_1),
+    'h3': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_3])) * tf.sqrt(2 / num_hidden_2),
+    'output': tf.Variable(tf.random_normal([num_hidden_3, num_output])) * tf.sqrt(2 / num_hidden_3)
+}
 
 biases = {
     'b1': tf.Variable(tf.random_normal([num_hidden_1])),
     'b2': tf.Variable(tf.random_normal([num_hidden_2])),
     'b3': tf.Variable(tf.random_normal([num_hidden_3])),
     'output': tf.Variable(tf.random_normal([num_output]))
-    }
+}
 
 
 # Create model
@@ -36,7 +36,7 @@ def forward_pass(input_x):
     layer_1 = tf.add(tf.matmul(input_x, weights['h1']), biases['b1'])
     layer_1 = tf.nn.relu(layer_1)
     # layer_1 = tf.nn.dropout(layer_1, keep_prob = keep_prob)
-    
+
     layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
     layer_2 = tf.nn.relu(layer_2)
     # layer_2 = tf.nn.dropout(layer_2, keep_prob = keep_prob)
@@ -55,7 +55,6 @@ def softmax(output):
 
 
 def main(args):
-
     if len(args) < 1:
         sys.stderr.write(
             'Usage: SpeakerPredict.py <paths to predict>\n')
@@ -64,7 +63,7 @@ def main(args):
     paths = []
 
     for root, directories, filenames in os.walk(args[0]):
-        for filename in filenames: 
+        for filename in filenames:
             print(os.path.join(root, filename))
             paths.append(os.path.join(root, filename))
 
@@ -81,13 +80,13 @@ def main(args):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
 
-    with tf.Session(config = config) as sess:
+    with tf.Session(config=config) as sess:
 
         sess.run(tf.global_variables_initializer())
 
         saver.restore(sess, "./model/model.ckpt")
 
-        print ("\nModel restored")
+        print("\nModel restored")
 
         file = open("./PredictedClips.waifu", "w")
 
@@ -95,7 +94,7 @@ def main(args):
 
             data = getMFCC(path)
 
-            predictvar = sess.run(predict, feed_dict ={ x: data })
+            predictvar = sess.run(predict, feed_dict={x: data})
             # not to override predict
 
             predictvar /= np.sum(predictvar, axis=1, keepdims=True)

@@ -46,7 +46,7 @@ class Parser:
             TrueCount = 0
             FalseCount = 0
             for j in range(window):
-                if speaking[i+j]:
+                if speaking[i + j]:
                     TrueCount += 1
                 else:
                     FalseCount += 1
@@ -57,8 +57,8 @@ class Parser:
         startingIndex = 0
         while startingIndex < len(conversation) - 1:
             for i in range(startingIndex + 1, len(conversation)):
-                if conversation[i][0] != conversation[i-1][1]:  # if the ending does not follow the previous start
-                    result.append([conversation[startingIndex][0], conversation[i-1][1]])
+                if conversation[i][0] != conversation[i - 1][1]:  # if the ending does not follow the previous start
+                    result.append([conversation[startingIndex][0], conversation[i - 1][1]])
                     break
                 elif i == len(conversation) - 1:
                     result.append([conversation[startingIndex][0], conversation[i - 1][1]])
