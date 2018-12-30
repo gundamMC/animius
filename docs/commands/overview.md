@@ -19,14 +19,88 @@ The equivalent of this in the network socket would be:
 ```
 
 The various commands and their arguments can be found in this section. Network-socket-related commands can be found under the [Network section](https://gundammc.github.io/Animius/network/overview/).
-
 ##Model
+###Create Model
+Create a model.
+```
+createModel --name='myModel' --type='ChatbotModel'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model
+
+* *type* (``str``) -- Type of model
+
+###Delete Model
+Delete a model.
+```
+deleteModel --name='myModel'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model to delete
+
+###Save Model
+Save a model.
+```
+saveModel --name='myModel'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model to save
+
+###Load Model
+Load a model.
+```
+loadModel --name='myModel' --data='myData'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model to load
+
+* *data* (``str``) -- Name of data to load
+
+###Set Data
+Set model data.
+```
+setData --name='myModel' --data='myData'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model to set
+
+* *data* (``str``) -- Name of data to set
+
+###Train
+Train a model.
+```
+train --name='myModel' --epoch=20
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model to set
+
+* *epoch* (``int``) -- Number of epoch
+
+###Predict
+Predict a model.
+```
+predict --name='myModel' --input_data='' --save_path=''
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of model to predict
+
+* *input_data* (``str``) -- Name of input data
+        
+* *save_path* (``str``) -- Path to save result (Optional)
+
+##ModelConfig
 ###Create Model Config
 
 Create a model config with the provided values.
-
 ```
-createModelConfig --name='myModelConfig' --cls='myModelClass'
+createModelConfig --name='myModelConfig' --cls=''
 ```
 Keyword Arguements:
 
@@ -60,11 +134,31 @@ Keyword Arguments:
 
 Delete a model config.
 ```
-deleteModelConfig --name='myModel'
+deleteModelConfig --name='myModelConfig'
 ```
 Keyword Argument:
 
 * *name* (``str``) -- Name of model config to delete
+
+###Save Model Config
+
+Save a model config.
+```
+saveModelConfig --name='myModelConfig'
+```
+Keyword Argument:
+
+* *name*(``str``) -- Name of model config to save
+
+###Load Model Config
+
+Load a model config.
+```
+loadModelConfig --name='myModelConfig'
+```
+Keyword Argument:
+
+* *name*(``str``) -- Name of model config to load
 
 ##Data
 ###Create Data
@@ -110,6 +204,23 @@ Keyword Arguments:
 
 * *name* (``str``) -- Name of data to delete
 
+###Save Data
+Save a data.
+```
+saveData --name='myData'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of data to save
+
+###Load Data
+Load a data.
+```
+loadData --name='myData'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of data to load
 
 ##Chatbot Data
 ###Add Twitter To Chatbot Data
@@ -165,7 +276,7 @@ Keyword Arguments:
 ###Add Parse Input To Chatbot Data
 Parse a raw sentence as input and add it to a chatbot data.
 ```
-chatbotDataAddParseInput --name='myData' --x=''
+chatbotDataAddParseInput --name='myData' --x='hey how are you'
 ```
 Keyword Arguments:
 
@@ -176,7 +287,7 @@ Keyword Arguments:
 ###Set Parse Input To Chatbot Data
 Parse a raw sentence as input and set it as a chatbot data.
 ```
-chatbotDataSetParseInput --name='myData' --x=''
+chatbotDataSetParseInput --name='myData' --x='hey how are you'
 ```
 Keyword Arguments:
 
@@ -188,7 +299,7 @@ Keyword Arguments:
 ###Add Parse Input To IntentNER Data
 Parse a raw sentence as input and add it to an intent NER data.
 ```
-intentNERDataAddParseInput --name='myData' --x=''
+intentNERDataAddParseInput --name='myData' --x='hey how are you'
 ```
 Keyword Arguments:
 
@@ -199,7 +310,7 @@ Keyword Arguments:
 ###Set Parse Input To IntentNER Data
 Parse a raw sentence as input and set it as an intent NER data.
 ```
-intentNERDataSetParseInput --name='myData' --x=''
+intentNERDataSetParseInput --name='myData' --x='hey how are you'
 ```
 Keyword Arguments:
 
@@ -222,7 +333,7 @@ Keyword Arguments:
 ###Add Data Paths To SpeakerVerification Data
 Parse and add raw audio files to a speaker verification data.
 ```
-speakerVerificationDataAddDataPaths --name='myData' --paths='' --y=''
+speakerVerificationDataAddDataPaths --name='myData' --paths='' --y=True
 ```
 Keyword Arguments:
 
@@ -235,7 +346,7 @@ Keyword Arguments:
 ###Add Data File To SpeakerVerification Data
 Read paths to raw audio files and add them to a speaker verification data.
 ```
-speakerVerificationDataAddDataFile --name='myData' --paths='' --y=''
+speakerVerificationDataAddDataFile --name='myData' --paths='' --y=True
 ```
 Keyword Arguments:
 
@@ -259,7 +370,7 @@ Keyword Arguments:
 
 * *vocab_size* (``int``) -- Maximum number of tokens to read from embedding file (Optional)
 
-##Delete Embedding
+###Delete Embedding
 Delete a word embedding.
 ```
 deleteEmbedding --name='myEmbedding'
@@ -267,3 +378,21 @@ deleteEmbedding --name='myEmbedding'
 Keyword Arguments:
 
 * *name* (``str``) -- Name of embedding to delete
+
+###Save Embedding
+Save an embedding.
+```
+saveEmbedding --name='myEmbedding'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of embedding to save
+
+###Load Embedding
+Load an embedding.
+```
+loadEmbedding --name='myEmbedding'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of embedding to load

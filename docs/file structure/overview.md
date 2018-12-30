@@ -1,6 +1,6 @@
 # File Structure Overview
 
-Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects are stored by default when using the console (this does not apply when using Animius as a python library or when directories are provided). It should also be noted that all config files created by Animius are in JSON.
+Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects is stored by default when using the console (this does not apply when using Animius as a python library or when directories are provided). It should also be noted that all config files created by Animius are in JSON.
 
 When you start Animius for the first time, the console will prompt you to choose a directory as the storage space for resources. This directory will contain *all* the files with the exception of `\user-config.json` being at the root directory.
 
