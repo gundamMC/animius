@@ -328,6 +328,68 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#create-model" title="Create Model" class="md-nav__link">
+    Create Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-model" title="Delete Model" class="md-nav__link">
+    Delete Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-model" title="Save Model" class="md-nav__link">
+    Save Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-model" title="Load Model" class="md-nav__link">
+    Load Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-data" title="Set Data" class="md-nav__link">
+    Set Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train" title="Train" class="md-nav__link">
+    Train
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predict" title="Predict" class="md-nav__link">
+    Predict
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modelconfig" title="ModelConfig" class="md-nav__link">
+    ModelConfig
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#create-model-config" title="Create Model Config" class="md-nav__link">
     Create Model Config
   </a>
@@ -708,6 +770,68 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#create-model" title="Create Model" class="md-nav__link">
+    Create Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-model" title="Delete Model" class="md-nav__link">
+    Delete Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-model" title="Save Model" class="md-nav__link">
+    Save Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-model" title="Load Model" class="md-nav__link">
+    Load Model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set-data" title="Set Data" class="md-nav__link">
+    Set Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train" title="Train" class="md-nav__link">
+    Train
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predict" title="Predict" class="md-nav__link">
+    Predict
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modelconfig" title="ModelConfig" class="md-nav__link">
+    ModelConfig
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#create-model-config" title="Create Model Config" class="md-nav__link">
     Create Model Config
   </a>
@@ -1005,9 +1129,108 @@ In the console, a command could look something like this:</p>
 
 <p>The various commands and their arguments can be found in this section. Network-socket-related commands can be found under the <a href="https://gundammc.github.io/Animius/network/overview/">Network section</a>.</p>
 <h2 id="model">Model</h2>
+<h3 id="create-model">Create Model</h3>
+<p>Create a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createModel --name=&#39;myModel&#39; --type=&#39;ChatbotModel&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of model</p>
+</li>
+<li>
+<p><em>type</em> (<code class="codehilite">str</code>) -- Type of model</p>
+</li>
+</ul>
+<h3 id="delete-model">Delete Model</h3>
+<p>Delete a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>deleteModel --name=&#39;myModel&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of model to delete</li>
+</ul>
+<h3 id="save-model">Save Model</h3>
+<p>Save a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModel --name=&#39;myModel&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of model to save</li>
+</ul>
+<h3 id="load-model">Load Model</h3>
+<p>Load a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadModel --name=&#39;myModel&#39; --data=&#39;myData&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of model to load</p>
+</li>
+<li>
+<p><em>data</em> (<code class="codehilite">str</code>) -- Name of data to load</p>
+</li>
+</ul>
+<h3 id="set-data">Set Data</h3>
+<p>Set model data.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>setData --name=&#39;myModel&#39; --data=&#39;myData&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of model to set</p>
+</li>
+<li>
+<p><em>data</em> (<code class="codehilite">str</code>) -- Name of data to set</p>
+</li>
+</ul>
+<h3 id="train">Train</h3>
+<p>Train a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>train --name=&#39;myModel&#39; --epoch=20
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of model to set</p>
+</li>
+<li>
+<p><em>epoch</em> (<code class="codehilite">int</code>) -- Number of epoch</p>
+</li>
+</ul>
+<h3 id="predict">Predict</h3>
+<p>Predict a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>predict --name=&#39;myModel&#39; --input_data=&#39;&#39; --save_path=&#39;&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of model to predict</p>
+</li>
+<li>
+<p><em>input_data</em> (<code class="codehilite">str</code>) -- Name of input data</p>
+</li>
+<li>
+<p><em>save_path</em> (<code class="codehilite">str</code>) -- Path to save result (Optional)</p>
+</li>
+</ul>
+<h2 id="modelconfig">ModelConfig</h2>
 <h3 id="create-model-config">Create Model Config</h3>
 <p>Create a model config with the provided values.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createModelConfig --name=&#39;myModelConfig&#39; --cls=&#39;myModelClass&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createModelConfig --name=&#39;myModelConfig&#39; --cls=&#39;&#39;
 </pre></div>
 </td></tr></table>
 
@@ -1052,7 +1275,7 @@ In the console, a command could look something like this:</p>
 </ul>
 <h3 id="delete-model-config">Delete Model Config</h3>
 <p>Delete a model config.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>deleteModelConfig --name=&#39;myModel&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>deleteModelConfig --name=&#39;myModelConfig&#39;
 </pre></div>
 </td></tr></table>
 
@@ -1061,34 +1284,24 @@ In the console, a command could look something like this:</p>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of model config to delete</li>
 </ul>
 <h3 id="save-model-config">Save Model Config</h3>
-<p>Save a model config object to a directory.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModelConfig  --directory=&#39;&#39; --name=&#39;myModel&#39;
+<p>Save a model config.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModelConfig --name=&#39;myModelConfig&#39;
 </pre></div>
 </td></tr></table>
 
-<p>Keyword Arguments:</p>
+<p>Keyword Argument:</p>
 <ul>
-<li>
-<p><em>directory</em> (<code class="codehilite">str</code>) --  Directory to save the config</p>
-</li>
-<li>
-<p><em>name</em> (<code class="codehilite">str</code>) --  String to name the saved files</p>
-</li>
+<li><em>name</em>(<code class="codehilite">str</code>) -- Name of model config to save</li>
 </ul>
 <h3 id="load-model-config">Load Model Config</h3>
-<p>Load a model config object from a saved directory.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModelConfig  --directory=&#39;&#39; --name=&#39;myModel&#39;
+<p>Load a model config.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadModelConfig --name=&#39;myModelConfig&#39;
 </pre></div>
 </td></tr></table>
 
-<p>Keyword Arguments:</p>
+<p>Keyword Argument:</p>
 <ul>
-<li>
-<p><em>directory</em> (<code class="codehilite">str</code>) --  Path to the directory in which the model config is saved</p>
-</li>
-<li>
-<p><em>name</em> (<code class="codehilite">str</code>) --  Name of the saved files</p>
-</li>
+<li><em>name</em>(<code class="codehilite">str</code>) -- Name of model config to load</li>
 </ul>
 <h2 id="data">Data</h2>
 <h3 id="create-data">Create Data</h3>
@@ -1145,43 +1358,24 @@ In the console, a command could look something like this:</p>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of data to delete</li>
 </ul>
 <h3 id="save-data">Save Data</h3>
-<p>Save a model data object to a directory.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveData --directory=&#39;&#39; --name=&#39;myData&#39; 
+<p>Save a data.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveData --name=&#39;myData&#39;
 </pre></div>
 </td></tr></table>
 
 <p>Keyword Arguments:</p>
 <ul>
-<li>
-<p><em>directory</em> (<code class="codehilite">str</code>) -- Directory to save the data</p>
-</li>
-<li>
-<p><em>name</em> (<code class="codehilite">str</code>) --  String to name the saved files</p>
-</li>
-<li>
-<p><em>compress</em> (<code class="codehilite">bool</code>) -- Whether to compress the numpy arrays</p>
-</li>
-<li>
-<p><em>save_embedding</em> (<code class="codehilite">bool</code>) -- Whether to save a separate copy of the word embedding</p>
-</li>
-<li>
-<p><em>save_model_config</em> (<code class="codehilite">bool</code>) -- Whether to save a separate copy of the model config</p>
-</li>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of data to save</li>
 </ul>
 <h3 id="load-data">Load Data</h3>
-<p>Load a model data object from a saved directory.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadData --directory=&#39;&#39; --name=&#39;myData&#39; 
+<p>Load a data.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadData --name=&#39;myData&#39;
 </pre></div>
 </td></tr></table>
 
 <p>Keyword Arguments:</p>
 <ul>
-<li>
-<p><em>directory</em> (<code class="codehilite">str</code>) -- Path to the directory in which the model data is saved</p>
-</li>
-<li>
-<p><em>name</em> (<code class="codehilite">str</code>) --  Name of the saved files</p>
-</li>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of data to load</li>
 </ul>
 <h2 id="chatbot-data">Chatbot Data</h2>
 <h3 id="add-twitter-to-chatbot-data">Add Twitter To Chatbot Data</h3>
@@ -1255,7 +1449,7 @@ In the console, a command could look something like this:</p>
 </ul>
 <h3 id="add-parse-input-to-chatbot-data">Add Parse Input To Chatbot Data</h3>
 <p>Parse a raw sentence as input and add it to a chatbot data.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>chatbotDataAddParseInput --name=&#39;myData&#39; --x=&#39;&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>chatbotDataAddParseInput --name=&#39;myData&#39; --x=&#39;hey how are you&#39;
 </pre></div>
 </td></tr></table>
 
@@ -1270,7 +1464,7 @@ In the console, a command could look something like this:</p>
 </ul>
 <h3 id="set-parse-input-to-chatbot-data">Set Parse Input To Chatbot Data</h3>
 <p>Parse a raw sentence as input and set it as a chatbot data.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>chatbotDataSetParseInput --name=&#39;myData&#39; --x=&#39;&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>chatbotDataSetParseInput --name=&#39;myData&#39; --x=&#39;hey how are you&#39;
 </pre></div>
 </td></tr></table>
 
@@ -1286,7 +1480,7 @@ In the console, a command could look something like this:</p>
 <h2 id="intentner-data">IntentNER Data</h2>
 <h3 id="add-parse-input-to-intentner-data">Add Parse Input To IntentNER Data</h3>
 <p>Parse a raw sentence as input and add it to an intent NER data.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>intentNERDataAddParseInput --name=&#39;myData&#39; --x=&#39;&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>intentNERDataAddParseInput --name=&#39;myData&#39; --x=&#39;hey how are you&#39;
 </pre></div>
 </td></tr></table>
 
@@ -1301,7 +1495,7 @@ In the console, a command could look something like this:</p>
 </ul>
 <h3 id="set-parse-input-to-intentner-data">Set Parse Input To IntentNER Data</h3>
 <p>Parse a raw sentence as input and set it as an intent NER data.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>intentNERDataSetParseInput --name=&#39;myData&#39; --x=&#39;&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>intentNERDataSetParseInput --name=&#39;myData&#39; --x=&#39;hey how are you&#39;
 </pre></div>
 </td></tr></table>
 
@@ -1332,7 +1526,7 @@ In the console, a command could look something like this:</p>
 <h2 id="speakerverification-data">SpeakerVerification Data</h2>
 <h3 id="add-data-paths-to-speakerverification-data">Add Data Paths To SpeakerVerification Data</h3>
 <p>Parse and add raw audio files to a speaker verification data.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>speakerVerificationDataAddDataPaths --name=&#39;myData&#39; --paths=&#39;&#39; --y=&#39;&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>speakerVerificationDataAddDataPaths --name=&#39;myData&#39; --paths=&#39;&#39; --y=True
 </pre></div>
 </td></tr></table>
 
@@ -1350,7 +1544,7 @@ In the console, a command could look something like this:</p>
 </ul>
 <h3 id="add-data-file-to-speakerverification-data">Add Data File To SpeakerVerification Data</h3>
 <p>Read paths to raw audio files and add them to a speaker verification data.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>speakerVerificationDataAddDataFile --name=&#39;myData&#39; --paths=&#39;&#39; --y=&#39;&#39;
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>speakerVerificationDataAddDataFile --name=&#39;myData&#39; --paths=&#39;&#39; --y=True
 </pre></div>
 </td></tr></table>
 
@@ -1396,34 +1590,24 @@ In the console, a command could look something like this:</p>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of embedding to delete</li>
 </ul>
 <h3 id="save-embedding">Save Embedding</h3>
-<p>Save an embedding object to a directory.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveEmbedding --directory=&#39;&#39; --name=&#39;myEmbedding&#39;
+<p>Save an embedding.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveEmbedding --name=&#39;myEmbedding&#39;
 </pre></div>
 </td></tr></table>
 
 <p>Keyword Arguments:</p>
 <ul>
-<li>
-<p><em>directory</em> (<code class="codehilite">str</code>) -- Directory to save the embedding</p>
-</li>
-<li>
-<p><em>name</em> (<code class="codehilite">str</code>) -- String to name the saved files</p>
-</li>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of embedding to save</li>
 </ul>
 <h3 id="load-embedding">Load Embedding</h3>
-<p>Load an embedding object from a saved directory.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadEmbedding --directory=&#39;&#39; --name=&#39;myEmbedding&#39;
+<p>Load an embedding.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadEmbedding --name=&#39;myEmbedding&#39;
 </pre></div>
 </td></tr></table>
 
 <p>Keyword Arguments:</p>
 <ul>
-<li>
-<p><em>directory</em> (<code class="codehilite">str</code>) -- Path to the directory in which the embedding is saved</p>
-</li>
-<li>
-<p><em>name</em> (<code class="codehilite">str</code>) -- Name of the saved files</p>
-</li>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of embedding to load</li>
 </ul>
                 
                   

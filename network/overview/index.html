@@ -518,10 +518,10 @@
 <p>In addition to using the python console, Animius can also be accessed with a network TCP socket.
 This allows for user-friendly or extensive GUIs and clients written in other languages.</p>
 <h2 id="server">Server</h2>
-<p>The server has the same requirements as using the python console, with an addition of networking. (still writing the script)</p>
+<p>The server has the same requirements as using the python console, with addition of networking. (still writing the script)</p>
 <h2 id="client">Client</h2>
 <p>The client has no requirements other than networking. Python is not needed. To communicate with the server, simply use TCP messages.
-Although it is recommened for security, the client and the server are not required to be on the same network.</p>
+Although it is recommended for security, the client and the server are not required to be on the same network.</p>
 <p>See <a href="https://github.com/gundamMC/waifu-gui">(gundamMC/Waifu-GUI)</a> for a C# WPF example.</p>
 <h2 id="commands">Commands</h2>
 <p>The server takes in JSON messages with the following format:</p>
@@ -544,7 +544,7 @@ Although it is recommened for security, the client and the server are not requir
 </td></tr></table>
 
 <p><code class="codehilite">command</code> takes in a string that specifies a function defined by the server while the dictionary <code class="codehilite">arguments</code> define the keyword arguments.
-For instance, the above code represents <code class="codehilite">foo --boo=2 --bar=&#39;MAX&#39;</code>. <code class="codehilite">id</code> is simply an string identifier for the client.</p>
+For instance, the above code represents <code class="codehilite">foo --boo=2 --bar=&#39;MAX&#39;</code>. <code class="codehilite">id</code> is simply a string identifier for the client.</p>
 <h2 id="responses">Responses</h2>
 <p>The server responds in the following format:</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
@@ -575,7 +575,7 @@ For instance, the above code represents <code class="codehilite">foo --boo=2 --b
 <li>3- &gt; error</li>
 </ul>
 <p>(An argument error occurs when an argument is missing or has the wrong type, in contrary to an error)</p>
-<p><code class="codehilite">message</code> is simply a message that provides additional information on the status. In a failure or an error, it would provide the cause of such failure or error. <code class="codehilite">data</code> is a dictionary that contains the return values of the command. If the user queries for information on a model, <code class="codehilite">data</code> would include the information of the model. Note that <code class="codehilite">data</code> is subject to change for each command, while some commands may not even return anything in <code class="codehilite">data</code> (an empty dictionary will be used in that case to ensure that all responses contain a <code class="codehilite">data</code>).</p>
+<p><code class="codehilite">message</code> is simply a message that provides additional information on the status. In failure or an error, it would provide the cause of such failure or error. <code class="codehilite">data</code> is a dictionary that contains the return values of the command. If the user queries for information on a model, <code class="codehilite">data</code> would include the information of the model. Note that <code class="codehilite">data</code> is subject to change for each command, while some commands may not even return anything in <code class="codehilite">data</code> (an empty dictionary will be used in that case to ensure that all responses contain a <code class="codehilite">data</code>).</p>
                 
                   
                 

@@ -557,7 +557,7 @@
                 
                 
                 <h1 id="file-structure-overview">File Structure Overview</h1>
-<p>Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects are stored by default when using the console (this does not apply when using Animius as a python library or when directories are provided). It should also be noted that all config files created by Animius are in JSON.</p>
+<p>Animius uses various files, ranging from configs to Tensorflow model checkpoints. This overview will briefly explain how and where each of the objects is stored by default when using the console (this does not apply when using Animius as a python library or when directories are provided). It should also be noted that all config files created by Animius are in JSON.</p>
 <p>When you start Animius for the first time, the console will prompt you to choose a directory as the storage space for resources. This directory will contain <em>all</em> the files with the exception of <code class="codehilite">\user-config.json</code> being at the root directory.</p>
 <h2 id="configjson">config.json</h2>
 <p>It should be noted that there is a clear distinction between <code class="codehilite">\config.json</code> and <code class="codehilite">\user-config.json</code>. <code class="codehilite">\config.json</code> serves as a template for <code class="codehilite">\user-config.json</code>, which should be created either manually or automatically at first launch. This way, when the user pulls updates from git, the configs will not be overwritten.</p>
