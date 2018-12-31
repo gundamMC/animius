@@ -15,6 +15,7 @@ class Model(ABC):
     def DEFAULT_CONFIG():
         return {
             'name': 'Model',
+            'class': '',
             'epoch': 0,
             'display_step': 1,
             'tensorboard': None,
@@ -154,7 +155,16 @@ class Model(ABC):
 
     @classmethod
     def load(cls, directory, name='model', data=None):
-        pass
+        with open(join(directory, name + '.json'), 'r') as f:
+            stored = json.load(f)
+            class_name = stored['config']['class']
+
+        if class_name == 'Chatbot':
+            return am.Chatbot.ChatbotModel.load(directory, name=name, data=data)
+        elif class_name == 'IntentNER':
+            return am.IntentNER.IntentNERModel.load(directory, name=name, data=data)
+        else:
+            raise ValueError("Loading failed: class name not found")
 
     def close(self):
         self.sess.close()

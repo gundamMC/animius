@@ -220,13 +220,11 @@ class IntentNERModel(am.Model):
 
     @classmethod
     def load(cls, directory, name='model', data=None):
-        if data is None:
-            print('IntentNER model load failed. Data cannot be None.')
-            return
 
         model = IntentNERModel()
         model.restore_config(directory, name)
-        model.data = data
+        if data is None:
+            model.data = data
 
         graph = tf.Graph()
 

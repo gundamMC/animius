@@ -48,6 +48,7 @@ class ChatbotModel(am.Model):
 
         # make copies of the dictionaries since we will be editing it
         self.config = dict(model_config.config)
+        self.config['class'] = 'Chatbot'
         self.model_structure = dict(model_config.model_structure)
         self.hyperparameters = dict(model_config.hyperparameters)
         self.data = data
@@ -286,13 +287,11 @@ class ChatbotModel(am.Model):
 
     @classmethod
     def load(cls, directory, name='model', data=None):
-        if data is None:
-            print('Chatbot model load failed. Data cannot be None.')
-            return
 
         model = ChatbotModel()
         model.restore_config(directory, name)
-        model.data = data
+        if data is None:
+            model.data = data
 
         graph = tf.Graph()
 
