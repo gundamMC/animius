@@ -127,7 +127,7 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'type'])
 
-        if kwargs['name'] in self.model_configs:
+        if kwargs['name'] in self.models:
             raise NameAlreadyExistError("The name {0} is already used by another model".format(kwargs['name']))
 
         if kwargs['type'] == 'ChatbotModel':
@@ -160,7 +160,7 @@ class Console:
         if kwargs['name'] in self.models:
             self.models.pop(kwargs['name'])
         else:
-            raise KeyError("Model \"{0}\" not found.".format(kwargs['name']))
+            raise NameNotFoundError("Model \"{0}\" not found.".format(kwargs['name']))
 
     def save_model(self, **kwargs):
         """
@@ -188,20 +188,17 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of model to load
-        * *data* (``str``) -- Name of data to load
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'data'])
+                                hard_requirements=['name'])
 
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
-        if kwargs['data'] not in self.data:
-            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['data']))
 
         model = am.Model.load(
             self.models[kwargs['name']].saved_directory,
-            self.models[kwargs['name']].saved_name, self.data[kwargs['data']])
+            self.models[kwargs['name']].saved_name)
 
         self.models[kwargs['name']].item = model
         self.models[kwargs['name']].loaded = True
@@ -225,7 +222,7 @@ class Console:
         if kwargs['data'] not in self.data:
             raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['data']))
 
-        self.models[kwargs['name']].set_data(self.data[kwargs['data']])
+        self.models[kwargs['name']].item.set_data(self.data[kwargs['data']].item)
 
     def train(self, **kwargs):
         """
@@ -245,7 +242,7 @@ class Console:
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
 
-        self.models[kwargs['name']].train(kwargs['epoch'])
+        self.models[kwargs['name']].item.train(kwargs['epoch'])
 
     def predict(self, **kwargs):
         """
@@ -268,7 +265,7 @@ class Console:
         if kwargs['input_data'] not in self.data:
             raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
 
-        self.models[kwargs['name']].predict(kwargs['input_data'], kwargs['save_path'])
+        self.models[kwargs['name']].item.predict(kwargs['input_data'], save_path=kwargs['save_path'])
 
     def create_model_config(self, **kwargs):
         """
