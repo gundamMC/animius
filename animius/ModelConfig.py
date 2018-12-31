@@ -2,6 +2,7 @@ from os import mkdir
 from os.path import join
 import errno
 import json
+import animius as am
 
 
 class ModelConfig:
@@ -29,6 +30,17 @@ class ModelConfig:
         self.saved_name = None
 
     def apply_defaults(self, cls):
+
+        # cls may be a string class name
+        if isinstance(cls, str):
+            if cls == 'IntentNERModel':
+                cls = am.IntentNER.IntentNERModel
+            elif cls == 'ChatbotModel' or cls == 'CombinedChatbotModel':
+                cls = am.Chatbot.ChatbotModel  # they share the same default model config
+            elif cls == 'SpeakerVerificationModel':
+                cls = am.SpeakerVerification.SpeakerVerificationModel
+            else:
+                raise ValueError('class not found with name {0}'.format(cls))
 
         for key, default_value in cls.DEFAULT_CONFIG().items():
             if key not in self.config:
