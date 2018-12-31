@@ -115,17 +115,19 @@ class Console:
 
     def create_model(self, **kwargs):
         """
-        Create a model
+        Create a model and built its graph
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of model
         * *type* (``str``) -- Type of model
+        * *model_config* (``str``) -- Name of model config to use
+        * *data* (``str``) -- Name of data to use
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'type'])
+                                hard_requirements=['name', 'type', 'model_config', 'data'])
 
         if kwargs['name'] in self.models:
             raise NameAlreadyExistError("The name {0} is already used by another model".format(kwargs['name']))
@@ -134,10 +136,17 @@ class Console:
             model = am.Chatbot.ChatbotModel()
         elif kwargs['type'] == 'IntentNERModel':
             model = am.IntentNER.IntentNERModel()
+        elif kwargs['type'] == 'CombinedChatbotModel':
+            model = am.Chatbot.CombinedChatbotModel(self.model_configs[kwargs['model_config']].item,
+                                                    self.data[kwargs['model_config']].item)
         elif kwargs['type'] == 'SpeakVerificationModel':
             model = am.SpeakerVerification.SpeakerVerificationModel()
         else:
             raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
+
+        # CombinedChatbotModel builds graph in its constructor
+        if kwargs['type'] != 'CombinedChatbotModel':
+            model.build_graph(self.model_configs[kwargs['model_config']].item, self.data[kwargs['data']].item)
 
         console_item = _ConsoleItem(model, self.directories['model'], kwargs['name'])
         # saving it first to set up its saving location

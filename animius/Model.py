@@ -118,6 +118,10 @@ class Model(ABC):
 
     def save(self, directory=None, name='model', meta=True, graph=False):
 
+        # model config and graph must be initiated before saving
+        if self.config is None:
+            raise ValueError("Model config and graph must be initiated before saving")
+
         if directory is None:
             if self.saved_directory is None:
                 raise ValueError("Directory must be provided when saving for the first time")
@@ -159,7 +163,7 @@ class Model(ABC):
             stored = json.load(f)
             class_name = stored['config']['class']
 
-        if class_name == 'ChatbotModel':
+        if class_name == 'ChatbotModel' or class_name == 'CombinedChatbotModel':
             return am.Chatbot.ChatbotModel.load(directory, name=name, data=data)
         elif class_name == 'IntentNERModel':
             return am.IntentNER.IntentNERModel.load(directory, name=name, data=data)
