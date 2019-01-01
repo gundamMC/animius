@@ -3,6 +3,7 @@ from animius.ModelConfig import *
 from animius.WordEmbedding import WordEmbedding
 from animius.ModelData import *
 from animius.Console import Console
+from animius.SocketServer import *
 
 import animius.Chatbot as Chatbot
 import animius.IntentNER as IntentNER

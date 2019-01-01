@@ -113,6 +113,61 @@ class Console:
                 if req not in args:
                     args['req'] = None
 
+    def start_server(self, **kwargs):
+        """
+        Start server
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *port* (``int``) -- Port of server
+        * *local* (``bool``) -- Decide if the server is running locally
+        * *pwd* (``str``) -- Password of server
+        * *max_clients* (``int``) -- Maximum number of clients
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['port', ],
+                                soft_requirements=['local','pwd','max_clients'])
+
+        am.start_server(self,kwargs['port'],kwargs['local'],kwargs['pwd'],kwargs['max_clients'])
+
+    def freeze_graph(self, **kwargs):
+        """
+        Freeze checkpoints to a file
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *model_dir* (``str``) -- Path to your model
+        * *output_node_names* (``str``) -- Name of output nodes
+        * *stored_model_config* (``str``) -- Name of model config to use
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['model_dir', 'output_node_names'],
+                                soft_requirements=['stored_model_config'])
+
+        if kwargs['stored_model_config'] is not None:
+            if kwargs['stored_model_config'] not in self.model_configs:
+                raise NameNotFoundError("Model Config {0} not found".format(kwargs['stored_model_config']))
+
+        am.Utils.freeze_graph(kwargs['model_dir'], kwargs['output_node_names'], kwargs['stored_model_config'])
+
+    def optimize(self, **kwargs):
+        """
+        Optimizing for inference
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *model_dir* (``str``) -- Path to your model
+        * *input_node_names* (``str``) -- Name of input nodes
+        * *output_node_names* (``str``) -- Name of output nodes
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['model_dir', 'output_node_names', 'input_node_names'])
+        am.Utils.optimize(kwargs['model_dir'], kwargs['input_node_names'], kwargs['output_node_names'])
+
     def create_model(self, **kwargs):
         """
         Create a model and built its graph
@@ -137,8 +192,12 @@ class Console:
         elif kwargs['type'] == 'IntentNERModel':
             model = am.IntentNER.IntentNERModel()
         elif kwargs['type'] == 'CombinedChatbotModel':
+            if kwargs['model_config'] not in self.model_configs:
+                raise NameNotFoundError("Model Config {0} not found".format(kwargs['model_config']))
+            if kwargs['data'] not in self.data:
+                raise NameNotFoundError("Data {0} not found".format(kwargs['data']))
             model = am.Chatbot.CombinedChatbotModel(self.model_configs[kwargs['model_config']].item,
-                                                    self.data[kwargs['model_config']].item)
+                                                    self.data[kwargs['data']].item)
         elif kwargs['type'] == 'SpeakVerificationModel':
             model = am.SpeakerVerification.SpeakerVerificationModel()
         else:
