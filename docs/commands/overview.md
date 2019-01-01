@@ -19,6 +19,45 @@ The equivalent of this in the network socket would be:
 ```
 
 The various commands and their arguments can be found in this section. Network-socket-related commands can be found under the [Network section](https://gundammc.github.io/Animius/network/overview/).
+##Waifu
+###Create Waifu
+Create a waifu.
+```
+createWaifu --name='myWaifu' --model='myModel'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of waifu
+
+* *model* (``str``) -- Name of model to use
+
+###Delete Waifu
+Delete a waifu.
+```
+deleteWaifu --name='myWaifu'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of waifu to delete
+
+###Save Waifu
+Save a waifu.
+```
+saveWaifu --name='myWaifu'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of waifu to save
+
+###Load Waifu
+Load a waifu.
+```
+loadWaifu --name='myWaifu'
+```
+Keyword Arguments:
+
+* *name* (``str``) -- Name of waifu to load
+
 ##Model
 ###Create Model
 Create a model.
@@ -396,3 +435,43 @@ loadEmbedding --name='myEmbedding'
 Keyword Arguments:
 
 * *name* (``str``) -- Name of embedding to load
+
+##Utils
+###Start Server
+Start server.
+```
+startServer --port=25565 --local=True --pwd='p@ssword' --max_clients=10
+```
+Keyword Arguments:
+
+* *port* (``int``) -- Port of server
+
+* *local* (``bool``) -- Decide if the server is running locally
+
+* *pwd* (``str``) -- Password of server
+
+* *max_clients* (``int``) -- Maximum number of clients
+
+###Freeze Graph
+Freeze checkpoints to a file.
+```
+freezeGraph --model_dir='' --output_node_names='' --stored_model_config=''
+```
+Keyword Arguments:
+
+* *model_dir* (``str``) -- Path to your model
+
+* *output_node_names* (``str``) -- Name of output nodes
+
+* *stored_model_config* (``str``) -- Name of model config to use
+
+###Optimize
+Optimizing for inference.
+```
+optimize --model_dir='' --input_node_names='' --output_node_names=''
+```
+Keyword Arguments:
+
+* *model_dir* (``str``) -- Path to your model
+* *input_node_names* (``str``) -- Name of input nodes
+* *output_node_names* (``str``) -- Name of output nodes

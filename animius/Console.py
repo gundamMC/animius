@@ -151,7 +151,8 @@ class Console:
             if kwargs['stored_model_config'] not in self.model_configs:
                 raise NameNotFoundError("Model Config {0} not found".format(kwargs['stored_model_config']))
 
-        am.Utils.freeze_graph(kwargs['model_dir'], kwargs['output_node_names'], kwargs['stored_model_config'])
+        am.Utils.freeze_graph(kwargs['model_dir'], kwargs['output_node_names'],
+                              self.model_configs[kwargs['stored_model_config']].item)
 
     def optimize(self, **kwargs):
         """
@@ -166,7 +167,95 @@ class Console:
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['model_dir', 'output_node_names', 'input_node_names'])
+
         am.Utils.optimize(kwargs['model_dir'], kwargs['input_node_names'], kwargs['output_node_names'])
+
+    def create_waifu(self,**kwargs):
+        """
+        Use existing model to create a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *model* (``str``) -- Name of model to use
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'model'])
+
+        if kwargs['name'] in self.waifus:
+            raise NameAlreadyExistError("The name {0} is already used by another waifu".format(kwargs['name']))
+
+        if kwargs['model'] not in self.models:
+            raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
+
+        waifu = am.Waifu(kwargs['name'], self.models[kwargs['model']].item)
+
+        console_item = _ConsoleItem(waifu, self.directories['waifu'], kwargs['name'])
+        # saving it first to set up its saving location
+        console_item.save()
+
+        self.waifus[kwargs['name']] = console_item
+
+    def delete_waifu(self,**kwargs):
+        """
+        Delete a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu to delete
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] in self.waifus:
+            self.waifus.pop(kwargs['name'])
+        else:
+            raise NameNotFoundError("Waifu \"{0}\" not found.".format(kwargs['name']))
+
+    def save_waifu(self,**kwargs):
+        """
+        Save a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu to save
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.waifu:
+            raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
+
+        self.waifus[kwargs['name']].save()
+
+    def load_waifu(self,**kwargs):
+        """
+        Load a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu to load
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.waifus:
+            raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
+
+        waifu = am.Waifu.load(
+            self.waifus[kwargs['name']].saved_directory,
+            self.waifus[kwargs['name']].saved_name)
+
+        self.waifus[kwargs['name']].item = waifu
+        self.waifus[kwargs['name']].loaded = True
 
     def create_model(self, **kwargs):
         """
