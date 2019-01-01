@@ -320,6 +320,47 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#waifu" title="Waifu" class="md-nav__link">
+    Waifu
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-waifu" title="Create Waifu" class="md-nav__link">
+    Create Waifu
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-waifu" title="Delete Waifu" class="md-nav__link">
+    Delete Waifu
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-waifu" title="Save Waifu" class="md-nav__link">
+    Save Waifu
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-waifu" title="Load Waifu" class="md-nav__link">
+    Load Waifu
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model" title="Model" class="md-nav__link">
     Model
   </a>
@@ -632,6 +673,40 @@
           <li class="md-nav__item">
   <a href="#load-embedding" title="Load Embedding" class="md-nav__link">
     Load Embedding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#utils" title="Utils" class="md-nav__link">
+    Utils
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-server" title="Start Server" class="md-nav__link">
+    Start Server
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeze-graph" title="Freeze Graph" class="md-nav__link">
+    Freeze Graph
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimize" title="Optimize" class="md-nav__link">
+    Optimize
   </a>
   
 </li>
@@ -762,6 +837,47 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#waifu" title="Waifu" class="md-nav__link">
+    Waifu
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-waifu" title="Create Waifu" class="md-nav__link">
+    Create Waifu
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-waifu" title="Delete Waifu" class="md-nav__link">
+    Delete Waifu
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-waifu" title="Save Waifu" class="md-nav__link">
+    Save Waifu
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-waifu" title="Load Waifu" class="md-nav__link">
+    Load Waifu
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model" title="Model" class="md-nav__link">
     Model
   </a>
@@ -1083,6 +1199,40 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#utils" title="Utils" class="md-nav__link">
+    Utils
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-server" title="Start Server" class="md-nav__link">
+    Start Server
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#freeze-graph" title="Freeze Graph" class="md-nav__link">
+    Freeze Graph
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimize" title="Optimize" class="md-nav__link">
+    Optimize
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
       
       
       
@@ -1128,6 +1278,52 @@ In the console, a command could look something like this:</p>
 </td></tr></table>
 
 <p>The various commands and their arguments can be found in this section. Network-socket-related commands can be found under the <a href="https://gundammc.github.io/Animius/network/overview/">Network section</a>.</p>
+<h2 id="waifu">Waifu</h2>
+<h3 id="create-waifu">Create Waifu</h3>
+<p>Create a waifu.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createWaifu --name=&#39;myWaifu&#39; --model=&#39;myModel&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>name</em> (<code class="codehilite">str</code>) -- Name of waifu</p>
+</li>
+<li>
+<p><em>model</em> (<code class="codehilite">str</code>) -- Name of model to use</p>
+</li>
+</ul>
+<h3 id="delete-waifu">Delete Waifu</h3>
+<p>Delete a waifu.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>deleteWaifu --name=&#39;myWaifu&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of waifu to delete</li>
+</ul>
+<h3 id="save-waifu">Save Waifu</h3>
+<p>Save a waifu.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveWaifu --name=&#39;myWaifu&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of waifu to save</li>
+</ul>
+<h3 id="load-waifu">Load Waifu</h3>
+<p>Load a waifu.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadWaifu --name=&#39;myWaifu&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>name</em> (<code class="codehilite">str</code>) -- Name of waifu to load</li>
+</ul>
 <h2 id="model">Model</h2>
 <h3 id="create-model">Create Model</h3>
 <p>Create a model.</p>
@@ -1608,6 +1804,58 @@ In the console, a command could look something like this:</p>
 <p>Keyword Arguments:</p>
 <ul>
 <li><em>name</em> (<code class="codehilite">str</code>) -- Name of embedding to load</li>
+</ul>
+<h2 id="utils">Utils</h2>
+<h3 id="start-server">Start Server</h3>
+<p>Start server.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>startServer --port=25565 --local=True --pwd=&#39;p@ssword&#39; --max_clients=10
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>port</em> (<code class="codehilite">int</code>) -- Port of server</p>
+</li>
+<li>
+<p><em>local</em> (<code class="codehilite">bool</code>) -- Decide if the server is running locally</p>
+</li>
+<li>
+<p><em>pwd</em> (<code class="codehilite">str</code>) -- Password of server</p>
+</li>
+<li>
+<p><em>max_clients</em> (<code class="codehilite">int</code>) -- Maximum number of clients</p>
+</li>
+</ul>
+<h3 id="freeze-graph">Freeze Graph</h3>
+<p>Freeze checkpoints to a file.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>freezeGraph --model_dir=&#39;&#39; --output_node_names=&#39;&#39; --stored_model_config=&#39;&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>model_dir</em> (<code class="codehilite">str</code>) -- Path to your model</p>
+</li>
+<li>
+<p><em>output_node_names</em> (<code class="codehilite">str</code>) -- Name of output nodes</p>
+</li>
+<li>
+<p><em>stored_model_config</em> (<code class="codehilite">str</code>) -- Name of model config to use</p>
+</li>
+</ul>
+<h3 id="optimize">Optimize</h3>
+<p>Optimizing for inference.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>optimize --model_dir=&#39;&#39; --input_node_names=&#39;&#39; --output_node_names=&#39;&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>model_dir</em> (<code class="codehilite">str</code>) -- Path to your model</li>
+<li><em>input_node_names</em> (<code class="codehilite">str</code>) -- Name of input nodes</li>
+<li><em>output_node_names</em> (<code class="codehilite">str</code>) -- Name of output nodes</li>
 </ul>
                 
                   
