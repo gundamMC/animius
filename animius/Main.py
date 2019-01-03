@@ -1,12 +1,14 @@
 import animius.Console as Console
 
-print('Welcome to Project Waifu')
+print('Animius. Type help or ? to list commands.')
 
 while True:
     user_input = input('Input: ')
 
-    if user_input == 'Exit':
+    if user_input.lower() == 'exit':
         break
+    elif user_input.lower() == 'help' or '?':
+        pass
 
     command, args = Console.ParseArgs(user_input)
 
