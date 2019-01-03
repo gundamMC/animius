@@ -1,7 +1,25 @@
 import animius as am
 import os
 import json
+import ast
 
+
+def ParseArgs(user_input):
+    # Use 'ast.literal_eval' to parse the command line input
+    user_input = user_input.split(" --")
+    command = None
+    args = {}
+
+    for i in range(len(user_input)):
+        if i == 0:
+            command = user_input[0]
+        else:
+            user_input[i] = user_input[i].split("=", 1)
+            key = user_input[i][0]
+            value = ast.literal_eval(user_input[i][1])
+            args[key] = value
+
+    return command, args
 
 class ArgumentError(Exception):
     pass
