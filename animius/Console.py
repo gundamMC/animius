@@ -1,25 +1,28 @@
 import animius as am
 import os
 import json
-import ast
+from ast import literal_eval
+from shlex import split as arg_split
 
 
 def ParseArgs(user_input):
-    # Use 'ast.literal_eval' to parse the command line input
-    user_input = user_input.split(" --")
-    command = None
-    args = {}
+    user_input = arg_split(user_input)
+    command = user_input[0]
 
-    for i in range(len(user_input)):
-        if i == 0:
-            command = user_input[0]
-        else:
-            user_input[i] = user_input[i].split("=", 1)
-            key = user_input[i][0]
-            value = ast.literal_eval(user_input[i][1])
-            args[key] = value
+    values = []
+
+    for value in user_input[2::2]:
+        try:
+            values.append(literal_eval(value))
+        except (ValueError, SyntaxError):
+            # Errors would occur b/c strings are not quoted from arg_split
+            values.append(value)
+
+    args = dict(zip(user_input[1::2], values))
+    # leave key parsing to Main
 
     return command, args
+
 
 class ArgumentError(Exception):
     pass
