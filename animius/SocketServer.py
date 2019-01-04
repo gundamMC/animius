@@ -35,21 +35,42 @@ def new_client(c, console):
 
 
 def start_server(console, port, local=True, pwd='', max_clients=10):
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    if local:
-        host = '127.0.0.1'
-    else:
-        host = socket.gethostname()
-    server.bind((host, port))
+    thread = _ServerThread(console, port, local, pwd, max_clients)
+    thread.start()
+    return thread
 
-    # Start Listening
-    server.listen(max_clients)
-    print('Sever started. Listening on {0}:{1}'.format(host, port))
 
-    while True:
-        # Accept Connection
-        conn, addr = server.accept()
-        c = Client(conn, addr, pwd)
-        t = threading.Thread(target=new_client, args=(c, console))
-        t.start()
+class _ServerThread(threading.Thread):
+    def __init__(self, console, port, local=True, pwd='', max_clients=10):
+        super(_ServerThread, self).__init__()
+        self.event = threading.Event()
+
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        if local:
+            host = '127.0.0.1'
+        else:
+            host = socket.gethostname()
+        self.server.bind((host, port))
+
+        self.console = console
+        self.pwd = pwd
+        self.max_clients = max_clients
+
+    def run(self):
+        # Start Listening
+        self.server.listen(self.max_clients)
+
+        while not self.event.is_set():
+            # Accept Connection
+            conn, addr = self.server.accept()
+            c = Client(conn, addr, self.pwd)
+            t = threading.Thread(target=new_client, args=(c, self.console))
+            t.start()
+
+        # close server
+        self.server.close()
+
+    def stop(self):
+        self.event.set()
+        # let the while loop in run() know to stop

@@ -5,25 +5,6 @@ from ast import literal_eval
 from shlex import split as arg_split
 
 
-def ParseArgs(user_input):
-    user_input = arg_split(user_input)
-    command = user_input[0]
-
-    values = []
-
-    for value in user_input[2::2]:
-        try:
-            values.append(literal_eval(value))
-        except (ValueError, SyntaxError):
-            # Errors would occur b/c strings are not quoted from arg_split
-            values.append(value)
-
-    args = dict(zip(user_input[1::2], values))
-    # leave key parsing to Main
-
-    return command, args
-
-
 class ArgumentError(Exception):
     pass
 
@@ -68,6 +49,9 @@ class Console:
         self.data = {}
         self.embeddings = {}
 
+        # used for SocketServer interactions
+        self.socket_server = None
+
         # No config / first time initializing
         if not os.path.exists(self.config_dir):
 
@@ -106,7 +90,31 @@ class Console:
                     # get the self. dictionary from sub_dir name
                     getattr(self, sub_dir)[item] = console_item
 
-    def save(self):
+    @staticmethod
+    def ParseArgs(user_input):
+        user_input = arg_split(user_input)
+        command = user_input[0]
+
+        values = []
+
+        for value in user_input[2::2]:
+            try:
+                values.append(literal_eval(value))
+            except (ValueError, SyntaxError):
+                # Errors would occur b/c strings are not quoted from arg_split
+                values.append(value)
+
+        args = dict(zip(user_input[1::2], values))
+        # leave key parsing to Main
+
+        return command, args
+
+    def save(self, **kwargs):
+        """
+        Save console
+
+        :param kwargs: Useless.
+        """
         with open(self.config_dir, 'w') as f:
             json.dump({'directories': self.directories}, f, indent=4)
 
@@ -133,24 +141,6 @@ class Console:
             for req in soft_requirements:
                 if req not in args:
                     args['req'] = None
-
-    def start_server(self, **kwargs):
-        """
-        Start server
-
-        :param kwargs:
-
-        :Keyword Arguments:
-        * *port* (``int``) -- Port of server
-        * *local* (``bool``) -- Decide if the server is running locally
-        * *pwd* (``str``) -- Password of server
-        * *max_clients* (``int``) -- Maximum number of clients
-        """
-        Console.check_arguments(kwargs,
-                                hard_requirements=['port', ],
-                                soft_requirements=['local','pwd','max_clients'])
-
-        am.start_server(self,kwargs['port'],kwargs['local'],kwargs['pwd'],kwargs['max_clients'])
 
     def freeze_graph(self, **kwargs):
         """
@@ -1020,6 +1010,42 @@ class Console:
         else:
             raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name']))
 
+    def start_server(self, **kwargs):
+        """
+        Start server
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *port* (``int``) -- Port of server
+        * *local* (``bool``) -- Decide if the server is running locally
+        * *pwd* (``str``) -- Password of server
+        * *max_clients* (``int``) -- Maximum number of clients
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['port'],
+                                soft_requirements=['local', 'pwd', 'max_clients'])
+
+        if self.socket_server is not None:
+            raise ValueError("A server is already running on this console.")
+
+        self.socket_server = \
+            am.start_server(self, kwargs['port'], kwargs['local'], kwargs['pwd'], kwargs['max_clients'])
+
+    def stop_server(self, **kwargs):
+        """
+        Stop server
+
+        :param kwargs: Useless.
+        """
+
+        if self.socket_server is None:
+            raise ValueError("No server is currently running.")
+
+        self.socket_server.stop()
+
+        self.socket_server = None
+
     def handle_network(self, request):
 
         command = request.command.lower().replace(' ', '_')
@@ -1032,5 +1058,5 @@ class Console:
             return request.id, 0, 'success', result
         except ArgumentError as exc:
             return request.id, 1, exc, {}
-        except Exception as exc:
+        except Exception as exc:  # all other errors
             return request.id, 2, exc, {}
