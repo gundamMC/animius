@@ -2,8 +2,6 @@ import tensorflow as tf
 
 import animius as am
 from animius.Utils import get_mini_batches, shuffle
-
-
 # force load beam_search_ops, see https://github.com/tensorflow/tensorflow/issues/12927
 
 
