@@ -85,22 +85,21 @@ def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
     return sequence
 
 
-def freeze_graph(model_dir, output_node_names, stored_model_config=None):
+def freeze_graph(model_dir, output_node_names, model_config):
+
+    if isinstance(model_config, str):
+        print("Freeze graph: model config is a string object, attempting to read it as path to model config file")
+        with open(model_config, 'r') as f:
+            model_config = json.load(f)
+
     # Retrieve latest checkpoint
     checkpoint = tf.train.get_checkpoint_state(model_dir)
     input_checkpoint = checkpoint.model_checkpoint_path
 
-    # Define the path for the frozen model
-    if stored_model_config is None:
-        with open(join(model_dir, 'model_config.json'), 'r') as f:
-            stored = json.load(f)
-    else:
-        stored = stored_model_config
-
-    if 'graph' not in stored['config']:
+    if 'graph' not in model_config['config']:
         raise ValueError('No graph found. Save the model with graph=True')
 
-    input_graph = stored['config']['graph']
+    input_graph = model_config['config']['graph']
     output_graph = join(model_dir, "frozen_model.pb")
 
     clear_devices = True
@@ -113,8 +112,8 @@ def freeze_graph(model_dir, output_node_names, stored_model_config=None):
 
     # save frozen graph location
     with open(join(model_dir, 'model_config.json'), 'w') as f:
-        stored['config']['frozen_graph'] = output_graph
-        json.dump(stored, f, indent=4)
+        model_config['config']['frozen_graph'] = output_graph
+        json.dump(model_config, f, indent=4)
 
     return output_graph  # output graph path
 

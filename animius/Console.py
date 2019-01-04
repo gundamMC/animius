@@ -142,45 +142,6 @@ class Console:
                 if req not in args:
                     args['req'] = None
 
-    def freeze_graph(self, **kwargs):
-        """
-        Freeze checkpoints to a file
-
-        :param kwargs:
-
-        :Keyword Arguments:
-        * *model_dir* (``str``) -- Path to your model
-        * *output_node_names* (``str``) -- Name of output nodes
-        * *stored_model_config* (``str``) -- Name of model config to use
-        """
-
-        Console.check_arguments(kwargs,
-                                hard_requirements=['model_dir', 'output_node_names'],
-                                soft_requirements=['stored_model_config'])
-
-        if kwargs['stored_model_config'] is not None:
-            if kwargs['stored_model_config'] not in self.model_configs:
-                raise NameNotFoundError("Model Config {0} not found".format(kwargs['stored_model_config']))
-
-        am.Utils.freeze_graph(kwargs['model_dir'], kwargs['output_node_names'],
-                              self.model_configs[kwargs['stored_model_config']].item)
-
-    def optimize(self, **kwargs):
-        """
-        Optimizing for inference
-
-        :param kwargs:
-
-        :Keyword Arguments:
-        * *model_dir* (``str``) -- Path to your model
-        * *input_node_names* (``str``) -- Name of input nodes
-        * *output_node_names* (``str``) -- Name of output nodes
-        """
-        Console.check_arguments(kwargs,
-                                hard_requirements=['model_dir', 'output_node_names', 'input_node_names'])
-
-        am.Utils.optimize(kwargs['model_dir'], kwargs['input_node_names'], kwargs['output_node_names'])
-
     def create_waifu(self,**kwargs):
         """
         Use existing model to create a waifu
@@ -433,7 +394,80 @@ class Console:
         if kwargs['input_data'] not in self.data:
             raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
 
-        self.models[kwargs['name']].item.predict(kwargs['input_data'], save_path=kwargs['save_path'])
+        return self.models[kwargs['name']].item.predict(kwargs['input_data'], save_path=kwargs['save_path'])
+
+    def freeze_graph(self, **kwargs):
+        """
+        Freeze model and save a frozen graph to file
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to freeze
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+
+        with open(os.path.join(self.models[kwargs['name']].saved_directory,
+                               self.models[kwargs['name']].saved_name + '.json'
+                               ), 'r') as f:
+            stored = json.load(f)
+            class_name = stored['config']['class']
+
+        if class_name == 'ChatbotModel':
+            output_node_names = 'decode_1/output_infer'
+        elif class_name == 'CombinedChatbotModel':
+            output_node_names = 'decode_1/output_infer, intent/output_intent, intent/output_ner'
+        elif class_name == 'IntentNERModel':
+            output_node_names = 'output_intent, output_ner'
+        elif class_name == 'SpeakerVerificationModel':
+            output_node_names = 'output_predict'
+        else:
+            raise ValueError("Class name not found")
+
+        am.Utils.freeze_graph(self.models[kwargs['name']].saved_directory, output_node_names, stored)
+
+    def optimize(self, **kwargs):
+        """
+        Optimize a frozen model for inference
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to optimize
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+
+        with open(os.path.join(self.models[kwargs['name']].saved_directory,
+                               self.models[kwargs['name']].saved_name + '.json'
+                               ), 'r') as f:
+            stored = json.load(f)
+            class_name = stored['config']['class']
+
+        if class_name == 'ChatbotModel':
+            input_node_names = ['input_x', 'input_x_length']
+            output_node_names = ['decode_1/output_infer']
+        elif class_name == 'CombinedChatbotModel':
+            input_node_names = ['input_x', 'input_x_length']
+            output_node_names = ['decode_1/output_infer', 'intent/output_intent', 'intent/output_ner']
+        elif class_name == 'IntentNERModel':
+            input_node_names = ['input_x', 'input_x_length']
+            output_node_names = ['output_intent', 'output_entities']
+        elif class_name == 'SpeakerVerificationModel':
+            input_node_names = ['input_x']
+            output_node_names = ['output_predict']
+        else:
+            raise ValueError("Class name not found")
+
+        am.Utils.optimize(self.models[kwargs['name']].saved_directory, input_node_names, output_node_names)
 
     def create_model_config(self, **kwargs):
         """
