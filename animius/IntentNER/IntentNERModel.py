@@ -33,7 +33,7 @@ class IntentNERModel(am.Model):
         self.x_length = None
         self.y_intent = None
         self.y_ner = None
-        self.predict = None
+        self.prediction = None
         self.train_op = None
         self.cost = None
         self.tb_merged = None
@@ -148,11 +148,12 @@ class IntentNERModel(am.Model):
                 name='train_cost'
             )
 
+            # gradient clip rnn
             optimizer = tf.train.AdamOptimizer(self.hyperparameters['learning_rate'])
             gradients, variables = zip(*optimizer.compute_gradients(self.cost))
             gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
             self.train_op = optimizer.apply_gradients(zip(gradients, variables), name='train_op')
-            self.predict = tf.nn.softmax(logits_intent, name='output_intent'),\
+            self.prediction = tf.nn.softmax(logits_intent, name='output_intent'),\
                 tf.nn.softmax(logits_ner, name='output_ner')
 
             # Tensorboard
@@ -243,8 +244,8 @@ class IntentNERModel(am.Model):
         model.y_intent = model.sess.graph.get_tensor_by_name('train_y_intent:0')
         model.y_ner = model.sess.graph.get_tensor_by_name('train_y_ner:0')
         model.train_op = model.sess.graph.get_operation_by_name('train_op')
-        model.cost = model.sess.graph.get_tensor_by_name('train_cost')
-        model.predict = model.sess.graph.get_tensor_by_name('output_intent:0'),\
+        model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
+        model.prediction = model.sess.graph.get_tensor_by_name('output_intent:0'),\
                         model.sess.graph.get_tensor_by_name('output_ner:0')
 
         model.init_tensorflow(graph)
@@ -256,7 +257,7 @@ class IntentNERModel(am.Model):
 
     def predict(self, input_data, save_path=None):
 
-        intent, ner = self.sess.run(self.predict,
+        intent, ner = self.sess.run(self.prediction,
                                     feed_dict={
                                         self.x: input_data.values['x'],
                                         self.x_length: input_data.values['x_length']
