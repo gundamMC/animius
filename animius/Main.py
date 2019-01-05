@@ -16,7 +16,8 @@ readline.set_completer(completer)
 console = am.Console()
 
 commands = {
-    'createWaifu': [console.create_waifu, ''],
+    # command : console_method, short-to-long arguments dict, help message
+    'createWaifu': [console.create_waifu, {'n': 'name', 'cm': 'combined_chatbot_model'}, ''],
     'deleteWaifu': [console.delete_waifu, ''],
     'saveWaifu': [console.save_waifu, ''],
     'loadWaifu': [console.load_waifu, ''],
@@ -92,6 +93,21 @@ while True:
         if '--help' or '-h' in args:
             print(commands[command][1])
         else:
-            commands[command][0].__call__(args)
+            # valid command and valid args
+
+            # change arguments into kwargs for passing into console
+            kwargs = {}
+            for arg in args:
+                if arg[0:2] == '--':  # long
+                    kwargs[arg[3:]] = args[arg]
+                elif arg[0:1] == '-':  # short
+                    if arg[2:] not in command[command][1]:
+                        print("Invalid short argument {0}, skipping it".format(arg))
+                        continue
+
+                    long_arg = command[command][1][arg[2:]]
+                    kwargs[long_arg] = args[arg]
+
+            commands[command][0](args)
     else:
         print('Invalid command')
