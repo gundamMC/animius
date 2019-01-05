@@ -188,19 +188,24 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
-        * *model* (``str``) -- Name of model to use
+        * *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'model'])
+                                hard_requirements=['name', 'combined_prediction_model'])
 
         if kwargs['name'] in self.waifus:
             raise NameAlreadyExistError("The name {0} is already used by another waifu".format(kwargs['name']))
 
-        if kwargs['model'] not in self.models:
-            raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
+        if not os.path.isdir(kwargs['combined_prediction_model']):
+            if kwargs['combined_prediction_model'] in self.models:
+                kwargs['combined_prediction_model'] = self.models[kwargs['combined_prediction_model']].saved_directory
+            else:
+                raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
 
-        waifu = am.Waifu(kwargs['name'], self.models[kwargs['model']].item)
+        prediction_model = am.Chatbot.CombinedPredictionModel(kwargs['combined_prediction_model'])
+
+        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': prediction_model})
 
         console_item = _ConsoleItem(waifu, self.directories['waifu'], kwargs['name'])
         # saving it first to set up its saving location
@@ -239,7 +244,7 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
-        if kwargs['name'] not in self.waifu:
+        if kwargs['name'] not in self.waifus:
             raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
 
         self.waifus[kwargs['name']].save()
