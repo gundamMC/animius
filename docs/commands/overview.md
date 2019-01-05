@@ -276,7 +276,7 @@ Keyword Arguments:
 ###Add Cornell To Chatbot Data
 Add Cornell dataset to a chatbot data.
 ```
-chatbotDataAddTwitter --name='myData' --movie_conversations_path='' --movie_lines_path=''
+chatbotDataAddCornell --name='myData' --movie_conversations_path='' --movie_lines_path=''
 ```
 Keyword Arguments:
 
@@ -452,6 +452,13 @@ Keyword Arguments:
 
 * *max_clients* (``int``) -- Maximum number of clients
 
+###Stop Server
+Stop server.
+```
+stopServer
+```
+No argument required.
+
 ###Freeze Graph
 Freeze checkpoints to a file.
 ```
@@ -475,3 +482,10 @@ Keyword Arguments:
 * *model_dir* (``str``) -- Path to your model
 * *input_node_names* (``str``) -- Name of input nodes
 * *output_node_names* (``str``) -- Name of output nodes
+
+###Save
+Save all the models and data.
+```
+save
+```
+No argument required.
