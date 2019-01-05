@@ -62,6 +62,8 @@ class Console:
 
             if not init_directory.strip():
                 init_directory = os.path.join(animius_dir, 'resources')
+                if not os.path.exists(init_directory):
+                    os.mkdir(init_directory)
 
             self.directories = {}
 
@@ -92,6 +94,7 @@ class Console:
 
     @staticmethod
     def ParseArgs(user_input):
+        '''
         user_input = arg_split(user_input)
         command = user_input[0]
 
@@ -106,7 +109,40 @@ class Console:
 
         args = dict(zip(user_input[1::2], values))
         # leave key parsing to Main
+'''
+        # createWaifu --name='myWaifu' --model 'myModel' --help --test={'a':'b','c':'d'} --list [] -test
+        user_input=user_input.strip()
+        user_input = user_input.split(' ')
 
+        command = user_input[0]
+        user_input.pop(0)
+        args = {}
+        i = 0
+        while i < len(user_input):
+
+            if i + 1 < len(user_input):
+                if user_input[i + 1].startswith('-'):
+                    if '=' in user_input[i]:
+                        j = user_input[i].split('=', 1)
+                        try:
+                            args[j[0]] = literal_eval(j[1])
+                        except (ValueError, SyntaxError):
+                            args[j[0]] = j[1]
+                    else:
+                        args[user_input[i]] = ''
+                else:
+                    args[user_input[i]] = user_input[i + 1]
+                    i += 1
+            else:
+                if '=' in user_input[i]:
+                    j = user_input[i].split('=', 1)
+                    try:
+                        args[j[0]] = literal_eval(j[1])
+                    except (ValueError, SyntaxError):
+                        args[j[0]] = j[1]
+                else:
+                    args[user_input[i]] = ''
+            i += 1
         return command, args
 
     def save(self, **kwargs):
@@ -142,7 +178,7 @@ class Console:
                 if req not in args:
                     args['req'] = None
 
-    def create_waifu(self,**kwargs):
+    def create_waifu(self, **kwargs):
         """
         Use existing model to create a waifu
 
@@ -170,7 +206,7 @@ class Console:
 
         self.waifus[kwargs['name']] = console_item
 
-    def delete_waifu(self,**kwargs):
+    def delete_waifu(self, **kwargs):
         """
         Delete a waifu
 
@@ -188,7 +224,7 @@ class Console:
         else:
             raise NameNotFoundError("Waifu \"{0}\" not found.".format(kwargs['name']))
 
-    def save_waifu(self,**kwargs):
+    def save_waifu(self, **kwargs):
         """
         Save a waifu
 
@@ -206,7 +242,7 @@ class Console:
 
         self.waifus[kwargs['name']].save()
 
-    def load_waifu(self,**kwargs):
+    def load_waifu(self, **kwargs):
         """
         Load a waifu
 
