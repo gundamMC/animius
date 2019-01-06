@@ -18,56 +18,64 @@ console = am.Console()
 commands = {
     # command : console_method, short-to-long arguments dict, help message
     'createWaifu': [console.create_waifu, {'n': 'name', 'cm': 'combined_chatbot_model'}, ''],
-    'deleteWaifu': [console.delete_waifu, ''],
-    'saveWaifu': [console.save_waifu, ''],
-    'loadWaifu': [console.load_waifu, ''],
+    'deleteWaifu': [console.delete_waifu, {'n': 'name'}, ''],
+    'saveWaifu': [console.save_waifu, {'n': 'name'}, ''],
+    'loadWaifu': [console.load_waifu, {'n': 'name'}, ''],
 
-    'createModel': [console.create_model, ''],
-    'deleteModel': [console.delete_model, ''],
-    'saveModel': [console.save_model, ''],
-    'loadModel': [console.load_model, ''],
+    'createModel': [console.create_model, {'n': 'name', 't': 'type'}, ''],
+    'deleteModel': [console.delete_model, {'n': 'name'}, ''],
+    'saveModel': [console.save_model, {'n': 'name'}, ''],
+    'loadModel': [console.load_model, {'n': 'name', 'd': 'data'}, ''],
 
-    'setData': [console.set_data, ''],
-    'train': [console.train, ''],
-    'predict': [console.predict, ''],
+    'setData': [console.set_data, {'n': 'name', 'd': 'data'}, ''],
+    'train': [console.train, {'n': 'name', 'e': 'epoch'}, ''],
+    'predict': [console.predict, {'n': 'name', 's': 'save_path', 'i': 'input_data'}, ''],
 
-    'createModelConfig': [console.create_model_config, ''],
-    'deleteModelConfig': [console.delete_model_config, ''],
-    'saveModelConfig': [console.save_model_config, ''],
-    'loadModelConfig': [console.load_model_config, ''],
+    'createModelConfig': [console.create_model_config, {'n': 'name', 'c': 'cls'}, ''],
+    'editModelConfig': [console.edit_model_config,
+                        {'n': 'name', 'c': 'config', 'h': 'hyperparameters', 'ms': 'model_structure'}, ''],
+    'deleteModelConfig': [console.delete_model_config, {'n': 'name'}, ''],
+    'saveModelConfig': [console.save_model_config, {'n': 'name'}, ''],
+    'loadModelConfig': [console.load_model_config, {'n': 'name'}, ''],
 
-    'createData': [console.create_data, ''],
-    'dataAddEmbedding': [console.data_add_embedding, ''],
-    'dataReset': [console.data_reset, ''],
-    'deleteData': [console.delete_data, ''],
-    'saveData': [console.save_data, ''],
-    'loadData': [console.load_data, ''],
+    'createData': [console.create_data, {'n': 'name', 't': 'type', 'mc': 'model_config'}, ''],
+    'dataAddEmbedding': [console.data_add_embedding, {'n': 'name', 'ne': 'name_embedding'}, ''],
+    'dataReset': [console.data_reset, {'n': 'name'}, ''],
+    'deleteData': [console.delete_data, {'n': 'name'}, ''],
+    'saveData': [console.save_data, {'n': 'name'}, ''],
+    'loadData': [console.load_data, {'n': 'name'}, ''],
 
-    'chatbotDataAddTwitter': [console.chatbot_data_add_twitter, ''],
-    'chatbotDataAddCornell': [console.chatbot_data_add_cornell, ''],
-    'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences, ''],
-    'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file, ''],
-    'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input, ''],
-    'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input, ''],
+    'chatbotDataAddTwitter': [console.chatbot_data_add_twitter, {'n': 'name', 'p': 'path'}, ''],
+    'chatbotDataAddCornell': [console.chatbot_data_add_cornell,
+                              {'n': 'name', 'mcp': 'movie_conversations_path', 'mlp': 'movie_lines_path'}, ''],
+    'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences, {'n': 'name', 'x': 'x', 'y': 'y'}, ''],
+    'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file, {'n': 'name', 'x': 'x', 'y': 'y'}, ''],
+    'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input, {'n': 'name', 'x': 'x'}, ''],
+    'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input, {'n': 'name', 'x': 'x'}, ''],
 
-    'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input, ''],
-    'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input, ''],
-    'intentNERDataAddParseDatafolder': [console.intentNER_data_add_parse_data_folder, ''],
+    'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input, {'n': 'name', 'x': 'x'}, ''],
+    'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input, {'n': 'name', 'x': 'x'}, ''],
+    'intentNERDataAddParseDatafolder': [console.intentNER_data_add_parse_data_folder,
+                                        {'n': 'name', 'fd': 'folder_directory'}, ''],
 
-    'speakerVerificationDataAddDataPaths': [console.speakerVerification_data_add_data_paths, ''],
-    'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file, ''],
+    'speakerVerificationDataAddDataPaths': [console.speakerVerification_data_add_data_paths,
+                                            {'n': 'names', 'p': 'paths', 'y': 'y'}, ''],
+    'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
+                                           {'n': 'names', 'p': 'paths', 'y': 'y'}, ''],
 
-    'createEmbedding': [console.create_embedding, ''],
-    'deleteEmbedding': [console.delete_embedding, ''],
-    'saveEmbedding': [console.save_embedding, ''],
-    'loadEmbedding': [console.load_embedding, ''],
+    'createEmbedding': [console.create_embedding, {'n': 'name', 'p': 'path'}, ''],
+    'deleteEmbedding': [console.delete_embedding, {'n': 'name'}, ''],
+    'saveEmbedding': [console.save_embedding, {'n': 'name'}, ''],
+    'loadEmbedding': [console.load_embedding, {'n': 'name'}, ''],
 
-    'startServer': [console.start_server, ''],
-    'stopServer': [console.stop_server, ''],
-    'freezeGraph': [console.freeze_graph, ''],
-    'optimize': [console.optimize, ''],
-    'save': [console.save, ''],
-    's': [console.save, ''],
+    'startServer': [console.start_server, {'p': 'port', 'pwd': 'pwd', 'mc': 'max_clients', 'l': 'local'}, ''],
+    'stopServer': [console.stop_server, {}, ''],
+    'freezeGraph': [console.freeze_graph, {'md': 'model_dir', 'o': 'output_node_names',
+                                           's': 'stored_model_config'}, ''],
+    'optimize': [console.optimize, {'md': 'model_dir', 'o': 'output_node_names',
+                                    'i': 'input_node_names'}, ''],
+    'save': [console.save, {}, ''],
+    's': [console.save, {}, ''],
 }
 
 print("Animius. Type 'help' or '?' to list commands.")
@@ -109,7 +117,7 @@ while True:
 
                         long_arg = commands[command][1][arg[1:]]
                         kwargs[long_arg] = args[arg]
-                        
+
                 commands[command][0](kwargs)
         else:
             print('Invalid command')
