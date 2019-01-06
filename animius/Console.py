@@ -1087,6 +1087,15 @@ class Console:
         if self.socket_server is not None:
             raise ValueError("A server is already running on this console.")
 
+        if kwargs['max_clients'] is None:
+            kwargs['max_clients'] = 10
+
+        if kwargs['pwd'] is None:
+            kwargs['pwd'] = ''
+
+        if kwargs['local'] is None:
+            kwargs['local'] = True
+
         self.socket_server = \
             am.start_server(self, kwargs['port'], kwargs['local'], kwargs['pwd'], kwargs['max_clients'])
 
