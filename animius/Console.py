@@ -83,14 +83,14 @@ class Console:
 
             # read all saved items
             for sub_dir in sub_dirs:
-                with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'r'):
+                with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'r') as f:
                     stored = json.load(f)
-                for item in stored['items']:
-                    console_item = _ConsoleItem()
-                    console_item.saved_directory = stored['items'][item]['saved_directory']
-                    console_item.saved_name = stored['items'][item]['saved_name']
-                    # get the self. dictionary from sub_dir name
-                    getattr(self, sub_dir)[item] = console_item
+                    for item in stored['items']:
+                        console_item = _ConsoleItem()
+                        console_item.saved_directory = stored['items'][item]['saved_directory']
+                        console_item.saved_name = stored['items'][item]['saved_name']
+                        # get the self. dictionary from sub_dir name
+                        getattr(self, sub_dir)[item] = console_item
 
     @staticmethod
     def ParseArgs(user_input):
@@ -111,39 +111,6 @@ class Console:
             args = dict(zip(user_input[1::2], values))
         # leave key parsing to Main
 
-        # createWaifu --name='myWaifu' --model 'myModel' --help --test={'a':'b','c':'d'} --list [] -test
-        # user_input=user_input.strip()
-        # user_input = user_input.split(' ')
-        #
-        # command = user_input[0]
-        # user_input.pop(0)
-        # args = {}
-        # i = 0
-        # while i < len(user_input):
-        #
-        #     if i + 1 < len(user_input):
-        #         if user_input[i + 1].startswith('-'):
-        #             if '=' in user_input[i]:
-        #                 j = user_input[i].split('=', 1)
-        #                 try:
-        #                     args[j[0]] = literal_eval(j[1])
-        #                 except (ValueError, SyntaxError):
-        #                     args[j[0]] = j[1]
-        #             else:
-        #                 args[user_input[i]] = ''
-        #         else:
-        #             args[user_input[i]] = user_input[i + 1]
-        #             i += 1
-        #     else:
-        #         if '=' in user_input[i]:
-        #             j = user_input[i].split('=', 1)
-        #             try:
-        #                 args[j[0]] = literal_eval(j[1])
-        #             except (ValueError, SyntaxError):
-        #                 args[j[0]] = j[1]
-        #         else:
-        #             args[user_input[i]] = ''
-        #     i += 1
         return command, args
 
     def save(self, **kwargs):
@@ -162,7 +129,22 @@ class Console:
                 tmp_dict[item_name] = {'saved_directory': console_item.saved_directory,
                                        'saved_name': console_item.saved_name}
             with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'w') as f:
-                json.dump({'items': tmp_dict}, f)
+                json.dump({'items': tmp_dict}, f, indent=4)
+
+    def get_waifus(self, **kwargs):
+        return list(self.waifus.keys())
+
+    def get_models(self, **kwargs):
+        return list(self.models.keys())
+
+    def get_model_configs(self, **kwargs):
+        return list(self.model_configs.keys())
+
+    def get_data(self, **kwargs):
+        return list(self.data.keys())
+
+    def get_embeddings(self, **kwargs):
+        return list(self.embeddings.keys())
 
     @staticmethod
     def check_arguments(args, hard_requirements=None, soft_requirements=None):
@@ -177,7 +159,7 @@ class Console:
         if soft_requirements is not None:
             for req in soft_requirements:
                 if req not in args:
-                    args['req'] = None
+                    args[req] = None
 
     def create_waifu(self, **kwargs):
         """
@@ -532,10 +514,10 @@ class Console:
         if kwargs['name'] in self.model_configs:
             raise NameAlreadyExistError("The name {0} is already used by another model config".format(kwargs['name']))
 
-        model_config = am.ModelConfig(kwargs['cls'],
-                                      kwargs['config'],
-                                      kwargs['hyperparameters'],
-                                      kwargs['model_structure'])
+        model_config = am.ModelConfig(cls=kwargs['cls'],
+                                      config=kwargs['config'],
+                                      hyperparameters=kwargs['hyperparameters'],
+                                      model_structure=kwargs['model_structure'])
 
         console_item = _ConsoleItem(model_config, self.directories['model_configs'], kwargs['name'])
         # saving it first to set up its saving location
