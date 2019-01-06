@@ -3,7 +3,7 @@
 Commands are used to interact with the console as well as through the network socket. A command has two parts: the command and the arguments. 
 In the console, a command could look something like this:
 ```
-createModel --name='myModel' --model='SpeakerVerification'
+createModel --name 'myModel' --model 'SpeakerVerification'
 ```
 The command must start with the command, indi
 
@@ -23,18 +23,18 @@ The various commands and their arguments can be found in this section. Network-s
 ###Create Waifu
 Create a waifu.
 ```
-createWaifu --name='myWaifu' --model='myModel'
+createWaifu --name 'myWaifu' --combined_chatbot_model 'myModel'
 ```
 Keyword Arguments:
 
 * *name* (``str``) -- Name of waifu
 
-* *model* (``str``) -- Name of model to use
+* *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
 
 ###Delete Waifu
 Delete a waifu.
 ```
-deleteWaifu --name='myWaifu'
+deleteWaifu --name 'myWaifu'
 ```
 Keyword Arguments:
 
@@ -43,7 +43,7 @@ Keyword Arguments:
 ###Save Waifu
 Save a waifu.
 ```
-saveWaifu --name='myWaifu'
+saveWaifu --name 'myWaifu'
 ```
 Keyword Arguments:
 
@@ -52,7 +52,7 @@ Keyword Arguments:
 ###Load Waifu
 Load a waifu.
 ```
-loadWaifu --name='myWaifu'
+loadWaifu --name 'myWaifu'
 ```
 Keyword Arguments:
 
@@ -62,7 +62,7 @@ Keyword Arguments:
 ###Create Model
 Create a model.
 ```
-createModel --name='myModel' --type='ChatbotModel'
+createModel --name 'myModel' --type 'ChatbotModel'
 ```
 Keyword Arguments:
 
@@ -73,7 +73,7 @@ Keyword Arguments:
 ###Delete Model
 Delete a model.
 ```
-deleteModel --name='myModel'
+deleteModel --name 'myModel'
 ```
 Keyword Arguments:
 
@@ -82,7 +82,7 @@ Keyword Arguments:
 ###Save Model
 Save a model.
 ```
-saveModel --name='myModel'
+saveModel --name 'myModel'
 ```
 Keyword Arguments:
 
@@ -91,7 +91,7 @@ Keyword Arguments:
 ###Load Model
 Load a model.
 ```
-loadModel --name='myModel' --data='myData'
+loadModel --name 'myModel' --data 'myData'
 ```
 Keyword Arguments:
 
@@ -102,7 +102,7 @@ Keyword Arguments:
 ###Set Data
 Set model data.
 ```
-setData --name='myModel' --data='myData'
+setData --name 'myModel' --data 'myData'
 ```
 Keyword Arguments:
 
@@ -113,7 +113,7 @@ Keyword Arguments:
 ###Train
 Train a model.
 ```
-train --name='myModel' --epoch=20
+train --name 'myModel' --epoch 20
 ```
 Keyword Arguments:
 
@@ -124,7 +124,7 @@ Keyword Arguments:
 ###Predict
 Predict a model.
 ```
-predict --name='myModel' --input_data='' --save_path=''
+predict --name 'myModel' --input_data '' --save_path ''
 ```
 Keyword Arguments:
 
@@ -139,7 +139,7 @@ Keyword Arguments:
 
 Create a model config with the provided values.
 ```
-createModelConfig --name='myModelConfig' --cls=''
+createModelConfig --name 'myModelConfig' --cls ''
 ```
 Keyword Arguements:
 
@@ -157,7 +157,7 @@ Keyword Arguements:
 
 Update a model config with the provided values.
 ```
-createModelConfig --name='myModelConfig'
+createModelConfig --name 'myModelConfig'
 ```
 Keyword Arguments:
 
@@ -173,7 +173,7 @@ Keyword Arguments:
 
 Delete a model config.
 ```
-deleteModelConfig --name='myModelConfig'
+deleteModelConfig --name 'myModelConfig'
 ```
 Keyword Argument:
 
@@ -183,7 +183,7 @@ Keyword Argument:
 
 Save a model config.
 ```
-saveModelConfig --name='myModelConfig'
+saveModelConfig --name 'myModelConfig'
 ```
 Keyword Argument:
 
@@ -193,7 +193,7 @@ Keyword Argument:
 
 Load a model config.
 ```
-loadModelConfig --name='myModelConfig'
+loadModelConfig --name 'myModelConfig'
 ```
 Keyword Argument:
 
@@ -204,7 +204,7 @@ Keyword Argument:
 
 Create a data with empty values.
 ```
-createData --name='myData' --type='ChatbotData' --model_config='myModelConfig'
+createData --name 'myData' --type 'ChatbotData' --model_config 'myModelConfig'
 ```
 Keyword Arguments:
 
@@ -217,7 +217,7 @@ Keyword Arguments:
 ###Add Embedding To Data
 Add twitter dataset to a chatbot data.
 ```
-dataAddEmbedding --name='myData' --name_embedding='myEmbedding'
+dataAddEmbedding --name 'myData' --name_embedding 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -228,7 +228,7 @@ Keyword Arguments:
 ###Reset Data
 Reset a data, clearing all stored data values.
 ```
-dataReset --name='myData'
+dataReset --name 'myData'
 ```
 Keyword Arguments:
 
@@ -237,7 +237,7 @@ Keyword Arguments:
 ###Delete Data
 Delete a data.
 ```
-deleteData --name='myData'
+deleteData --name 'myData'
 ```
 Keyword Arguments:
 
@@ -246,7 +246,7 @@ Keyword Arguments:
 ###Save Data
 Save a data.
 ```
-saveData --name='myData'
+saveData --name 'myData'
 ```
 Keyword Arguments:
 
@@ -255,7 +255,7 @@ Keyword Arguments:
 ###Load Data
 Load a data.
 ```
-loadData --name='myData'
+loadData --name 'myData'
 ```
 Keyword Arguments:
 
@@ -265,7 +265,7 @@ Keyword Arguments:
 ###Add Twitter To Chatbot Data
 Add twitter dataset to a chatbot data.
 ```
-chatbotDataAddTwitter --name='myData' --path=''
+chatbotDataAddTwitter --name 'myData' --path ''
 ```
 Keyword Arguments:
 
@@ -276,7 +276,7 @@ Keyword Arguments:
 ###Add Cornell To Chatbot Data
 Add Cornell dataset to a chatbot data.
 ```
-chatbotDataAddCornell --name='myData' --movie_conversations_path='' --movie_lines_path=''
+chatbotDataAddCornell --name 'myData' --movie_conversations_path '' --movie_lines_path ''
 ```
 Keyword Arguments:
 
@@ -289,7 +289,7 @@ Keyword Arguments:
 ###Add Parse Sentences To Chatbot Data
 Parse raw sentences and add them to a chatbot data.
 ```
-chatbotDataAddParseSentences --name='myData' --x='' --y=''
+chatbotDataAddParseSentences --name 'myData' --x '' --y ''
 ```
 Keyword Arguments:
 
@@ -302,7 +302,7 @@ Keyword Arguments:
 ###Add Parse File To Chatbot Data
 Parse raw sentences from text files and add them to a chatbot data.
 ```
-chatbotDataAddParseFile --name='myData' --x_path='' --y_path=''
+chatbotDataAddParseFile --name 'myData' --x_path '' --y_path ''
 ```
 Keyword Arguments:
 
@@ -315,7 +315,7 @@ Keyword Arguments:
 ###Add Parse Input To Chatbot Data
 Parse a raw sentence as input and add it to a chatbot data.
 ```
-chatbotDataAddParseInput --name='myData' --x='hey how are you'
+chatbotDataAddParseInput --name 'myData' --x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -326,7 +326,7 @@ Keyword Arguments:
 ###Set Parse Input To Chatbot Data
 Parse a raw sentence as input and set it as a chatbot data.
 ```
-chatbotDataSetParseInput --name='myData' --x='hey how are you'
+chatbotDataSetParseInput --name 'myData' --x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -338,7 +338,7 @@ Keyword Arguments:
 ###Add Parse Input To IntentNER Data
 Parse a raw sentence as input and add it to an intent NER data.
 ```
-intentNERDataAddParseInput --name='myData' --x='hey how are you'
+intentNERDataAddParseInput --name 'myData' --x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -349,7 +349,7 @@ Keyword Arguments:
 ###Set Parse Input To IntentNER Data
 Parse a raw sentence as input and set it as an intent NER data.
 ```
-intentNERDataSetParseInput --name='myData' --x='hey how are you'
+intentNERDataSetParseInput --name 'myData' --x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -360,7 +360,7 @@ Keyword Arguments:
 ###Add Parse Data Folder To IntentNER Data
 Parse files from a folder and add them to a chatbot data.
 ```
-intentNERDataAddParseDatafolder --name='myData' --folder_directory=''
+intentNERDataAddParseDatafolder --name 'myData' --folder_directory ''
 ```
 Keyword Arguments:
 
@@ -372,7 +372,7 @@ Keyword Arguments:
 ###Add Data Paths To SpeakerVerification Data
 Parse and add raw audio files to a speaker verification data.
 ```
-speakerVerificationDataAddDataPaths --name='myData' --paths='' --y=True
+speakerVerificationDataAddDataPaths --name 'myData' --paths '' --y True
 ```
 Keyword Arguments:
 
@@ -385,7 +385,7 @@ Keyword Arguments:
 ###Add Data File To SpeakerVerification Data
 Read paths to raw audio files and add them to a speaker verification data.
 ```
-speakerVerificationDataAddDataFile --name='myData' --paths='' --y=True
+speakerVerificationDataAddDataFile --name 'myData' --paths '' --y True
 ```
 Keyword Arguments:
 
@@ -399,7 +399,7 @@ Keyword Arguments:
 ###Create Embedding
 Create a word embedding.
 ```
-createEmbedding --name='myEmbedding' --path=''
+createEmbedding --name 'myEmbedding' --path ''
 ```
 Keyword Arguments:
 
@@ -412,7 +412,7 @@ Keyword Arguments:
 ###Delete Embedding
 Delete a word embedding.
 ```
-deleteEmbedding --name='myEmbedding'
+deleteEmbedding --name 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -421,7 +421,7 @@ Keyword Arguments:
 ###Save Embedding
 Save an embedding.
 ```
-saveEmbedding --name='myEmbedding'
+saveEmbedding --name 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -430,7 +430,7 @@ Keyword Arguments:
 ###Load Embedding
 Load an embedding.
 ```
-loadEmbedding --name='myEmbedding'
+loadEmbedding --name 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -440,7 +440,7 @@ Keyword Arguments:
 ###Start Server
 Start server.
 ```
-startServer --port=25565 --local=True --pwd='p@ssword' --max_clients=10
+startServer --port 25565 --local True --pwd 'p@ssword' --max_clients 10
 ```
 Keyword Arguments:
 
@@ -462,7 +462,7 @@ No argument required.
 ###Freeze Graph
 Freeze checkpoints to a file.
 ```
-freezeGraph --model_dir='' --output_node_names='' --stored_model_config=''
+freezeGraph --model_dir '' --output_node_names '' --stored_model_config ''
 ```
 Keyword Arguments:
 
@@ -475,7 +475,7 @@ Keyword Arguments:
 ###Optimize
 Optimizing for inference.
 ```
-optimize --model_dir='' --input_node_names='' --output_node_names=''
+optimize --model_dir '' --input_node_names '' --output_node_names ''
 ```
 Keyword Arguments:
 
