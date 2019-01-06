@@ -77,37 +77,39 @@ while True:
 
     if user_input.lower() == 'exit':
         break
-    elif user_input.lower() == 'help' or '?':
-        pass
-    elif user_input.lower() == 'about' or 'version':
-        pass
-
-    command, args = am.Console.ParseArgs(user_input)
-
-    print(command)
-    print(args)
-
-    if command is None:
+    elif user_input.lower() == 'help' or user_input == '?':
         continue
-    elif command in commands:
-        if '--help' in args:
-            print(commands[command][1])
-        else:
-            # valid command and valid args
-
-            # change arguments into kwargs for passing into console
-            kwargs = {}
-            for arg in args:
-                if arg[0:2] == '--':  # long
-                    kwargs[arg[3:]] = args[arg]
-                elif arg[0:1] == '-':  # short
-                    if arg[2:] not in command[command][1]:
-                        print("Invalid short argument {0}, skipping it".format(arg))
-                        continue
-
-                    long_arg = command[command][1][arg[2:]]
-                    kwargs[long_arg] = args[arg]
-
-            commands[command][0](args)
+    elif user_input.lower() == 'about' or user_input.lower() == 'version':
+        continue
+    elif user_input is None:
+        continue
     else:
-        print('Invalid command')
+        command, args = am.Console.ParseArgs(user_input)
+
+        print(command)
+        print(args)
+
+        if command is None:
+            break
+        elif command in commands:
+            if '--help' in args:
+                print(commands[command][2])
+            else:
+                # valid command and valid args
+
+                # change arguments into kwargs for passing into console
+                kwargs = {}
+                for arg in args:
+                    if arg[:2] == '--':  # long
+                        kwargs[arg[2:]] = args[arg]
+                    elif arg[:1] == '-':  # short
+                        if arg[1:] not in commands[command][1]:
+                            print("Invalid short argument {0}, skipping it".format(arg))
+                            continue
+
+                        long_arg = commands[command][1][arg[1:]]
+                        kwargs[long_arg] = args[arg]
+                        
+                commands[command][0](kwargs)
+        else:
+            print('Invalid command')
