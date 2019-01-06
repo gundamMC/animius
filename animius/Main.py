@@ -17,6 +17,12 @@ console = am.Console()
 
 commands = {
     # command : console_method, short-to-long arguments dict, help message
+    'waifus': [console.get_waifus(), {}, ''],
+    'models': [console.get_models, {}, ''],
+    'model_configs': [console.get_model_configs, {}, ''],
+    'data': [console.get_data, {}, ''],
+    'embeddings': [console.get_embeddings, {}, ''],
+
     'createWaifu': [console.create_waifu, {'n': 'name', 'cm': 'combined_chatbot_model'}, ''],
     'deleteWaifu': [console.delete_waifu, {'n': 'name'}, ''],
     'saveWaifu': [console.save_waifu, {'n': 'name'}, ''],
@@ -94,8 +100,8 @@ while True:
     else:
         command, args = am.Console.ParseArgs(user_input)
 
-        print(command)
-        print(args)
+        print('command:', command)
+        print('args', args)
 
         if command is None:
             break
@@ -118,6 +124,15 @@ while True:
                         long_arg = commands[command][1][arg[1:]]
                         kwargs[long_arg] = args[arg]
 
-                commands[command][0](kwargs)
+                print(kwargs)
+                print(commands[command][0])
+                print('==================================================')
+
+                try:
+                    result = commands[command][0].__call__(**kwargs)
+                    if result is not None:
+                        print(result)
+                except Exception as exc:
+                    print('{0}: {1}'.format(type(exc).__name__, exc))
         else:
             print('Invalid command')
