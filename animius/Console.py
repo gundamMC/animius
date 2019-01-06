@@ -96,20 +96,19 @@ class Console:
     def ParseArgs(user_input):
         user_input = arg_split(user_input)
         command = user_input[0]
-
-        if '--help' or '-h' in user_input:
+        if '--help' in user_input or '-h' in user_input:
             return command, {'--help': ''}
+        else:
+            values = []
 
-        values = []
+            for value in user_input[2::2]:
+                try:
+                    values.append(literal_eval(value))
+                except (ValueError, SyntaxError):
+                    # Errors would occur b/c strings are not quoted from arg_split
+                    values.append(value)
 
-        for value in user_input[2::2]:
-            try:
-                values.append(literal_eval(value))
-            except (ValueError, SyntaxError):
-                # Errors would occur b/c strings are not quoted from arg_split
-                values.append(value)
-
-        args = dict(zip(user_input[1::2], values))
+            args = dict(zip(user_input[1::2], values))
         # leave key parsing to Main
 
         # createWaifu --name='myWaifu' --model 'myModel' --help --test={'a':'b','c':'d'} --list [] -test
