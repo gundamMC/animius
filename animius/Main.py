@@ -90,7 +90,7 @@ while True:
     if command is None:
         continue
     elif command in commands:
-        if '--help' or '-h' in args:
+        if '--help' in args:
             print(commands[command][1])
         else:
             # valid command and valid args
