@@ -24,6 +24,8 @@ The various commands and their arguments can be found in this section. Network-s
 Create a waifu.
 ```
 createWaifu --name 'myWaifu' --combined_chatbot_model 'myModel'
+
+createWaifu -n 'myWaifu' -cm 'myModel'
 ```
 Keyword Arguments:
 
@@ -35,6 +37,8 @@ Keyword Arguments:
 Delete a waifu.
 ```
 deleteWaifu --name 'myWaifu'
+
+deleteWaifu -n 'myWaifu'
 ```
 Keyword Arguments:
 
@@ -44,6 +48,8 @@ Keyword Arguments:
 Save a waifu.
 ```
 saveWaifu --name 'myWaifu'
+
+saveWaifu -n 'myWaifu'
 ```
 Keyword Arguments:
 
@@ -53,6 +59,8 @@ Keyword Arguments:
 Load a waifu.
 ```
 loadWaifu --name 'myWaifu'
+
+loadWaifu --n 'myWaifu'
 ```
 Keyword Arguments:
 
@@ -63,6 +71,8 @@ Keyword Arguments:
 Create a model.
 ```
 createModel --name 'myModel' --type 'ChatbotModel'
+
+createModel -n 'myModel' -t 'ChatbotModel'
 ```
 Keyword Arguments:
 
@@ -74,6 +84,8 @@ Keyword Arguments:
 Delete a model.
 ```
 deleteModel --name 'myModel'
+
+deleteModel -n 'myModel'
 ```
 Keyword Arguments:
 
@@ -83,6 +95,8 @@ Keyword Arguments:
 Save a model.
 ```
 saveModel --name 'myModel'
+
+saveModel -n 'myModel'
 ```
 Keyword Arguments:
 
@@ -92,6 +106,7 @@ Keyword Arguments:
 Load a model.
 ```
 loadModel --name 'myModel' --data 'myData'
+loadModel -n 'myModel' -d 'myData'
 ```
 Keyword Arguments:
 
@@ -103,6 +118,8 @@ Keyword Arguments:
 Set model data.
 ```
 setData --name 'myModel' --data 'myData'
+
+setData -n 'myModel' -d 'myData'
 ```
 Keyword Arguments:
 
@@ -114,6 +131,8 @@ Keyword Arguments:
 Train a model.
 ```
 train --name 'myModel' --epoch 20
+
+train -n 'myModel' -e 20
 ```
 Keyword Arguments:
 
@@ -125,6 +144,8 @@ Keyword Arguments:
 Predict a model.
 ```
 predict --name 'myModel' --input_data '' --save_path ''
+
+predict -n 'myModel' -i '' -s ''
 ```
 Keyword Arguments:
 
@@ -140,6 +161,8 @@ Keyword Arguments:
 Create a model config with the provided values.
 ```
 createModelConfig --name 'myModelConfig' --cls ''
+
+createModelConfig -n 'myModelConfig' -c ''
 ```
 Keyword Arguements:
 
@@ -157,7 +180,9 @@ Keyword Arguements:
 
 Update a model config with the provided values.
 ```
-createModelConfig --name 'myModelConfig'
+editModelConfig --name 'myModelConfig' --config {} --hyperparameters {} --model_structure {}
+
+editModelConfig -n 'myModelConfig' -c {} -h {} -ms {}
 ```
 Keyword Arguments:
 
@@ -174,6 +199,8 @@ Keyword Arguments:
 Delete a model config.
 ```
 deleteModelConfig --name 'myModelConfig'
+
+deleteModelConfig -n 'myModelConfig'
 ```
 Keyword Argument:
 
@@ -184,6 +211,8 @@ Keyword Argument:
 Save a model config.
 ```
 saveModelConfig --name 'myModelConfig'
+
+saveModelConfig -n 'myModelConfig'
 ```
 Keyword Argument:
 
@@ -194,6 +223,9 @@ Keyword Argument:
 Load a model config.
 ```
 loadModelConfig --name 'myModelConfig'
+
+
+loadModelConfig -n 'myModelConfig'
 ```
 Keyword Argument:
 
@@ -205,6 +237,8 @@ Keyword Argument:
 Create a data with empty values.
 ```
 createData --name 'myData' --type 'ChatbotData' --model_config 'myModelConfig'
+
+createData -n 'myData' -t 'ChatbotData' -mc 'myModelConfig'
 ```
 Keyword Arguments:
 
@@ -218,6 +252,8 @@ Keyword Arguments:
 Add twitter dataset to a chatbot data.
 ```
 dataAddEmbedding --name 'myData' --name_embedding 'myEmbedding'
+
+dataAddEmbedding -n 'myData' -ne 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -229,6 +265,8 @@ Keyword Arguments:
 Reset a data, clearing all stored data values.
 ```
 dataReset --name 'myData'
+
+dataReset -n 'myData'
 ```
 Keyword Arguments:
 
@@ -238,6 +276,8 @@ Keyword Arguments:
 Delete a data.
 ```
 deleteData --name 'myData'
+
+deleteData -n 'myData'
 ```
 Keyword Arguments:
 
@@ -247,6 +287,8 @@ Keyword Arguments:
 Save a data.
 ```
 saveData --name 'myData'
+
+saveData -n 'myData'
 ```
 Keyword Arguments:
 
@@ -256,6 +298,8 @@ Keyword Arguments:
 Load a data.
 ```
 loadData --name 'myData'
+
+loadData -n 'myData'
 ```
 Keyword Arguments:
 
@@ -266,6 +310,8 @@ Keyword Arguments:
 Add twitter dataset to a chatbot data.
 ```
 chatbotDataAddTwitter --name 'myData' --path ''
+
+chatbotDataAddTwitter -n 'myData' -p ''
 ```
 Keyword Arguments:
 
@@ -277,6 +323,8 @@ Keyword Arguments:
 Add Cornell dataset to a chatbot data.
 ```
 chatbotDataAddCornell --name 'myData' --movie_conversations_path '' --movie_lines_path ''
+
+chatbotDataAddCornell -n 'myData' -mcp '' -mlp ''
 ```
 Keyword Arguments:
 
@@ -290,6 +338,8 @@ Keyword Arguments:
 Parse raw sentences and add them to a chatbot data.
 ```
 chatbotDataAddParseSentences --name 'myData' --x '' --y ''
+
+chatbotDataAddParseSentences -n 'myData' -x '' -y ''
 ```
 Keyword Arguments:
 
@@ -303,6 +353,8 @@ Keyword Arguments:
 Parse raw sentences from text files and add them to a chatbot data.
 ```
 chatbotDataAddParseFile --name 'myData' --x_path '' --y_path ''
+
+chatbotDataAddParseFile --name 'myData' -x '' -y ''
 ```
 Keyword Arguments:
 
@@ -316,6 +368,8 @@ Keyword Arguments:
 Parse a raw sentence as input and add it to a chatbot data.
 ```
 chatbotDataAddParseInput --name 'myData' --x 'hey how are you'
+
+chatbotDataAddParseInput -name 'myData' -x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -327,6 +381,8 @@ Keyword Arguments:
 Parse a raw sentence as input and set it as a chatbot data.
 ```
 chatbotDataSetParseInput --name 'myData' --x 'hey how are you'
+
+chatbotDataSetParseInput -n 'myData' -x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -339,6 +395,8 @@ Keyword Arguments:
 Parse a raw sentence as input and add it to an intent NER data.
 ```
 intentNERDataAddParseInput --name 'myData' --x 'hey how are you'
+
+intentNERDataAddParseInput -n 'myData' -x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -350,6 +408,8 @@ Keyword Arguments:
 Parse a raw sentence as input and set it as an intent NER data.
 ```
 intentNERDataSetParseInput --name 'myData' --x 'hey how are you'
+
+intentNERDataSetParseInput -n 'myData' -x 'hey how are you'
 ```
 Keyword Arguments:
 
@@ -361,6 +421,8 @@ Keyword Arguments:
 Parse files from a folder and add them to a chatbot data.
 ```
 intentNERDataAddParseDatafolder --name 'myData' --folder_directory ''
+
+intentNERDataAddParseDatafolder -n 'myData' -fd ''
 ```
 Keyword Arguments:
 
@@ -373,6 +435,8 @@ Keyword Arguments:
 Parse and add raw audio files to a speaker verification data.
 ```
 speakerVerificationDataAddDataPaths --name 'myData' --paths '' --y True
+
+speakerVerificationDataAddDataPaths -n 'myData' -p '' -y True
 ```
 Keyword Arguments:
 
@@ -386,6 +450,8 @@ Keyword Arguments:
 Read paths to raw audio files and add them to a speaker verification data.
 ```
 speakerVerificationDataAddDataFile --name 'myData' --paths '' --y True
+
+speakerVerificationDataAddDataFile -n 'myData' -p '' -y True
 ```
 Keyword Arguments:
 
@@ -400,6 +466,8 @@ Keyword Arguments:
 Create a word embedding.
 ```
 createEmbedding --name 'myEmbedding' --path ''
+
+createEmbedding -n 'myEmbedding' -p ''
 ```
 Keyword Arguments:
 
@@ -413,6 +481,8 @@ Keyword Arguments:
 Delete a word embedding.
 ```
 deleteEmbedding --name 'myEmbedding'
+
+deleteEmbedding -n 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -422,6 +492,8 @@ Keyword Arguments:
 Save an embedding.
 ```
 saveEmbedding --name 'myEmbedding'
+
+saveEmbedding -n 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -431,6 +503,8 @@ Keyword Arguments:
 Load an embedding.
 ```
 loadEmbedding --name 'myEmbedding'
+
+loadEmbedding -n 'myEmbedding'
 ```
 Keyword Arguments:
 
@@ -441,6 +515,8 @@ Keyword Arguments:
 Start server.
 ```
 startServer --port 25565 --local True --pwd 'p@ssword' --max_clients 10
+
+startServer -p 25565 -l True -pwd 'p@ssword' -mc 10
 ```
 Keyword Arguments:
 
@@ -463,6 +539,8 @@ No argument required.
 Freeze checkpoints to a file.
 ```
 freezeGraph --model_dir '' --output_node_names '' --stored_model_config ''
+
+freezeGraph -md '' -o '' -s ''
 ```
 Keyword Arguments:
 
@@ -476,6 +554,8 @@ Keyword Arguments:
 Optimizing for inference.
 ```
 optimize --model_dir '' --input_node_names '' --output_node_names ''
+
+optimize -md '' -i '' -o ''
 ```
 Keyword Arguments:
 
