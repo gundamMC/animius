@@ -14,9 +14,9 @@ class Model(ABC):
     @staticmethod
     def DEFAULT_CONFIG():
         return {
-            'name': 'Model',
             'class': '',
             'epoch': 0,
+            'cost': None,
             'display_step': 1,
             'tensorboard': None,
             'hyperdash': None
