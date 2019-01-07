@@ -6,9 +6,14 @@ from .SocketServerModel import Client
 clients = {}
 
 
-def new_client(c, console):
+def new_client(c, console, event):
+
+    # check if event is set (then this client is probably the 'fake' one from stop())
+    if event.is_set():
+        return
+
     try:
-        print('Establishing connection with: {0}:{1}'.format(c.addr, c.port))
+        print('Establishing connection with: {0}:{1}'.format(c.address, c.port))
         # initialize AES
         c.initRandomAEScipher()
         # send AES keys to client
@@ -16,7 +21,7 @@ def new_client(c, console):
 
         # check for password
         if c.pwd != '':
-            recvPwd = c.recv()
+            recvPwd = c.recv_pass()
             if recvPwd != c.pwd:
                 # wrong password, close connection
                 c.close()
@@ -25,12 +30,13 @@ def new_client(c, console):
             req = c.recv()
             response = console.handle_network(req)
             c.send(*response)
+
     except socket.error as error:
-        print('Socket error from {0}: {1]'.format(c.addr, error))
+        print('Socket error from {0}: {1]'.format(c.address, error))
     except Exception as error:
-        print('Unexpected exception from {0}: {0}'.format(c.addr, error))
+        print('Unexpected exception from {0}: {1}'.format(c.address, error))
     finally:
-        print('Closing connection with {0}:{1}'.format(c.addr, c.port))
+        print('Closing connection with {0}:{1}'.format(c.address, c.port))
         c.close()
 
 
@@ -47,11 +53,14 @@ class _ServerThread(threading.Thread):
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        self.port = port
+
         if local:
-            host = '127.0.0.1'
+            self.host = '127.0.0.1'
         else:
-            host = socket.gethostname()
-        self.server.bind((host, port))
+            self.host = socket.gethostname()
+        self.server.bind((self.host, port))
 
         self.console = console
         self.pwd = pwd
@@ -65,12 +74,16 @@ class _ServerThread(threading.Thread):
             # Accept Connection
             conn, addr = self.server.accept()
             c = Client(conn, addr, self.pwd)
-            t = threading.Thread(target=new_client, args=(c, self.console))
+            t = threading.Thread(target=new_client, args=(c, self.console, self.event))
             t.start()
 
         # close server
         self.server.close()
+        print('Server closed')
 
     def stop(self):
         self.event.set()
         # let the while loop in run() know to stop
+
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((self.host, self.port))
+        # send a fake client to let run() move on from self.server.accept()

@@ -41,13 +41,13 @@ class AEScipher:
         self.iv = iv
         self.blocksize = AES.block_size
         # use AES CBC
-        self.cipher = lambda: AES.new(self.key, AES.MODE_CBC, iv=self.iv)
+        self.cipher = AES.new(self.key, AES.MODE_CBC, iv=self.iv)
 
     def getKey(self):
         return base64.b64encode(self.key).decode()
 
     def getIv(self):
-        return base64.b16encode(self.iv).decode()
+        return base64.b64encode(self.iv).decode()
 
     @classmethod
     def generateRandom(cls):
@@ -57,22 +57,17 @@ class AEScipher:
 
     # AES encrypt
     def encrypt(self, data):
-        try:
-            data = data
-            padded_data = Padding.pad(data, self.blocksize, style='pkcs7')
-            encrData = self.cipher().encrypt(padded_data)
-            return base64.b64encode(encrData)
-        except:
-            return None
+        padded_data = Padding.pad(data, self.blocksize, style='pkcs7')
+        encrData = self.cipher.encrypt(padded_data)
+        return base64.b64encode(encrData)
 
     # AES decrypt
-    def decrypt(self, encrData):
-        try:
-            decrData = self.cipher().decrypt(base64.b64decode(encrData))
-            decrData = Padding.unpad(decrData, self.blocksize, style='pkcs7')
-            return decrData
-        except:
-            return None
+    def decrypt(self, encrypted_byte):
+        decrData = encrypted_byte.decode('utf-8')
+        decrData = base64.b64decode(decrData)
+        decrData = self.cipher.decrypt(decrData)
+        decrData = Padding.unpad(decrData, self.blocksize, style='pkcs7')
+        return decrData
 
 
 class Client:
@@ -127,3 +122,13 @@ class Client:
             return req
         except:
             return None
+
+    def recv_pass(self):
+        req = self._recv()
+        req = self.AEScipher.decrypt(req)
+        req = req.decode("utf-8")
+
+        return req
+
+    def close(self):
+        self.socket.close()
