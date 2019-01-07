@@ -95,7 +95,7 @@ while True:
         continue
     elif user_input.lower() == 'about' or user_input.lower() == 'version':
         continue
-    elif user_input is None:
+    elif user_input is None or not user_input.strip():  # empty string gives false
         continue
     else:
         command, args = am.Console.ParseArgs(user_input)
