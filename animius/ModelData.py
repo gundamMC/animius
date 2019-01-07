@@ -121,11 +121,15 @@ class Data(ABC):
 
         # find if model config is already loaded in the console
         if console is not None:
-            for i in console.model_configs:
+            for key, i in console.model_configs.items():
                 if i.saved_directory is not None and \
                         i.saved_directory == stored['model_config_directory'] and \
                         i.saved_name == stored['model_config_name']:
+
+                    if not i.loaded:
+                        console.load_model_config(key)
                     model_config = i
+
                     break
 
         # No matching model config found
@@ -151,10 +155,14 @@ class Data(ABC):
 
             # find if embedding is already loaded in the console
             if console is not None:
-                for i in console.embeddings:
+                for key, i in console.embeddings.items():
                     if i.saved_directory is not None and \
                             i.saved_directory == stored['embedding_directory'] and \
                             i.saved_name == stored['embedding_name']:
+
+                        if not i.loaded:
+                            console.load_embedding(key)
+
                         data.add_embedding_class(i)
                         break
 
