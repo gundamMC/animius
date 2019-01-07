@@ -16,7 +16,7 @@ class Waifu:
         if models is None:
             models = {}
 
-        self.config = {'name': name, 'models': models}
+        self.config = {'name': name, 'data': None, 'models': models}
 
         self.saved_directory = None
         self.saved_name = None
@@ -46,7 +46,6 @@ class Waifu:
         self.combined_prediction = am.Chatbot.CombinedPredictionModel(self.config['models']['CombinedPrediction'])
 
     def build_input(self, embedding):
-
         self.input_data = am.ModelData.CombinedPredictionData(self.combined_prediction.model_config)
         self.input_data.add_embedding_class(embedding)
 
@@ -74,6 +73,10 @@ class Waifu:
             if exc.errno != errno.EEXIST:
                 raise exc
 
+        # save input data
+        self.input_data.save(directory=directory, name=name + '_input_data', save_embedding=True)
+        self.config['data'] = name + '_input_data'
+
         with open(join(directory, name + '.json'), 'w') as f:
             json.dump(self.config, f, indent=4)
 
@@ -89,8 +92,13 @@ class Waifu:
 
         waifu = cls(config['name'], config['models'])
 
+        # load models
         if 'CombinedPrediction' in config['models']:
             waifu.load_combined_prediction_model()
+
+        # set up input data
+        if 'data' in config and 'data' is not None:
+            waifu.input_data = am.ModelConfig.load(directory, config['data'])
 
         waifu.saved_directory = directory
         waifu.saved_name = name
