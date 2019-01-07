@@ -146,6 +146,101 @@ class Console:
     def get_embeddings(self, **kwargs):
         return list(self.embeddings.keys())
 
+    def get_waifu_detail(self, **kwargs):
+        """
+        Return the details of a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.waifus:
+            raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
+
+        tmp = dict(self.waifus[kwargs['name']].item.config)
+
+        tmp['saved_directory'] = self.waifus[kwargs['name']].saved_directory
+        tmp['saved_name'] = self.waifus[kwargs['name']].saved_name
+
+        return tmp
+
+    def get_model_details(self, **kwargs):
+        """
+        Return the details of a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model {0} not found".format(kwargs['name']))
+
+        tmp = {'config': self.models[kwargs['name']].item.config,
+               'model_structure': self.models[kwargs['name']].item.model_structure,
+               'hyperparamter': self.models[kwargs['name']].hyperparameters.config,
+               'saved_directory': self.models[kwargs['name']].saved_directory,
+               'saved_name': self.models[kwargs['name']].saved_name}
+
+        return tmp
+
+    def get_data_details(self, **kwargs):
+        """
+        Return the details of a data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.data:
+            raise NameNotFoundError("Data {0} not found".format(kwargs['name']))
+
+        # get model config saved dir, saved name, and name in console (if there is one)
+        model_config = self.data[kwargs['name']].item.model_config
+
+        tmp = {'model_config_saved_directory': model_config.saved_directory,
+               'model_config_saved_name': model_config.saved_name}
+
+        for name, mc_item in self.model_configs.items():
+            if mc_item.saved_directory == model_config.saved_directory:
+                tmp['model_config_name'] = name
+
+        if 'model_config_name' not in tmp:
+            tmp['model_config_name'] = 'no matching model config found in console'
+
+        # Embedding - same as model config
+        embedding = self.data[kwargs['name']].item.values['embedding']
+
+        tmp['embedding_saved_directory'] = embedding.saved_directory
+        tmp['embedding_saved_name'] = embedding.saved_name
+
+        for name, emb in self.embeddings.items():
+            if emb.saved_directory == emb.saved_directory:
+                tmp['embedding_name'] = name
+
+        if 'embedding_name' not in tmp:
+            tmp['embedding_name'] = 'no matching embedding found in console'
+
+        tmp['cls'] = type(self.data[kwargs['name']].item).__name__
+
+        tmp['values'] = list(self.data[kwargs['name']].item.values.keys())
+
+        return tmp
+
     @staticmethod
     def check_arguments(args, hard_requirements=None, soft_requirements=None):
         # Check if the user-provided arguments meet the requirements of the method/command
@@ -170,13 +265,17 @@ class Console:
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
         * *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
+        * *embedding* (``str``) -- Name of embedding
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'combined_prediction_model'])
+                                hard_requirements=['name', 'combined_prediction_model', 'embedding'])
 
         if kwargs['name'] in self.waifus:
             raise NameAlreadyExistError("The name {0} is already used by another waifu".format(kwargs['name']))
+
+        if kwargs['embedding'] not in self.embeddings:
+            raise NameNotFoundError("Embedding {0} no found".format(kwargs['embedding']))
 
         if not os.path.isdir(kwargs['combined_prediction_model']):
             if kwargs['combined_prediction_model'] in self.models:
@@ -184,9 +283,9 @@ class Console:
             else:
                 raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
 
-        prediction_model = am.Chatbot.CombinedPredictionModel(kwargs['combined_prediction_model'])
+        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_prediction_model']})
 
-        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': prediction_model})
+        waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
         console_item = _ConsoleItem(waifu, self.directories['waifu'], kwargs['name'])
         # saving it first to set up its saving location
