@@ -41,7 +41,7 @@ class SpeakerVerificationModel(am.Model):
 
         # make copies of the dictionaries since we will be editing it
         self.config = dict(model_config.config)
-        self.config['class'] = 'ChatbotModel'
+        self.config['class'] = 'SpeakerVerification'
         self.model_structure = dict(model_config.model_structure)
         self.hyperparameters = dict(model_config.hyperparameters)
         self.data = data

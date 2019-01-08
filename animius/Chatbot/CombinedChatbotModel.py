@@ -61,6 +61,6 @@ class CombinedChatbotModel(ChatbotModel):
                          embedding_tensor=intent_ner_graph.get_tensor_by_name('intent/word_embedding:0'),
                          graph=intent_ner_graph)
 
-        self.config['class'] = 'CombinedChatbotModel'
+        self.config['class'] = 'CombinedChatbot'
 
         self.init_tensorflow()
