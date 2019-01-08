@@ -371,18 +371,18 @@ class Console:
         if kwargs['name'] in self.models:
             raise NameAlreadyExistError("The name {0} is already used by another model".format(kwargs['name']))
 
-        if kwargs['type'] == 'ChatbotModel':
+        if kwargs['type'] == 'Chatbot':
             model = am.Chatbot.ChatbotModel()
-        elif kwargs['type'] == 'IntentNERModel':
+        elif kwargs['type'] == 'IntentNER':
             model = am.IntentNER.IntentNERModel()
-        elif kwargs['type'] == 'CombinedChatbotModel':
+        elif kwargs['type'] == 'CombinedChatbot':
             if kwargs['model_config'] not in self.model_configs:
                 raise NameNotFoundError("Model Config {0} not found".format(kwargs['model_config']))
             if kwargs['data'] not in self.data:
                 raise NameNotFoundError("Data {0} not found".format(kwargs['data']))
             model = am.Chatbot.CombinedChatbotModel(self.model_configs[kwargs['model_config']].item,
                                                     self.data[kwargs['data']].item)
-        elif kwargs['type'] == 'SpeakVerificationModel':
+        elif kwargs['type'] == 'SpeakVerification':
             model = am.SpeakerVerification.SpeakerVerificationModel()
         else:
             raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
@@ -541,13 +541,13 @@ class Console:
             stored = json.load(f)
             class_name = stored['config']['class']
 
-        if class_name == 'ChatbotModel':
+        if class_name == 'Chatbot':
             output_node_names = 'decode_1/output_infer'
-        elif class_name == 'CombinedChatbotModel':
+        elif class_name == 'CombinedChatbot':
             output_node_names = 'decode_1/output_infer, intent/output_intent, intent/output_ner'
-        elif class_name == 'IntentNERModel':
+        elif class_name == 'IntentNER':
             output_node_names = 'output_intent, output_ner'
-        elif class_name == 'SpeakerVerificationModel':
+        elif class_name == 'SpeakerVerification':
             output_node_names = 'output_predict'
         else:
             raise ValueError("Class name not found")
@@ -575,16 +575,16 @@ class Console:
             stored = json.load(f)
             class_name = stored['config']['class']
 
-        if class_name == 'ChatbotModel':
+        if class_name == 'Chatbot':
             input_node_names = ['input_x', 'input_x_length']
             output_node_names = ['decode_1/output_infer']
-        elif class_name == 'CombinedChatbotModel':
+        elif class_name == 'CombinedChatbot':
             input_node_names = ['input_x', 'input_x_length']
             output_node_names = ['decode_1/output_infer', 'intent/output_intent', 'intent/output_ner']
-        elif class_name == 'IntentNERModel':
+        elif class_name == 'IntentNER':
             input_node_names = ['input_x', 'input_x_length']
             output_node_names = ['output_intent', 'output_entities']
-        elif class_name == 'SpeakerVerificationModel':
+        elif class_name == 'SpeakerVerification':
             input_node_names = ['input_x']
             output_node_names = ['output_predict']
         else:
@@ -729,11 +729,11 @@ class Console:
             raise NameAlreadyExistError("The name {0} is already used by another data".format(kwargs['name']))
 
         if kwargs['model_config'] in self.model_configs:
-            if kwargs['type'] == 'ChatbotData':
+            if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
                 data = am.ChatbotData(kwargs['model_config'])
-            elif kwargs['type'] == 'IntentNERData':
+            elif kwargs['type'] == 'IntentNERD':
                 data = am.IntentNERData(kwargs['model_config'])
-            elif kwargs['type'] == 'SpeakerVerificationData':
+            elif kwargs['type'] == 'SpeakerVerification':
                 data = am.SpeakerVerificationData(kwargs['model_config'])
             else:
                 raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))

@@ -163,11 +163,11 @@ class Model(ABC):
             stored = json.load(f)
             class_name = stored['config']['class']
 
-        if class_name == 'ChatbotModel' or class_name == 'CombinedChatbotModel':
+        if class_name == 'Chatbot' or class_name == 'CombinedChatbot':
             return am.Chatbot.ChatbotModel.load(directory, name=name, data=data)
-        elif class_name == 'IntentNERModel':
+        elif class_name == 'IntentNER':
             return am.IntentNER.IntentNERModel.load(directory, name=name, data=data)
-        elif class_name == 'SpeakerVerificationModel':
+        elif class_name == 'SpeakerVerification':
             return am.SpeakerVerification.SpeakerVerificationModel.load(directory, name=name, data=data)
         else:
             raise ValueError("Loading failed: class name not found")

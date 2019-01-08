@@ -33,11 +33,11 @@ class ModelConfig:
 
         # cls may be a string class name
         if isinstance(cls, str):
-            if cls == 'IntentNERModel':
+            if cls == 'IntentNER':
                 cls = am.IntentNER.IntentNERModel
-            elif cls == 'ChatbotModel' or cls == 'CombinedChatbotModel':
+            elif cls == 'Chatbot' or cls == 'CombinedChatbot':
                 cls = am.Chatbot.ChatbotModel  # they share the same default model config
-            elif cls == 'SpeakerVerificationModel':
+            elif cls == 'SpeakerVerification':
                 cls = am.SpeakerVerification.SpeakerVerificationModel
             else:
                 raise ValueError('class not found with name {0}'.format(cls))
