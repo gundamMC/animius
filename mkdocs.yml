@@ -25,6 +25,7 @@ nav:
     - Network: 
         - Overview: 'network/overview.md'
         - Authentication: 'network/authentication.md'
+        - Encryption: 'network/encryption.md'
 
 # Themes
 theme:
