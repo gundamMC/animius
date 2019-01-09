@@ -5,7 +5,7 @@ site_author: 'gundamMC'
 site_url: 'https://gundammc.github.io/Animius'
 
 # Copyright
-copyright: 'Copyright &copy; 2018 gundamMC'
+copyright: 'Copyright &copy; 2019 gundamMC'
 
 # Navigation
 nav:
@@ -13,6 +13,13 @@ nav:
     - About: 'about.md'
     - Commands:
         - Overview: 'commands/overview.md'
+        - Waifu: 'commands/waifu.md'
+        - Model: 'commands/model.md'
+        - Model Config: 'commands/model config.md'
+        - Data: 'commands/data.md'
+        - Embedding: 'commands/embedding.md'
+        - Server: 'commands/server.md'
+        - Console: 'commands/console.md'
     - File Structure:
         - Overview: 'file structure/overview.md'
     - Network: 
