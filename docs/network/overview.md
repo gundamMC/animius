@@ -1,11 +1,11 @@
 # Network Overview
 
 In addition to using the python console, Animius can also be accessed with a network TCP socket.
-This allows for user-friendly or extensive GUIs and clients written in other languages.
+This allows for user-friendly and extensive clients written in other languages.
 
 ## Server
 
-The server has the same requirements as using the python console, with addition of networking. (still writing the script)
+The server has the same requirements as using the python console, with the addition of networking.
 
 ## Client
 
