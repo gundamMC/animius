@@ -13,7 +13,7 @@
         <meta name="description" content="A Documentation of Animius">
       
       
-        <link rel="canonical" href="https://gundammc.github.io/Animius/network/authentication/">
+        <link rel="canonical" href="https://gundammc.github.io/Animius/commands/model/">
       
       
         <meta name="author" content="gundamMC">
@@ -42,7 +42,7 @@
     
     
       
-        <title>Authentication - Animius Docs</title>
+        <title>Model - Animius Docs</title>
       
     
     
@@ -104,7 +104,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#network-authentication" tabindex="1" class="md-skip">
+      <a href="#model" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -130,7 +130,7 @@
                 Animius Docs
               </span>
               <span class="md-header-nav__topic">
-                Authentication
+                Model
               </span>
             
           
@@ -269,10 +269,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
     
     <label class="md-nav__link" for="nav-3">
       Commands
@@ -290,7 +292,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/overview/" title="Overview" class="md-nav__link">
+    <a href="../overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -302,7 +304,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/waifu/" title="Waifu" class="md-nav__link">
+    <a href="../waifu/" title="Waifu" class="md-nav__link">
       Waifu
     </a>
   </li>
@@ -312,11 +314,105 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../../commands/model/" title="Model" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        Model
+      </label>
+    
+    <a href="./" title="Model" class="md-nav__link md-nav__link--active">
       Model
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#createmodel" title="createModel" class="md-nav__link">
+    createModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deletemodel" title="deleteModel" class="md-nav__link">
+    deleteModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#savemodel" title="saveModel" class="md-nav__link">
+    saveModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadmodel" title="loadModel" class="md-nav__link">
+    loadModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setdata" title="setData" class="md-nav__link">
+    setData
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train" title="train" class="md-nav__link">
+    train
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predict" title="predict" class="md-nav__link">
+    predict
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freezegraph" title="freezeGraph" class="md-nav__link">
+    freezeGraph
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimize" title="optimize" class="md-nav__link">
+    optimize
+  </a>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -326,7 +422,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/model config/" title="Model Config" class="md-nav__link">
+    <a href="../model config/" title="Model Config" class="md-nav__link">
       Model Config
     </a>
   </li>
@@ -338,7 +434,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/data/" title="Data" class="md-nav__link">
+    <a href="../data/" title="Data" class="md-nav__link">
       Data
     </a>
   </li>
@@ -350,7 +446,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/embedding/" title="Embedding" class="md-nav__link">
+    <a href="../embedding/" title="Embedding" class="md-nav__link">
       Embedding
     </a>
   </li>
@@ -362,7 +458,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/server/" title="Server" class="md-nav__link">
+    <a href="../server/" title="Server" class="md-nav__link">
       Server
     </a>
   </li>
@@ -374,7 +470,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../commands/console/" title="Console" class="md-nav__link">
+    <a href="../console/" title="Console" class="md-nav__link">
       Console
     </a>
   </li>
@@ -425,12 +521,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-5" type="checkbox" id="nav-5">
     
     <label class="md-nav__link" for="nav-5">
       Network
@@ -448,7 +542,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../overview/" title="Overview" class="md-nav__link">
+    <a href="../../network/overview/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -458,56 +552,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="__toc">
-        Authentication
-      </label>
-    
-    <a href="./" title="Authentication" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../../network/authentication/" title="Authentication" class="md-nav__link">
       Authentication
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#password" title="Password" class="md-nav__link">
-    Password
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#client" title="Client" class="md-nav__link">
-    Client
-  </a>
-  
-</li>
-      
-      
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -517,7 +566,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../encryption/" title="Encryption" class="md-nav__link">
+    <a href="../../network/encryption/" title="Encryption" class="md-nav__link">
       Encryption
     </a>
   </li>
@@ -549,15 +598,64 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#password" title="Password" class="md-nav__link">
-    Password
+  <a href="#createmodel" title="createModel" class="md-nav__link">
+    createModel
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#client" title="Client" class="md-nav__link">
-    Client
+  <a href="#deletemodel" title="deleteModel" class="md-nav__link">
+    deleteModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#savemodel" title="saveModel" class="md-nav__link">
+    saveModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loadmodel" title="loadModel" class="md-nav__link">
+    loadModel
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setdata" title="setData" class="md-nav__link">
+    setData
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#train" title="train" class="md-nav__link">
+    train
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predict" title="predict" class="md-nav__link">
+    predict
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#freezegraph" title="freezeGraph" class="md-nav__link">
+    freezeGraph
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optimize" title="optimize" class="md-nav__link">
+    optimize
   </a>
   
 </li>
@@ -578,17 +676,128 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/gundamMC/Animius/edit/master/docs/network/authentication.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/gundamMC/Animius/edit/master/docs/commands/model.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="network-authentication">Network Authentication</h1>
-<p>Since the server and client are able to communicate across different networks, authentication is required to prevent abusing hardware or stealing model information. </p>
-<h2 id="password">Password</h2>
-<p>When starting a server, the argument <code class="codehilite">-p</code> or <code class="codehilite">--password</code> is avaliable to set up passwords. Connections without the correct password will be closed.</p>
-<p>The password is not saved by the console, so it is expected for the user to pass in the argument every time. This also allows the password to be changed between sessions. If no argument is passed, the server will accept all connections.</p>
-<h2 id="client">Client</h2>
-<p>If the server has a password, the client must send the password string encrypted with AES (<a href="encryption">encryption</a>) upon connection. No JSON format is required. If the password is incorrect, the connection will be closed. Otherwise, the connection will remain open and a 'success' response will be sent.</p>
-<p>If the server does not have a password, then the client is not expected to send anything.</p>
+                <h1 id="model">Model</h1>
+<h3 id="createmodel">createModel</h3>
+<p>Create a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createModel -n &#39;model name&#39; -t &#39;ModelType&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model</p>
+</li>
+<li>
+<p><em>-t, --type</em> (<code class="codehilite">str</code>) -- Type of model</p>
+</li>
+</ul>
+<h3 id="deletemodel">deleteModel</h3>
+<p>Delete a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>deleteModel -n &#39;model name&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model to delete</li>
+</ul>
+<h3 id="savemodel">saveModel</h3>
+<p>Save a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>saveModel -n &#39;model name&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model to save</li>
+</ul>
+<h3 id="loadmodel">loadModel</h3>
+<p>Load a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>loadModel -n &#39;model name&#39; -d &#39;data name&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model to load</p>
+</li>
+<li>
+<p><em>-d, --data</em> (<code class="codehilite">str</code>) -- Name of data to set to model</p>
+</li>
+</ul>
+<h3 id="setdata">setData</h3>
+<p>Set model data.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>setData -n &#39;model name&#39; -d &#39;data name&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model</p>
+</li>
+<li>
+<p><em>-d, --data</em> (<code class="codehilite">str</code>) -- Name of data</p>
+</li>
+</ul>
+<h3 id="train">train</h3>
+<p>Train a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>train -n &#39;model name&#39; -e 10
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model to train</p>
+</li>
+<li>
+<p><em>-e, --epoch</em> (<code class="codehilite">int</code>) -- Number of epochs to train for</p>
+</li>
+</ul>
+<h3 id="predict">predict</h3>
+<p>Make predictions with a model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>predict -n &#39;model name&#39; -i &#39;name of input data&#39; -s &#39;\some\path.txt&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model</p>
+</li>
+<li>
+<p><em>-i, --input_data</em> (<code class="codehilite">str</code>) -- Name of input data</p>
+</li>
+<li>
+<p><em>-s, --save_path</em> (<code class="codehilite">str</code>) -- Path to save result (Optional)</p>
+</li>
+</ul>
+<h3 id="freezegraph">freezeGraph</h3>
+<p>Freeze Tensorflow graph and latest checkpoint to a file.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>freezeGraph -n &#39;model name&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model</li>
+</ul>
+<h3 id="optimize">optimize</h3>
+<p>Optimize a frozen model (see FreezeGraph) for inference.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>optimize -n &#39;model name&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model</li>
+</ul>
                 
                   
                 
@@ -609,7 +818,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../overview/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../waifu/" title="Waifu" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -618,19 +827,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Overview
+                Waifu
               </span>
             </div>
           </a>
         
         
-          <a href="../encryption/" title="Encryption" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../model config/" title="Model Config" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Encryption
+                Model Config
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
