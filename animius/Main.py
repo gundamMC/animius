@@ -23,33 +23,90 @@ commands = {
     'data': [console.get_data, {}, ''],
     'embeddings': [console.get_embeddings, {}, ''],
 
-    'createWaifu': [console.create_waifu, {'n': 'name', 'cm': 'combined_chatbot_model'}, ''],
-    'deleteWaifu': [console.delete_waifu, {'n': 'name'}, ''],
-    'saveWaifu': [console.save_waifu, {'n': 'name'}, ''],
-    'loadWaifu': [console.load_waifu, {'n': 'name'}, ''],
+    'createWaifu': [console.create_waifu, {'n': 'name', 'cm': 'combined_chatbot_model'},
+                    {'createWaifu': "-n 'waifu name' -c 'name of model' -e 'name of embedding",
+                     '-n,--name (str)': '-- Name of waifu',
+                     '-c, --combined_chatbot_model (str) ': '-- Name or directory of combined chatbot model to use',
+                     '-e, --embedding (str)': '-- Name of word embedding to use'}],
 
-    'createModel': [console.create_model, {'n': 'name', 't': 'type'}, ''],
-    'deleteModel': [console.delete_model, {'n': 'name'}, ''],
-    'saveModel': [console.save_model, {'n': 'name'}, ''],
-    'loadModel': [console.load_model, {'n': 'name', 'd': 'data'}, ''],
+    'deleteWaifu': [console.delete_waifu, {'n': 'name'},
+                    {'deleteWaifu': "-n 'waifu name'", '=-n, --name (str)': '-- Name of waifu to delete'}],
 
-    'setData': [console.set_data, {'n': 'name', 'd': 'data'}, ''],
-    'train': [console.train, {'n': 'name', 'e': 'epoch'}, ''],
-    'predict': [console.predict, {'n': 'name', 's': 'save_path', 'i': 'input_data'}, ''],
+    'saveWaifu': [console.save_waifu, {'n': 'name'},
+                  {'saveWaifu': "-n 'waifu name'", '- n, --name(str)': ' - - Name of waifu to save'}],
 
-    'createModelConfig': [console.create_model_config, {'n': 'name', 'c': 'cls'}, ''],
+    'loadWaifu': [console.load_waifu, {'n': 'name'},
+                  {'loadWaifu': "-n 'waifu name'", '-n, --name (str)': '-- Name of waifu to load'}],
+
+    'getWaifuDetail': [console.get_waifu_detail, {'n': 'name'}, ''],
+
+    'createModel': [console.create_model, {'n': 'name', 't': 'type'},
+                    {'createModel': "-n 'model name' -t 'ModelType'", '-n, --name (str)': 'Name of model',
+                     '-t, --type (str)': '-- Type of model'}],
+
+    'deleteModel': [console.delete_model, {'n': 'name'},
+                    {'deleteModel': "-n 'model name'", '-n, --name (str)': ' -- Name of model to delete'}],
+
+    'saveModel': [console.save_model, {'n': 'name'},
+                  {'saveModel': "-n 'model name'", '-n, --name (str)': '-- Name of model to save'}],
+
+    'loadModel': [console.load_model, {'n': 'name', 'd': 'data'},
+                  {'loadModel': "-n 'model name' -d 'data name'", '-n, --name (str)': '-- Name of model to load',
+                   '-d, --data (str)': '-- Name of data to set to model'}],
+
+    'getModelDetails': [console.get_model_details, {'n': 'name'}, ''],
+
+    'setData': [console.set_data, {'n': 'name', 'd': 'data'},
+                {'setData': "-n 'model name' -d 'data name'", '-n, --name (str)': '-- Name of model',
+                 '-d, --data (str)': '-- Name of data'}],
+
+    'train': [console.train, {'n': 'name', 'e': 'epoch'},
+              {'train': "-n 'model name' -e 10", '-n, --name (str)': '-- Name of model to train',
+               '-e, --epoch (int)': '-- Number of epochs to train for'}],
+
+    'predict': [console.predict, {'n': 'name', 's': 'save_path', 'i': 'input_data'},
+                {'predict': "-n 'model name' -i 'name of input data' -s '\some\path.txt'",
+                 '-n, --name (str)': '-- Name of model', '-i, --input_data (str)': '-- Name of input data',
+                 '-s, --save_path (str)': '-- Path to save result (Optional)'}],
+
+    'createModelConfig': [console.create_model_config, {'n': 'name', 'c': 'cls'},
+                          {
+                              'createModelConfig': "-n 'model config name' -t 'type' [-c '{'some_key': 'some_value'}'] [-h '{}'] [-ms '{}']",
+                              "-n, --name (str)": '-- Name of model config',
+                              "-t, --type (str)": '-- Name of the model type',
+                              '-c, --config (dict)': ' -- Dictionary of config values (Optional)',
+                              '-h, --hyperparameters (dict)': '-- Dictionary of hyperparameters values (Optional)',
+                              '-s, --model_structure (dict)': '-- Dictionary of model_structure values (Optional)'}],
+
     'editModelConfig': [console.edit_model_config,
-                        {'n': 'name', 'c': 'config', 'h': 'hyperparameters', 'ms': 'model_structure'}, ''],
-    'deleteModelConfig': [console.delete_model_config, {'n': 'name'}, ''],
-    'saveModelConfig': [console.save_model_config, {'n': 'name'}, ''],
-    'loadModelConfig': [console.load_model_config, {'n': 'name'}, ''],
+                        {'n': 'name', 'c': 'config', 'h': 'hyperparameters', 'ms': 'model_structure'}, {
+                            'editModelConfig': ''''-n 'model config name' [-c '{"some_key": "some_value"}'] [-h '{}'] [-s '{}']''',
+                            '-n, --name (str)': ' -- Name of model config to edit',
+                            '-c, --config (dict)': '-- Dictionary containing the updated config values (Optional)',
+                            '-h, --hyperparameters (dict) ': '-- Dictionary containing the updated hyperparameters values (Optional)',
+                            '-s, --model_structure (dict)': ' -- Dictionary containing the updated model structure values (Optional)'}],
 
-    'createData': [console.create_data, {'n': 'name', 't': 'type', 'mc': 'model_config'}, ''],
-    'dataAddEmbedding': [console.data_add_embedding, {'n': 'name', 'ne': 'name_embedding'}, ''],
+    'deleteModelConfig': [console.delete_model_config, {'n': 'name'}, {'deleteModelConfig': "-n 'model config name",
+                                                                       '-n, --name (str)': '-- Name of model config to delete'}],
+
+    'saveModelConfig': [console.save_model_config, {'n': 'name'}, {'saveModelConfig': "-n 'model config name'",
+                                                                   '-n, --name (str)': '-- Name of model config to save'}],
+
+    'loadModelConfig': [console.load_model_config, {'n': 'name'}, {'loadModelConfig': "-n 'model config name'",
+                                                                   '-n, --name (str)': '-- Name of model config to load'}],
+
+    'createData': [console.create_data, {'n': 'name', 't': 'type', 'mc': 'model_config'}, {}],
+    'dataAddEmbedding': [console.data_add_embedding, {'n': 'name', 'ne': 'name_embedding'},
+                         {'createData': "-n 'data name' -t 'ModelType' -c 'model config name'",
+                          '-n, --name (str)': '-- Name of data',
+                          '-t, --type (str)': '-- Type of data (based on the model)',
+                          '-c, --model_config (str)': '-- Name of model config'}],
+
     'dataReset': [console.data_reset, {'n': 'name'}, ''],
     'deleteData': [console.delete_data, {'n': 'name'}, ''],
     'saveData': [console.save_data, {'n': 'name'}, ''],
     'loadData': [console.load_data, {'n': 'name'}, ''],
+    'getDataDetails': [console.get_data_details, {'n': 'name'}, ''],
 
     'chatbotDataAddTwitter': [console.chatbot_data_add_twitter, {'n': 'name', 'p': 'path'}, ''],
     'chatbotDataAddCornell': [console.chatbot_data_add_cornell,
@@ -69,19 +126,35 @@ commands = {
     'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
                                            {'n': 'names', 'p': 'paths', 'y': 'y'}, ''],
 
-    'createEmbedding': [console.create_embedding, {'n': 'name', 'p': 'path'}, ''],
-    'deleteEmbedding': [console.delete_embedding, {'n': 'name'}, ''],
-    'saveEmbedding': [console.save_embedding, {'n': 'name'}, ''],
-    'loadEmbedding': [console.load_embedding, {'n': 'name'}, ''],
+    'createEmbedding': [console.create_embedding, {'n': 'name', 'p': 'path'},
+                        {'createEmbedding': "-n 'embedding name' -p '\some\path\embedding.txt' [-v 100000]",
+                         '-n, --name (str)': ' -- Name of embedding', '-p, --path (str)': '-- Path to embedding file',
+                         '-v, --vocab_size (int)': '-- Maximum number of tokens to read from embedding file (Optional)'}],
 
-    'startServer': [console.start_server, {'p': 'port', 'pwd': 'pwd', 'mc': 'max_clients', 'l': 'local'}, ''],
-    'stopServer': [console.stop_server, {}, ''],
+    'deleteEmbedding': [console.delete_embedding, {'n': 'name'}, {'deleteEmbedding': "-n 'embedding name'",
+                                                                  '-n, --name (str)': '-- Name of embedding to delete'}],
+
+    'saveEmbedding': [console.save_embedding, {'n': 'name'},
+                      {'saveEmbedding': "-n 'embedding name'", '-n, --name (str)': '-- Name of embedding to save'}],
+
+    'loadEmbedding': [console.load_embedding, {'n': 'name'},
+                      {'loadEmbedding': "-n 'embedding name'", '-n, --name (str)': '-- Name of embedding to load'}],
+
+    'startServer': [console.start_server, {'p': 'port', 'pwd': 'pwd', 'mc': 'max_clients', 'l': 'local'},
+                    {'startServer': "-p 23333 [-l True] [-pwd 'p@ssword'] [-c 10]",
+                     '-p, --port (int)': '-- Port to listen on',
+                     '-l, --local (bool)': '-- If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)',
+                     '-pwd, --password (str)': '-- Password of server (Optional)',
+                     '-c, --max_clients (int)': '-- Maximum number of clients (Optional)'}],
+    'stopServer': [console.stop_server, {}, {'stopServer': ''}],
     'freezeGraph': [console.freeze_graph, {'md': 'model_dir', 'o': 'output_node_names',
-                                           's': 'stored_model_config'}, ''],
+                                           's': 'stored_model_config'},
+                    {'freezeGraph': "-n 'model name'", '-n, --name (str)': ' -- Name of model'}],
     'optimize': [console.optimize, {'md': 'model_dir', 'o': 'output_node_names',
-                                    'i': 'input_node_names'}, ''],
-    'save': [console.save, {}, ''],
-    's': [console.save, {}, ''],
+                                    'i': 'input_node_names'},
+                 {'optimize': "-n 'model name'", '-n, --name (str)': '-- Name of waifu to load'}],
+    'save': [console.save, {}, {'save': ''}],
+    's': [console.save, {}, {'save': ''}],
 }
 
 print("Animius. Type 'help' or '?' to list commands.")
@@ -107,7 +180,8 @@ while True:
             break
         elif command in commands:
             if '--help' in args:
-                print(commands[command][2])
+                for i in commands[command][2]:
+                    print(i, commands[command][2][i])
             else:
                 # valid command and valid args
 
