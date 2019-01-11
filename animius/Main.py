@@ -102,29 +102,85 @@ commands = {
                           '-t, --type (str)': '-- Type of data (based on the model)',
                           '-c, --model_config (str)': '-- Name of model config'}],
 
-    'dataReset': [console.data_reset, {'n': 'name'}, ''],
-    'deleteData': [console.delete_data, {'n': 'name'}, ''],
-    'saveData': [console.save_data, {'n': 'name'}, ''],
-    'loadData': [console.load_data, {'n': 'name'}, ''],
+    'dataReset': [console.data_reset, {'n': 'name'},
+                  {'dataReset': "-n 'data name'", '-n, --name (str)': '-- Name of data to reset'}],
+
+    'deleteData': [console.delete_data, {'n': 'name'},
+                   {'deleteData': "-n 'data name'", '-n, --name (str)': '-- Name of data to delete'}],
+
+    'saveData': [console.save_data, {'n': 'name'},
+                 {'saveData': "-n 'data name'", '-n, --name (str)': '-- Name of data to save'}],
+
+    'loadData': [console.load_data, {'n': 'name'},
+                 {'loadData': "-n 'data name'", '-n, --name (str)': '-- Name of data to load'}],
+
     'getDataDetails': [console.get_data_details, {'n': 'name'}, ''],
 
-    'chatbotDataAddTwitter': [console.chatbot_data_add_twitter, {'n': 'name', 'p': 'path'}, ''],
-    'chatbotDataAddCornell': [console.chatbot_data_add_cornell,
-                              {'n': 'name', 'mcp': 'movie_conversations_path', 'mlp': 'movie_lines_path'}, ''],
-    'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences, {'n': 'name', 'x': 'x', 'y': 'y'}, ''],
-    'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file, {'n': 'name', 'x': 'x', 'y': 'y'}, ''],
-    'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input, {'n': 'name', 'x': 'x'}, ''],
-    'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input, {'n': 'name', 'x': 'x'}, ''],
+    'chatbotDataAddTwitter': [console.chatbot_data_add_twitter, {'n': 'name', 'p': 'path'},
+                              {'chatbotDataAddTwitter': "-n 'data name' -p '\some\path\twitter.txt'",
+                               '-n, --name (str)': '-- Name of data to add on',
+                               '-p, --path (str)': '-- Path to twitter file'}],
 
-    'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input, {'n': 'name', 'x': 'x'}, ''],
-    'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input, {'n': 'name', 'x': 'x'}, ''],
+    'chatbotDataAddCornell': [console.chatbot_data_add_cornell,
+                              {'n': 'name', 'mcp': 'movie_conversations_path', 'mlp': 'movie_lines_path'}, {
+                                  'chatbotDataAddCornell': "-n 'data name' -mcp '\some\cornell\movie_conversations.txt' -mlp '\some\cornell\movie_lines.txt'",
+                                  '-n, --name (str)': '-- Name of data to add on',
+                                  '-mcp, --movie_conversations_path (str)': '-- Path to movie_conversations.txt in the Cornell dataset',
+                                  '-mlp, --movie_lines_path (str)': '-- Path to movie_lines.txt in the Cornell dataset'}],
+
+    'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences, {'n': 'name', 'x': 'x', 'y': 'y'},
+                                     {'chatbotDataAddParseSentences': ''''-n 'data name' -x '["some input"]' -y '["some
+                                      output"]''''', '-n, --name (str)': '-- Name of data to add on',
+                                      '-x, --x (list<str>)': '-- List of strings, each representing a sentence input',
+                                      '-y, --y (list<str>)': '-- List of strings, each representing a sentence output'}],
+
+    'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file, {'n': 'name', 'x': 'x', 'y': 'y'}, {
+        'chatbotDataAddParseFile': "-n 'data name' -x '\some\path\\x.txt' -y '\some\path\y.txt'",
+        '-n, --name (str)': '-- Name of data to add on',
+        '-x, --x_path (str)': '-- Path to a UTF-8 file containing a raw sentence input on each line',
+        '-y, --y_path (str) ': '-- Path to a UTF-8 file containing a raw sentence output on each line'}],
+
+    'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input, {'n': 'name', 'x': 'x'},
+                                 {'chatbotDataAddParseInput': "-n 'data name' -x 'hey how are you'",
+                                  '-n, --name (str)': '-- Name of data to add on',
+                                  '-x, --x (str)': '-- Raw sentence input'}],
+
+    'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input, {'n': 'name', 'x': 'x'},
+                                 {'chatbotDataSetParseInput': "-n 'data name' -x 'hey how are you'",
+                                  '-n, --name (str)': '-- Name of data to set',
+                                  '-x, --x (str)': ' -- Raw sentence input'}],
+
+    'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input, {'n': 'name', 'x': 'x'},
+                                   {'intentNERDataAddParseInput': "-n 'data name' -x 'hey how are you'",
+                                    '-n, --name (str)': '-- Name of data to add on',
+                                    '-x, --x (str)': '-- Raw sentence input'}],
+
+    'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input, {'n': 'name', 'x': 'x'},
+                                   {'intentNERDataSetParseInput': "-n 'data name' -x 'hey how are you'",
+                                    '-n, --name (str)': '-- Name of data to set',
+                                    '-x, --x (str)': '-- Raw sentence input'}],
+
     'intentNERDataAddParseDatafolder': [console.intentNER_data_add_parse_data_folder,
-                                        {'n': 'name', 'fd': 'folder_directory'}, ''],
+                                        {'n': 'name', 'fd': 'folder_directory'},
+                                        {
+                                            'intentNERDataAddParseDatafolder': "-n 'data name' -p '\some\path\\to\intents'",
+                                            '-n, --name (str)': ' -- Name of data to add on',
+                                            '-p, --path (str)': ' -- Path to a folder contains input files'}],
 
     'speakerVerificationDataAddDataPaths': [console.speakerVerification_data_add_data_paths,
-                                            {'n': 'names', 'p': 'paths', 'y': 'y'}, ''],
+                                            {'n': 'names', 'p': 'paths', 'y': 'y'},
+                                            {
+                                                'speakerVerificationDataAddDataPaths': '''-n 'data name' -p '["\some\path\\01.wav"]' [-y True]''',
+                                                '-n, --name (str)': '-- Name of data to add on',
+                                                '-p, -path (list<str>)': '-- List of string paths to raw audio files',
+                                                '-y, --y (bool)': '-- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)'}],
+
     'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
-                                           {'n': 'names', 'p': 'paths', 'y': 'y'}, ''],
+                                           {'n': 'names', 'p': 'paths', 'y': 'y'}, {
+                                               'speakerVerificationDataAddDataFile': '''-n 'data name' -p '\some\path\audios.txt' -y True''',
+                                               '-n, --name (str)': '-- Name of data to add on',
+                                               '-p, --path (str)': '-- Path to file containing a path of a raw audio file on each line',
+                                               '-y, --y (bool)': '-- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)'}],
 
     'createEmbedding': [console.create_embedding, {'n': 'name', 'p': 'path'},
                         {'createEmbedding': "-n 'embedding name' -p '\some\path\embedding.txt' [-v 100000]",
