@@ -16,30 +16,74 @@ readline.set_completer(completer)
 console = am.Console()
 
 commands = {
-    # command : console_method, short-to-long arguments dict, help message
-    'waifus': [console.get_waifus(), {}, ''],
-    'models': [console.get_models, {}, ''],
-    'model_configs': [console.get_model_configs, {}, ''],
-    'data': [console.get_data, {}, ''],
-    'embeddings': [console.get_embeddings, {}, ''],
+    # command : console_method, arguments dict [long arg, type, message], help message, example
+    # (example not provided if there are no arguments)
 
-    'createWaifu': [console.create_waifu, {'n': 'name', 'cm': 'combined_chatbot_model'},
-                    {'createWaifu': "-n 'waifu name' -c 'name of model' -e 'name of embedding",
-                     '-n,--name (str)': '-- Name of waifu',
-                     '-c, --combined_chatbot_model (str) ': '-- Name or directory of combined chatbot model to use',
-                     '-e, --embedding (str)': '-- Name of word embedding to use'}],
+    # region list commands
+    'getWaifu': [console.get_waifu, {},
+                 'Get a list of existing waifu.'
+                 ],
+    'getModels': [console.get_models, {},
+                  'Get a list of existing models.'
+                  ],
+    'getModelConfigs': [console.get_model_configs, {},
+                        'Get a list of existing model configs.'
+                        ],
 
-    'deleteWaifu': [console.delete_waifu, {'n': 'name'},
-                    {'deleteWaifu': "-n 'waifu name'", '=-n, --name (str)': '-- Name of waifu to delete'}],
+    'getData': [console.get_data, {},
+                'Get a list of existing data.'
+                ],
 
-    'saveWaifu': [console.save_waifu, {'n': 'name'},
-                  {'saveWaifu': "-n 'waifu name'", '- n, --name(str)': ' - - Name of waifu to save'}],
+    'getEmbeddings': [console.get_embeddings, {},
+                      'Get a list of existing word embeddings.'
+                      ],
+    # endregion
 
-    'loadWaifu': [console.load_waifu, {'n': 'name'},
-                  {'loadWaifu': "-n 'waifu name'", '-n, --name (str)': '-- Name of waifu to load'}],
+    # region waifu commands
+    'createWaifu': [console.create_waifu,
+                    {
+                        'n': ['name', 'str', 'Name of waifu'],
+                        'c': ['combined_chatbot_model', 'str', 'Name or directory of combined chatbot model to use'],
+                        'e': ['embedding', 'str', 'Name of word embedding to use']
+                    },
+                    'Create a waifu.',
+                    'createWaifu -n \'waifu name\' -c \'name of model\' -e \'name of embedding\''
+                    ],
 
-    'getWaifuDetail': [console.get_waifu_detail, {'n': 'name'}, ''],
+    'deleteWaifu': [console.delete_waifu,
+                    {
+                        'n': ['name', 'str', 'Name of waifu to delete']
+                    },
+                    'Delete  a waifu.',
+                    'deleteWaifu -n \'waifu name\''
+                    ],
 
+    'saveWaifu': [console.save_waifu,
+                  {
+                      'n': ['name', 'str', 'Name of waifu to save']
+                  },
+                  'Save a waifu.',
+                  'saveWaifu -n \'waifu name\''
+                  ],
+
+    'loadWaifu': [console.load_waifu,
+                  {
+                      'n': ['name', 'str', 'Name of waifu to load']
+                  },
+                  'Load a waifu.',
+                  'loadWaifu -n \'waifu name\''
+                  ],
+
+    'getWaifuDetail': [console.get_waifu_detail,
+                       {
+                           'n': ['name', 'str', 'Name of waifu']
+                       },
+                       'Get the detail information of a waifu.',
+                       'getWaifuDetail -n \'waifu name\''
+                       ],
+    # endregion
+
+    # region model commands
     'createModel': [console.create_model, {'n': 'name', 't': 'type'},
                     {'createModel': "-n 'model name' -t 'ModelType'", '-n, --name (str)': 'Name of model',
                      '-t, --type (str)': '-- Type of model'}],
@@ -68,6 +112,7 @@ commands = {
                 {'predict': "-n 'model name' -i 'name of input data' -s '\some\path.txt'",
                  '-n, --name (str)': '-- Name of model', '-i, --input_data (str)': '-- Name of input data',
                  '-s, --save_path (str)': '-- Path to save result (Optional)'}],
+    # endregion
 
     'createModelConfig': [console.create_model_config, {'n': 'name', 'c': 'cls'},
                           {
