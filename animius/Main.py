@@ -84,178 +84,366 @@ commands = {
     # endregion
 
     # region model commands
-    'createModel': [console.create_model, {'n': 'name', 't': 'type'},
-                    {'createModel': "-n 'model name' -t 'ModelType'", '-n, --name (str)': 'Name of model',
-                     '-t, --type (str)': '-- Type of model'}],
+    'createModel': [console.create_model,
+                    {
+                        'n': ['name', 'str', 'Name of model'], 't': ['type', 'str', 'Type of model']
+                    },
+                    'Create a Model',
+                    "createModel: -n 'model name' -t 'ModelType‘"
+                    ],
 
-    'deleteModel': [console.delete_model, {'n': 'name'},
-                    {'deleteModel': "-n 'model name'", '-n, --name (str)': ' -- Name of model to delete'}],
+    'deleteModel': [console.delete_model,
+                    {
+                        'n': ['name', 'str', 'Name of model to delete']
+                    },
+                    'Delete a Model',
+                    "deleteModel -n 'model name'"
+                    ],
 
-    'saveModel': [console.save_model, {'n': 'name'},
-                  {'saveModel': "-n 'model name'", '-n, --name (str)': '-- Name of model to save'}],
+    'saveModel': [console.save_model,
+                  {
+                      '-n': ['--name', 'str', 'Name of model to save']
+                  },
+                  'Save a model',
+                  "saveModel -n 'model name'"
+                  ],
 
-    'loadModel': [console.load_model, {'n': 'name', 'd': 'data'},
-                  {'loadModel': "-n 'model name' -d 'data name'", '-n, --name (str)': '-- Name of model to load',
-                   '-d, --data (str)': '-- Name of data to set to model'}],
+    'loadModel': [console.load_model,
+                  {
+                      '-n': ['--name', 'str', 'Name of model to load'],
+                      '-d': ['--data', 'str', 'Name of data to set to model']
+                  },
+                  'Load a model',
+                  "loadModel -n 'model name' -d 'data name'"
+                  ],
 
     'getModelDetails': [console.get_model_details, {'n': 'name'}, ''],
 
-    'setData': [console.set_data, {'n': 'name', 'd': 'data'},
-                {'setData': "-n 'model name' -d 'data name'", '-n, --name (str)': '-- Name of model',
-                 '-d, --data (str)': '-- Name of data'}],
+    'setData': [console.set_data,
+                {
+                    '-n': ['--name', 'str', 'Name of model'],
+                    '-d': ['--data', 'str', 'Name of data']
+                },
+                'Set model data',
+                "setData -n 'model name' -d 'data name'"
+                ],
 
-    'train': [console.train, {'n': 'name', 'e': 'epoch'},
-              {'train': "-n 'model name' -e 10", '-n, --name (str)': '-- Name of model to train',
-               '-e, --epoch (int)': '-- Number of epochs to train for'}],
+    'train': [console.train,
+              {
+                  '-n': ['--name', 'str', 'Name of model to train'],
+                  '-e': ['--epoch', 'int', 'Number of epochs to train for']
+              },
+              'Train a model',
+              "train -n 'model name' -e 10"
+              ],
 
-    'predict': [console.predict, {'n': 'name', 's': 'save_path', 'i': 'input_data'},
-                {'predict': "-n 'model name' -i 'name of input data' -s '\some\path.txt'",
-                 '-n, --name (str)': '-- Name of model', '-i, --input_data (str)': '-- Name of input data',
-                 '-s, --save_path (str)': '-- Path to save result (Optional)'}],
+    'predict': [console.predict,
+                {
+                    '-n': ['--name', 'str', 'Name of model'],
+                    '-i': ['--input_data', 'str', 'Name of input data'],
+                    '-s': ['--save_path', 'str', 'Path to save result (Optional)']
+                },
+                'Make predictions with a model',
+                "predict -n 'model name' -i 'name of input data' -s '\\some\\path.txt'"
+                ],
+
     # endregion
 
-    'createModelConfig': [console.create_model_config, {'n': 'name', 'c': 'cls'},
+    'createModelConfig': [console.create_model_config,
                           {
-                              'createModelConfig': "-n 'model config name' -t 'type' [-c '{'some_key': 'some_value'}'] [-h '{}'] [-ms '{}']",
-                              "-n, --name (str)": '-- Name of model config',
-                              "-t, --type (str)": '-- Name of the model type',
-                              '-c, --config (dict)': ' -- Dictionary of config values (Optional)',
-                              '-h, --hyperparameters (dict)': '-- Dictionary of hyperparameters values (Optional)',
-                              '-s, --model_structure (dict)': '-- Dictionary of model_structure values (Optional)'}],
+                              '-n': ['--name', 'str', 'Name of model config'],
+                              '-t': ['--type', 'str', 'Name of the model type'],
+                              '-c': ['--config', 'dict', 'Dictionary of config values (Optional)'],
+                              '-h': ['--hyperparameters', 'dict', 'Dictionary of hyperparameters values (Optional)'],
+                              '-s': ['--model_structure', 'dict', 'Dictionary of model_structure values (Optional)']
+                          },
+                          'Create a model config with the provided values',
+                          "createModelConfig -n 'model config name' -t 'type' [-c '{'some_key': 'some_value'}'] [-h '{}'] [-ms '{}']"
+                          ],
 
     'editModelConfig': [console.edit_model_config,
-                        {'n': 'name', 'c': 'config', 'h': 'hyperparameters', 'ms': 'model_structure'}, {
-                            'editModelConfig': ''''-n 'model config name' [-c '{"some_key": "some_value"}'] [-h '{}'] [-s '{}']''',
-                            '-n, --name (str)': ' -- Name of model config to edit',
-                            '-c, --config (dict)': '-- Dictionary containing the updated config values (Optional)',
-                            '-h, --hyperparameters (dict) ': '-- Dictionary containing the updated hyperparameters values (Optional)',
-                            '-s, --model_structure (dict)': ' -- Dictionary containing the updated model structure values (Optional)'}],
+                        {
+                            '-n': ['--name', 'str', 'Name of model config to edit'],
+                            '-c': ['--config', 'dict', 'Dictionary containing the updated config values (Optional)'],
+                            '-h': ['--hyperparameters', 'dict',
+                                   'Dictionary containing the updated hyperparameters values (Optional)'],
+                            '-s': ['--model_structure', 'dict',
+                                   'Dictionary containing the updated model structure values (Optional)']
+                        },
+                        'Update a model config with the provided values',
+                        'editModelConfig -n \'model config name\' [-c \'{"some_key": "some_value"}\'] [-h \'{}\'] [-s \'{}\']'
+                        ],
 
-    'deleteModelConfig': [console.delete_model_config, {'n': 'name'}, {'deleteModelConfig': "-n 'model config name",
-                                                                       '-n, --name (str)': '-- Name of model config to delete'}],
+    'deleteModelConfig': [console.delete_model_config,
+                          {
+                              '-n': ['--name', 'str', 'Name of model config to delete']
+                          },
+                          'Delete a model config',
+                          "deleteModelConfig -n 'model config name"
+                          ],
 
-    'saveModelConfig': [console.save_model_config, {'n': 'name'}, {'saveModelConfig': "-n 'model config name'",
-                                                                   '-n, --name (str)': '-- Name of model config to save'}],
+    'saveModelConfig': [console.save_model_config,
+                        {
+                            '-n': ['--name', 'str', 'Name of model config to save']
+                        },
+                        'Save a model config',
+                        "saveModelConfig -n 'model config name'"
+                        ],
 
-    'loadModelConfig': [console.load_model_config, {'n': 'name'}, {'loadModelConfig': "-n 'model config name'",
-                                                                   '-n, --name (str)': '-- Name of model config to load'}],
+    'loadModelConfig': [console.load_model_config,
+                        {
+                            '-n': ['--name', 'str', 'Name of model config to load']
+                        },
+                        'Load a model config',
+                        "loadModelConfig -n 'model config name'"
+                        ],
 
-    'createData': [console.create_data, {'n': 'name', 't': 'type', 'mc': 'model_config'}, {}],
-    'dataAddEmbedding': [console.data_add_embedding, {'n': 'name', 'ne': 'name_embedding'},
-                         {'createData': "-n 'data name' -t 'ModelType' -c 'model config name'",
-                          '-n, --name (str)': '-- Name of data',
-                          '-t, --type (str)': '-- Type of data (based on the model)',
-                          '-c, --model_config (str)': '-- Name of model config'}],
+    'createData': [console.create_data,
+                   {
+                       '-n': ['--name', 'str', 'Name of data'],
+                       '-t': ['--type', 'str', 'Type of data (based on the model)'],
+                       '-c': ['--model_config', 'str', 'Name of model config']
+                   },
+                   'Create a data with empty values',
+                   "createData -n 'data name' -t 'ModelType' -c 'model config name"
+                   ],
 
-    'dataReset': [console.data_reset, {'n': 'name'},
-                  {'dataReset': "-n 'data name'", '-n, --name (str)': '-- Name of data to reset'}],
+    'dataAddEmbedding': [console.data_add_embedding,
+                         {
+                             '-n': ['--name', 'str', 'Name of data'],
+                             '-t': ['--type', 'str', 'Type of data (based on the model)'],
+                             '-c': ['--model_config', 'str', 'Name of model config']
+                         }, 'Add word embedding to data',
+                         "createData -n 'data name' -t 'ModelType' -c 'model config name'"
+                         ],
 
-    'deleteData': [console.delete_data, {'n': 'name'},
-                   {'deleteData': "-n 'data name'", '-n, --name (str)': '-- Name of data to delete'}],
+    'dataReset': [console.data_reset,
+                  {
+                      '-n': ['--name', 'str', 'Name of data to reset']
+                  },
+                  'Reset a data, clearing all stored data values',
+                  "dataReset -n 'data name'"
+                  ],
 
-    'saveData': [console.save_data, {'n': 'name'},
-                 {'saveData': "-n 'data name'", '-n, --name (str)': '-- Name of data to save'}],
+    'deleteData': [console.delete_data,
+                   {
+                       '-n': ['--name', 'str', 'Name of data to delete']
+                   },
+                   'Delete a data',
+                   "deleteData -n 'data name'"
+                   ],
 
-    'loadData': [console.load_data, {'n': 'name'},
-                 {'loadData': "-n 'data name'", '-n, --name (str)': '-- Name of data to load'}],
+    'saveData': [console.save_data,
+                 {
+                     '-n': ['--name', 'str', 'Name of data to save']
+                 },
+                 'Save a data',
+                 "saveData -n 'data name'"
+                 ],
+
+    'loadData': ['console.load_data',
+                 {
+                     '-n': ['--name', 'str', 'Name of data to load']
+                 },
+                 'Load a data',
+                 "loadData -n 'data name'"
+                 ]
+    ,
 
     'getDataDetails': [console.get_data_details, {'n': 'name'}, ''],
 
-    'chatbotDataAddTwitter': [console.chatbot_data_add_twitter, {'n': 'name', 'p': 'path'},
-                              {'chatbotDataAddTwitter': "-n 'data name' -p '\some\path\twitter.txt'",
-                               '-n, --name (str)': '-- Name of data to add on',
-                               '-p, --path (str)': '-- Path to twitter file'}],
+    'chatbotDataAddTwitter': [console.chatbot_data_add_twitter,
+                              {
+                                  '-n': ['--name', 'str', 'Name of data to add on'],
+                                  '-p': ['--path', 'str', 'Path to twitter file']
+                              },
+                              'Add twitter dataset to a chatbot data',
+                              "chatbotDataAddTwitter -n 'data name' -p '\\some\\path\twitter.txt'"
+                              ],
 
     'chatbotDataAddCornell': [console.chatbot_data_add_cornell,
-                              {'n': 'name', 'mcp': 'movie_conversations_path', 'mlp': 'movie_lines_path'}, {
-                                  'chatbotDataAddCornell': "-n 'data name' -mcp '\some\cornell\movie_conversations.txt' -mlp '\some\cornell\movie_lines.txt'",
-                                  '-n, --name (str)': '-- Name of data to add on',
-                                  '-mcp, --movie_conversations_path (str)': '-- Path to movie_conversations.txt in the Cornell dataset',
-                                  '-mlp, --movie_lines_path (str)': '-- Path to movie_lines.txt in the Cornell dataset'}],
+                              {
+                                  '-n': ['--name', 'str', 'Name of data to add on'],
+                                  '-mcp': ['--movie_conversations_path', 'str',
+                                           'Path to movie_conversations.txt in the Cornell dataset'],
+                                  '-mlp': ['--movie_lines_path', 'str',
+                                           'Path to movie_lines.txt in the Cornell dataset']
+                              },
+                              'Add Cornell dataset to a chatbot data',
+                              "chatbotDataAddCornell -n 'data name' -mcp '\\some\\cornell\\movie_conversations.txt' -mlp '\\some\\cornell\\movie_lines.txt'"
+                              ],
 
-    'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences, {'n': 'name', 'x': 'x', 'y': 'y'},
-                                     {'chatbotDataAddParseSentences': ''''-n 'data name' -x '["some input"]' -y '["some
-                                      output"]''''', '-n, --name (str)': '-- Name of data to add on',
-                                      '-x, --x (list<str>)': '-- List of strings, each representing a sentence input',
-                                      '-y, --y (list<str>)': '-- List of strings, each representing a sentence output'}],
+    'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences,
+                                     {
+                                         '-n': ['--name', 'str', 'Name of data to add on'],
+                                         '-x': ['--x', 'list<str>',
+                                                'List of strings, each representing a sentence input'],
+                                         '-y': ['--y', 'list<str>',
+                                                'List of strings, each representing a sentence output']
+                                     },
+                                     'Add Cornell dataset to a chatbot data',
+                                     "chatbotDataAddParseSentences -n 'data name' -x '['some input']' -y '['some output']'"
+                                     ],
 
-    'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file, {'n': 'name', 'x': 'x', 'y': 'y'}, {
-        'chatbotDataAddParseFile': "-n 'data name' -x '\some\path\\x.txt' -y '\some\path\y.txt'",
-        '-n, --name (str)': '-- Name of data to add on',
-        '-x, --x_path (str)': '-- Path to a UTF-8 file containing a raw sentence input on each line',
-        '-y, --y_path (str) ': '-- Path to a UTF-8 file containing a raw sentence output on each line'}],
+    'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file,
+                                {
+                                    '-n': ['--name', 'str', 'Name of data to add on'],
+                                    '-x': ['--x_path', 'str',
+                                           'Path to a UTF-8 file containing a raw sentence input on each line'],
+                                    '-y': ['--y_path', 'str',
+                                           'Path to a UTF-8 file containing a raw sentence output on each line']
+                                },
+                                'Parse raw sentences from text files and add them to a chatbot data',
+                                "chatbotDataAddParseFile -n 'data name' -x '\\some\\path\\x.txt' -y '\\some\\path\\y.txt'"
+                                ],
 
-    'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input, {'n': 'name', 'x': 'x'},
-                                 {'chatbotDataAddParseInput': "-n 'data name' -x 'hey how are you'",
-                                  '-n, --name (str)': '-- Name of data to add on',
-                                  '-x, --x (str)': '-- Raw sentence input'}],
+    'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input,
+                                 {
+                                     '-n': ['--name', 'str', 'Name of data to add on'],
+                                     '-x': ['--x', 'str', 'Raw sentence input']
+                                 },
+                                 'Parse a raw sentence as input and add it to a chatbot data',
+                                 "chatbotDataAddParseInput -n 'data name' -x 'hey how are you'"
+                                 ],
 
-    'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input, {'n': 'name', 'x': 'x'},
-                                 {'chatbotDataSetParseInput': "-n 'data name' -x 'hey how are you'",
-                                  '-n, --name (str)': '-- Name of data to set',
-                                  '-x, --x (str)': ' -- Raw sentence input'}],
+    'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input,
+                                 {
+                                     '-n': ['--name', 'str', 'Name of data to set'],
+                                     '-x': ['--x', 'str', 'Raw sentence input']
+                                 },
+                                 'Parse a raw sentence as input and set it as a chatbot data',
+                                 "chatbotDataSetParseInput -n 'data name' -x 'hey how are you'"
+                                 ],
 
-    'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input, {'n': 'name', 'x': 'x'},
-                                   {'intentNERDataAddParseInput': "-n 'data name' -x 'hey how are you'",
-                                    '-n, --name (str)': '-- Name of data to add on',
-                                    '-x, --x (str)': '-- Raw sentence input'}],
+    'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input,
+                                   {
+                                       '-n': ['--name', 'str', 'Name of data to add on'],
+                                       '-x': ['--x', 'str', 'Raw sentence input']
+                                   },
+                                   'Parse a raw sentence as input and add it to an intent NER data',
+                                   "intentNERDataAddParseInput -n 'data name' -x 'hey how are you'"
+                                   ],
 
-    'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input, {'n': 'name', 'x': 'x'},
-                                   {'intentNERDataSetParseInput': "-n 'data name' -x 'hey how are you'",
-                                    '-n, --name (str)': '-- Name of data to set',
-                                    '-x, --x (str)': '-- Raw sentence input'}],
+    'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input,
+                                   {
+                                       '-n': ['--name', 'str', 'Name of data to set'],
+                                       '-x': ['--x', 'str', 'Raw sentence input']
+                                   },
+                                   'Parse a raw sentence as input and set it as an intent NER data',
+                                   "intentNERDataSetParseInput -n 'data name' -x 'hey how are you'"
+                                   ],
 
     'intentNERDataAddParseDatafolder': [console.intentNER_data_add_parse_data_folder,
-                                        {'n': 'name', 'fd': 'folder_directory'},
                                         {
-                                            'intentNERDataAddParseDatafolder': "-n 'data name' -p '\some\path\\to\intents'",
-                                            '-n, --name (str)': ' -- Name of data to add on',
-                                            '-p, --path (str)': ' -- Path to a folder contains input files'}],
+                                            '-n': ['--name', 'str', 'Name of data to add on'],
+                                            '-p': ['--path', 'str', 'Path to a folder contains input files']
+                                        },
+                                        'Parse files from a folder and add them to a chatbot data',
+                                        "intentNERDataAddParseDatafolder -n 'data name' -p '\\some\\path\\to\\intents'"
+                                        ],
 
     'speakerVerificationDataAddDataPaths': [console.speakerVerification_data_add_data_paths,
-                                            {'n': 'names', 'p': 'paths', 'y': 'y'},
                                             {
-                                                'speakerVerificationDataAddDataPaths': '''-n 'data name' -p '["\some\path\\01.wav"]' [-y True]''',
-                                                '-n, --name (str)': '-- Name of data to add on',
-                                                '-p, -path (list<str>)': '-- List of string paths to raw audio files',
-                                                '-y, --y (bool)': '-- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)'}],
+                                                '-n': ['--name', 'str', 'Name of data to add on'],
+                                                '-p': ['-path', 'list<str>', 'List of string paths to raw audio files'],
+                                                '-y': ['--y', 'bool',
+                                                       'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                            },
+                                            'Parse and add raw audio files to a speaker verification data',
+                                            'speakerVerificationDataAddDataPaths -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                            ],
 
     'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
-                                           {'n': 'names', 'p': 'paths', 'y': 'y'}, {
-                                               'speakerVerificationDataAddDataFile': '''-n 'data name' -p '\some\path\audios.txt' -y True''',
-                                               '-n, --name (str)': '-- Name of data to add on',
-                                               '-p, --path (str)': '-- Path to file containing a path of a raw audio file on each line',
-                                               '-y, --y (bool)': '-- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)'}],
+                                           {
+                                               '-n': ['--name', 'str', 'Name of data to add on'],
+                                               '-p': ['--path', 'str',
+                                                      'Path to file containing a path of a raw audio file on each line'],
+                                               '-y': ['--y', 'bool',
+                                                      'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                           },
+                                           'Read paths to raw audio files and add them to a speaker verification data',
+                                           "speakerVerificationDataAddDataFile -n 'data name' -p '\\some\\path\x07udios.txt' -y True"
+                                           ],
 
-    'createEmbedding': [console.create_embedding, {'n': 'name', 'p': 'path'},
-                        {'createEmbedding': "-n 'embedding name' -p '\some\path\embedding.txt' [-v 100000]",
-                         '-n, --name (str)': ' -- Name of embedding', '-p, --path (str)': '-- Path to embedding file',
-                         '-v, --vocab_size (int)': '-- Maximum number of tokens to read from embedding file (Optional)'}],
+    'createEmbedding': [console.create_embedding,
+                        {
+                            '-n': ['--name', 'str', 'Name of embedding'],
+                            '-p': ['--path', 'str', 'Path to embedding file'],
+                            '-v': ['--vocab_size', 'int',
+                                   'Maximum number of tokens to read from embedding file (Optional)']
+                        },
+                        'Create a word embedding',
+                        "createEmbedding -n 'embedding name' -p '\\some\\path\\embedding.txt' [-v 100000]"
+                        ],
 
-    'deleteEmbedding': [console.delete_embedding, {'n': 'name'}, {'deleteEmbedding': "-n 'embedding name'",
-                                                                  '-n, --name (str)': '-- Name of embedding to delete'}],
+    'deleteEmbedding': [console.delete_embedding,
+                        {
+                            '-n': ['--name', 'str', 'Name of embedding to delete']
+                        },
+                        'Delete a word embedding', "deleteEmbedding -n 'embedding name'"
+                        ],
 
-    'saveEmbedding': [console.save_embedding, {'n': 'name'},
-                      {'saveEmbedding': "-n 'embedding name'", '-n, --name (str)': '-- Name of embedding to save'}],
+    'saveEmbedding': [console.save_embedding,
+                      {
+                          '-n': ['--name', 'str', 'Name of embedding to save']
+                      },
+                      'Save an embedding', "saveEmbedding -n 'embedding name'"
+                      ],
 
-    'loadEmbedding': [console.load_embedding, {'n': 'name'},
-                      {'loadEmbedding': "-n 'embedding name'", '-n, --name (str)': '-- Name of embedding to load'}],
+    'loadEmbedding': [console.load_embedding,
+                      {
+                          '-n': ['--name', 'str', 'Name of embedding to load']
+                      },
+                      'Load an embedding', "loadEmbedding -n 'embedding name'"
+                      ],
 
-    'startServer': [console.start_server, {'p': 'port', 'pwd': 'pwd', 'mc': 'max_clients', 'l': 'local'},
-                    {'startServer': "-p 23333 [-l True] [-pwd 'p@ssword'] [-c 10]",
-                     '-p, --port (int)': '-- Port to listen on',
-                     '-l, --local (bool)': '-- If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)',
-                     '-pwd, --password (str)': '-- Password of server (Optional)',
-                     '-c, --max_clients (int)': '-- Maximum number of clients (Optional)'}],
-    'stopServer': [console.stop_server, {}, {'stopServer': ''}],
-    'freezeGraph': [console.freeze_graph, {'md': 'model_dir', 'o': 'output_node_names',
-                                           's': 'stored_model_config'},
-                    {'freezeGraph': "-n 'model name'", '-n, --name (str)': ' -- Name of model'}],
-    'optimize': [console.optimize, {'md': 'model_dir', 'o': 'output_node_names',
-                                    'i': 'input_node_names'},
-                 {'optimize': "-n 'model name'", '-n, --name (str)': '-- Name of waifu to load'}],
-    'save': [console.save, {}, {'save': ''}],
-    's': [console.save, {}, {'save': ''}],
+    'startServer': [console.start_server,
+                    {
+                        '-p': ['--port', 'int', 'Port to listen on'], '-l': ['--local', 'bool',
+                                                                             'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
+                        '-pwd': ['--password', 'str', 'Password of server (Optional)'],
+                        '-c': ['--max_clients', 'int', 'Maximum number of clients (Optional)']
+                    },
+                    'Start a socket server and listen for clients. The server runs on a separate thread so the console will still function',
+                    "startServer -p 23333 [-l True] [-pwd 'p@ssword'] [-c 10]"
+                    ],
+
+    'stopServer': [console.stop_server,
+                   {
+                   },
+                   'Stop current socket server and close all connections',
+                   'stopServer'
+                   ],
+    'freezeGraph': [console.freeze_graph,
+                    {
+                        '-n': ['--name', 'str', 'Name of model']
+                    },
+                    'Freeze Tensorflow graph and latest checkpoint to a file',
+                    "freezeGraph -n 'model name'"
+                    ],
+
+    'optimize': [console.optimize,
+                 {
+                     '-n': ['--name', 'str', 'Name of waifu to load']
+                 },
+                 'Optimize a frozen model (see FreezeGraph) for inference.',
+                 "optimize -n 'model name'"
+                 ],
+    'save': [console.save,
+             {
+
+             },
+             'Save the console. (This does not save individual items such as models and waifus.)',
+             'save '
+             ],
+
+    's': [console.save,
+          {
+
+          },
+          'Save the console. (This does not save individual items such as models and waifus.)',
+          'save '
+          ]
 }
 
 print("Animius. Type 'help' or '?' to list commands.")
