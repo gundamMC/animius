@@ -131,7 +131,7 @@ class Console:
             with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'w') as f:
                 json.dump({'items': tmp_dict}, f, indent=4)
 
-    def get_waifus(self, **kwargs):
+    def get_waifu(self, **kwargs):
         return list(self.waifus.keys())
 
     def get_models(self, **kwargs):
