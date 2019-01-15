@@ -42,9 +42,9 @@ commands = {
     # region waifu commands
     'createWaifu': [console.create_waifu,
                     {
-                        'n': ['name', 'str', 'Name of waifu'],
-                        'c': ['combined_chatbot_model', 'str', 'Name or directory of combined chatbot model to use'],
-                        'e': ['embedding', 'str', 'Name of word embedding to use']
+                        '-n': ['name', 'str', 'Name of waifu'],
+                        '-c': ['combined_chatbot_model', 'str', 'Name or directory of combined chatbot model to use'],
+                        '-e': ['embedding', 'str', 'Name of word embedding to use']
                     },
                     'Create a waifu.',
                     'createWaifu -n \'waifu name\' -c \'name of model\' -e \'name of embedding\''
@@ -52,7 +52,7 @@ commands = {
 
     'deleteWaifu': [console.delete_waifu,
                     {
-                        'n': ['name', 'str', 'Name of waifu to delete']
+                        '-n': ['name', 'str', 'Name of waifu to delete']
                     },
                     'Delete  a waifu.',
                     'deleteWaifu -n \'waifu name\''
@@ -60,7 +60,7 @@ commands = {
 
     'saveWaifu': [console.save_waifu,
                   {
-                      'n': ['name', 'str', 'Name of waifu to save']
+                      '-n': ['name', 'str', 'Name of waifu to save']
                   },
                   'Save a waifu.',
                   'saveWaifu -n \'waifu name\''
@@ -68,7 +68,7 @@ commands = {
 
     'loadWaifu': [console.load_waifu,
                   {
-                      'n': ['name', 'str', 'Name of waifu to load']
+                      '-n': ['name', 'str', 'Name of waifu to load']
                   },
                   'Load a waifu.',
                   'loadWaifu -n \'waifu name\''
@@ -76,7 +76,7 @@ commands = {
 
     'getWaifuDetail': [console.get_waifu_detail,
                        {
-                           'n': ['name', 'str', 'Name of waifu']
+                           '-n': ['name', 'str', 'Name of waifu']
                        },
                        'Get the detail information of a waifu.',
                        'getWaifuDetail -n \'waifu name\''
@@ -86,7 +86,7 @@ commands = {
     # region model commands
     'createModel': [console.create_model,
                     {
-                        'n': ['name', 'str', 'Name of model'], 't': ['type', 'str', 'Type of model']
+                        '-n': ['name', 'str', 'Name of model'], 't': ['type', 'str', 'Type of model']
                     },
                     'Create a Model',
                     "createModel: -n 'model name' -t 'ModelType‘"
@@ -94,7 +94,7 @@ commands = {
 
     'deleteModel': [console.delete_model,
                     {
-                        'n': ['name', 'str', 'Name of model to delete']
+                        '-n': ['name', 'str', 'Name of model to delete']
                     },
                     'Delete a Model',
                     "deleteModel -n 'model name'"
@@ -469,8 +469,10 @@ while True:
             break
         elif command in commands:
             if '--help' in args:
-                for i in commands[command][2]:
-                    print(i, commands[command][2][i])
+                print(commands[command][2])
+                print(commands[command][3])
+                for i in commands[command][1]:
+                    print(i, commands[command][1][i][0], commands[command][1][i][1], commands[command][1][i][2])
             else:
                 # valid command and valid args
 
@@ -480,11 +482,11 @@ while True:
                     if arg[:2] == '--':  # long
                         kwargs[arg[2:]] = args[arg]
                     elif arg[:1] == '-':  # short
-                        if arg[1:] not in commands[command][1]:
+                        if arg not in commands[command][1]:
                             print("Invalid short argument {0}, skipping it".format(arg))
                             continue
 
-                        long_arg = commands[command][1][arg[1:]]
+                        long_arg = commands[command][1][arg][0]
                         kwargs[long_arg] = args[arg]
 
                 print(kwargs)
