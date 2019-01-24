@@ -269,7 +269,7 @@ class Console:
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'combined_prediction_model', 'embedding'])
+                                hard_requirements=['name', 'combined_chatbot_model', 'embedding'])
 
         if kwargs['name'] in self.waifu:
             raise NameAlreadyExistError("The name {0} is already used by another waifu".format(kwargs['name']))
@@ -277,13 +277,13 @@ class Console:
         if kwargs['embedding'] not in self.embeddings:
             raise NameNotFoundError("Embedding {0} no found".format(kwargs['embedding']))
 
-        if not os.path.isdir(kwargs['combined_prediction_model']):
-            if kwargs['combined_prediction_model'] in self.models:
-                kwargs['combined_prediction_model'] = self.models[kwargs['combined_prediction_model']].saved_directory
+        if not os.path.isdir(kwargs['combined_chatbot_model']):
+            if kwargs['combined_chatbot_model'] in self.models:
+                kwargs['combined_chatbot_model'] = self.models[kwargs['combined_chatbot_model']].saved_directory
             else:
                 raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
 
-        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_prediction_model']})
+        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']})
 
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
