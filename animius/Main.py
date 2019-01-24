@@ -470,9 +470,16 @@ while True:
         elif command in commands:
             if '--help' in args:
                 print(commands[command][2])
-                print(commands[command][3])
-                for i in commands[command][1]:
-                    print(i, commands[command][1][i][0], commands[command][1][i][1], commands[command][1][i][2])
+                print('usage: ' + commands[command][3])
+                print('  arguments:')
+                for short in commands[command][1]:
+                    print('    {0}, --{1} ({2}) \t {3}'.format(
+                              short,
+                              commands[command][1][short][0],
+                              commands[command][1][short][1],
+                              commands[command][1][short][2]
+                            ).expandtabs(30)
+                          )
             else:
                 # valid command and valid args
 
