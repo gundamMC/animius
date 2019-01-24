@@ -41,10 +41,10 @@ class Console:
         animius_dir = os.path.dirname(os.path.realpath(__file__))
         self.config_dir = os.path.join(animius_dir, 'user-config.json')
 
-        sub_dirs = {'waifus', 'models', 'model_configs', 'data', 'embeddings'}
+        sub_dirs = {'waifu', 'models', 'model_configs', 'data', 'embeddings'}
 
         self.models = {}
-        self.waifus = {}
+        self.waifu = {}
         self.model_configs = {}
         self.data = {}
         self.embeddings = {}
@@ -123,7 +123,7 @@ class Console:
             json.dump({'directories': self.directories}, f, indent=4)
 
         # save all items
-        for sub_dir in {'waifus', 'models', 'model_configs', 'data', 'embeddings'}:
+        for sub_dir in {'waifu', 'models', 'model_configs', 'data', 'embeddings'}:
             tmp_dict = {}
             for item_name, console_item in getattr(self, sub_dir).items():
                 tmp_dict[item_name] = {'saved_directory': console_item.saved_directory,
@@ -132,7 +132,7 @@ class Console:
                 json.dump({'items': tmp_dict}, f, indent=4)
 
     def get_waifu(self, **kwargs):
-        return list(self.waifus.keys())
+        return list(self.waifu.keys())
 
     def get_models(self, **kwargs):
         return list(self.models.keys())
@@ -159,13 +159,13 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
-        if kwargs['name'] not in self.waifus:
+        if kwargs['name'] not in self.waifu:
             raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
 
-        tmp = dict(self.waifus[kwargs['name']].item.config)
+        tmp = dict(self.waifu[kwargs['name']].item.config)
 
-        tmp['saved_directory'] = self.waifus[kwargs['name']].saved_directory
-        tmp['saved_name'] = self.waifus[kwargs['name']].saved_name
+        tmp['saved_directory'] = self.waifu[kwargs['name']].saved_directory
+        tmp['saved_name'] = self.waifu[kwargs['name']].saved_name
 
         return tmp
 
@@ -271,7 +271,7 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'combined_prediction_model', 'embedding'])
 
-        if kwargs['name'] in self.waifus:
+        if kwargs['name'] in self.waifu:
             raise NameAlreadyExistError("The name {0} is already used by another waifu".format(kwargs['name']))
 
         if kwargs['embedding'] not in self.embeddings:
@@ -291,7 +291,7 @@ class Console:
         # saving it first to set up its saving location
         console_item.save()
 
-        self.waifus[kwargs['name']] = console_item
+        self.waifu[kwargs['name']] = console_item
 
     def delete_waifu(self, **kwargs):
         """
@@ -306,8 +306,8 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
-        if kwargs['name'] in self.waifus:
-            self.waifus.pop(kwargs['name'])
+        if kwargs['name'] in self.waifu:
+            self.waifu.pop(kwargs['name'])
         else:
             raise NameNotFoundError("Waifu \"{0}\" not found.".format(kwargs['name']))
 
@@ -324,10 +324,10 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
-        if kwargs['name'] not in self.waifus:
+        if kwargs['name'] not in self.waifu:
             raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
 
-        self.waifus[kwargs['name']].save()
+        self.waifu[kwargs['name']].save()
 
     def load_waifu(self, **kwargs):
         """
@@ -342,15 +342,15 @@ class Console:
         Console.check_arguments(kwargs,
                                 hard_requirements=['name'])
 
-        if kwargs['name'] not in self.waifus:
+        if kwargs['name'] not in self.waifu:
             raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
 
         waifu = am.Waifu.load(
-            self.waifus[kwargs['name']].saved_directory,
-            self.waifus[kwargs['name']].saved_name)
+            self.waifu[kwargs['name']].saved_directory,
+            self.waifu[kwargs['name']].saved_name)
 
-        self.waifus[kwargs['name']].item = waifu
-        self.waifus[kwargs['name']].loaded = True
+        self.waifu[kwargs['name']].item = waifu
+        self.waifu[kwargs['name']].loaded = True
 
     def create_model(self, **kwargs):
         """
