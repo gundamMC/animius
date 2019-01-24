@@ -132,7 +132,11 @@ class Console:
                 json.dump({'items': tmp_dict}, f, indent=4)
 
     def get_waifu(self, **kwargs):
-        return list(self.waifu.keys())
+        results = {}
+        for key in self.waifu:
+            results[key] = {'name': self.waifu[key].item.config['name'],
+                            'desciprtion': self.waifu[key].item.config['description']}
+        return results
 
     def get_models(self, **kwargs):
         return list(self.models.keys())
@@ -266,6 +270,7 @@ class Console:
         * *name* (``str``) -- Name of waifu
         * *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
         * *embedding* (``str``) -- Name of embedding
+        * *description* (``str``) -- Description of waifu. Optional
         """
 
         Console.check_arguments(kwargs,
@@ -283,7 +288,9 @@ class Console:
             else:
                 raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
 
-        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']})
+        desc = '' if 'description' in kwargs else kwargs['description']
+
+        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']}, description=desc)
 
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
