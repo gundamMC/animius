@@ -8,7 +8,7 @@ import animius as am
 
 class Waifu:
 
-    def __init__(self, name, models=None):
+    def __init__(self, name, models=None, description=''):
 
         self.combined_prediction = None
         self.input_data = None
@@ -16,7 +16,7 @@ class Waifu:
         if models is None:
             models = {}
 
-        self.config = {'name': name, 'data': None, 'models': models}
+        self.config = {'name': name, 'description': description, 'data': None, 'models': models}
 
         self.saved_directory = None
         self.saved_name = None
