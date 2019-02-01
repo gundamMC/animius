@@ -87,7 +87,8 @@ commands = {
     # region model commands
     'createModel': [console.create_model,
                     {
-                        '-n': ['name', 'str', 'Name of model'], 't': ['type', 'str', 'Type of model']
+                        '-n': ['name', 'str', 'Name of model'],
+                        '-t': ['type', 'str', 'Type of model']
                     },
                     'Create a Model',
                     "createModel: -n 'model name' -t 'ModelType‘"
@@ -118,7 +119,13 @@ commands = {
                   "loadModel -n 'model name' -d 'data name'"
                   ],
 
-    'getModelDetails': [console.get_model_details, {'n': 'name'}, ''],
+    'getModelDetails': [console.get_model_details,
+                        {
+                            '-n': ['--name', 'str', 'Name of model'],
+                        },
+                        'Return the details of a model',
+                        "getModelDetails -n 'model name'"
+                        ],
 
     'setData': [console.set_data,
                 {
@@ -251,7 +258,12 @@ commands = {
                  ]
     ,
 
-    'getDataDetails': [console.get_data_details, {'n': 'name'}, ''],
+    'getDataDetails': [console.get_data_details,
+                       {
+                           '-n': ['--name', 'str', 'Name of data']
+                       },
+                       'Return the details of a data',
+                       "getDataDetails -n 'data name'"],
 
     'chatbotDataAddTwitter': [console.chatbot_data_add_twitter,
                               {
@@ -475,11 +487,11 @@ while True:
                 print('  arguments:')
                 for short in commands[command][1]:
                     print('    {0}, --{1} ({2}) \t {3}'.format(
-                              short,
-                              commands[command][1][short][0],
-                              commands[command][1][short][1],
-                              commands[command][1][short][2]
-                            ).expandtabs(30)
+                        short,
+                        commands[command][1][short][0],
+                        commands[command][1][short][1],
+                        commands[command][1][short][2]
+                    ).expandtabs(30)
                           )
             else:
                 # valid command and valid args
