@@ -38,6 +38,8 @@ class Console:
 
     def __init__(self, init_directory=None):
 
+        self.commands = None
+
         animius_dir = os.path.dirname(os.path.realpath(__file__))
         self.config_dir = os.path.join(animius_dir, 'user-config.json')
 
@@ -134,8 +136,11 @@ class Console:
     def get_waifu(self, **kwargs):
         results = {}
         for key in self.waifu:
-            results[key] = {'name': self.waifu[key].item.config['name'],
-                            'desciprtion': self.waifu[key].item.config['description']}
+            if self.waifu[key].loaded:
+                results[key] = {'name': self.waifu[key].item.config['name'],
+                                'desciprtion': self.waifu[key].item.config['description']}
+            else:
+                results[key] = {}
         return results
 
     def get_models(self, **kwargs):
@@ -291,7 +296,7 @@ class Console:
         desc = '' if 'description' in kwargs else kwargs['description']
 
         waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']}, description=desc)
-
+        waifu.load_combined_prediction_model()
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
         console_item = _ConsoleItem(waifu, self.directories['waifu'], kwargs['name'])
@@ -1219,13 +1224,23 @@ class Console:
 
         self.socket_server = None
 
+    def init_commands(self):
+        self.commands = am.Commands(self)
+
     def handle_network(self, request):
 
-        command = request.command.lower().replace(' ', '_')
-        method_to_call = getattr(self, command)
+        # initialize commands first
+        if self.commands is None:
+            self.init_commands()
+
+        # command must be pre-defined
+        if request.command not in self.commands:
+            return
+
+        method_to_call = self.commands[request.command][0]
 
         try:
-            result = method_to_call(request.arguments)
+            result = method_to_call.__call__(**request.arguments)
             if result is None:
                 result = {}
             return request.id, 0, 'success', result
@@ -1233,3 +1248,66 @@ class Console:
             return request.id, 1, exc, {}
         except Exception as exc:  # all other errors
             return request.id, 2, exc, {}
+
+    def handle_command(self, user_input):
+
+        # initialize commands first
+        if self.commands is None:
+            self.init_commands()
+
+        if user_input.lower() == 'help' or user_input == '?':
+            pass
+        elif user_input.lower() == 'about' or user_input.lower() == 'version':
+            pass
+        elif user_input is None or not user_input.strip():  # empty string gives false
+            return
+        else:
+            command, args = am.Console.ParseArgs(user_input)
+
+            print('command:', command)
+            print('args', args)
+
+            if command is None:
+                return
+            elif command in self.commands:
+                if '--help' in args:
+                    print(self.commands[command][2])
+                    print('usage: ' + self.commands[command][3])
+                    print('  arguments:')
+                    for short in self.commands[command][1]:
+                        print('    {0}, --{1} ({2}) \t {3}'.format(
+                            short,
+                            self.commands[command][1][short][0],
+                            self.commands[command][1][short][1],
+                            self.commands[command][1][short][2]
+                        ).expandtabs(30)
+                              )
+                else:
+                    # valid command and valid args
+
+                    # change arguments into kwargs for passing into console
+                    kwargs = {}
+                    for arg in args:
+                        if arg[:2] == '--':  # long
+                            kwargs[arg[2:]] = args[arg]
+                        elif arg[:1] == '-':  # short
+                            if arg not in self.commands[command][1]:
+                                print("Invalid short argument {0}, skipping it".format(arg))
+                                continue
+
+                            long_arg = self.commands[command][1][arg][0]
+                            kwargs[long_arg] = args[arg]
+
+                    print(kwargs)
+                    print(self.commands[command][0])
+                    print('==================================================')
+
+                    try:
+                        result = self.commands[command][0].__call__(**kwargs)
+                        if result is not None:
+                            print(result)
+                    except Exception as exc:
+                        print('{0}: {1}'.format(type(exc).__name__, exc))
+                        raise exc
+            else:
+                print('Invalid command')
