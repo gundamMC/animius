@@ -37,9 +37,9 @@ class CombinedPredictionModel:
             tf.import_graph_def(graph_def, name='')
 
         # init tensorflow
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess = tf.Session(config=config, graph=graph)
+        tf_config = tf.ConfigProto()
+        tf_config.gpu_options.allow_growth = True
+        self.sess = tf.Session(config=tf_config, graph=graph)
 
     def intent_predict(self, input_data, save_path=None):
 
