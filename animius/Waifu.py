@@ -90,7 +90,7 @@ class Waifu:
         with open(join(directory, name + '.json'), 'r') as f:
             config = json.load(f)
 
-        waifu = cls(config['name'], config['models'])
+        waifu = cls(config['name'], config['models'], config['description'])
 
         # load models
         if 'CombinedPrediction' in config['models']:
@@ -98,7 +98,7 @@ class Waifu:
 
         # set up input data
         if 'data' in config and 'data' is not None:
-            waifu.input_data = am.ModelConfig.load(directory, config['data'])
+            waifu.input_data = am.ModelConfig.load(directory, '_model_config')
 
         waifu.saved_directory = directory
         waifu.saved_name = name

@@ -407,7 +407,7 @@ class CombinedPredictionData(Data):
 
     def __init__(self, model_config):
 
-        super().__init__()
+        super().__init__(model_config)
 
         if isinstance(model_config, am.ModelConfig):
             self.max_seq = model_config.model_structure['max_sequence']
