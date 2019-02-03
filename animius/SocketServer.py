@@ -15,9 +15,9 @@ def new_client(c, console, event):
     try:
         print('Establishing connection with: {0}:{1}'.format(c.address, c.port))
         # initialize AES
-        c.initRandomAEScipher()
+        # c.initRandomAEScipher()
         # send AES keys to client
-        c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
+        # c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
 
         # check for password
         if c.pwd != '':
@@ -25,10 +25,14 @@ def new_client(c, console, event):
             if recvPwd != c.pwd:
                 # wrong password, close connection
                 c.close()
+            else:
+                # correct password
+                c.send('', 0, '', {})
 
         while True:
             req = c.recv()
             response = console.handle_network(req)
+            print(response)
             c.send(*response)
 
     except socket.error as error:
