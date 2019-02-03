@@ -4,7 +4,7 @@ Commands are used to interact with the console as well as through the network so
 In the console, a command could look something like this:
 
 ```
-createModel --name 'myModel' --model 'SpeakerVerification'
+createModel --name 'myModel' --type 'SpeakerVerification'
 ```
 
 The equivalent of this in the network server would be:
@@ -14,7 +14,7 @@ The equivalent of this in the network server would be:
   "command": "createModel",
   "arguments": {
     "name": "myModel",
-    "model": "SpeakerVerification"
+    "type": "SpeakerVerification"
   }
 }
 ```

@@ -80,7 +80,8 @@ class Commands:
             # region model commands
             'createModel': [console.create_model,
                             {
-                                '-n': ['name', 'str', 'Name of model'], 't': ['type', 'str', 'Type of model']
+                                '-n': ['name', 'str', 'Name of model'],
+                                't': ['type', 'str', 'Type of model']
                             },
                             'Create a Model',
                             "createModel: -n 'model name' -t 'ModelType‘"
@@ -111,7 +112,13 @@ class Commands:
                           "loadModel -n 'model name' -d 'data name'"
                           ],
 
-            'getModelDetails': [console.get_model_details, {'n': 'name'}, ''],
+            'getModelDetails': [console.get_model_details,
+                                {
+                                 '-n': ['--name', 'str', 'Name of model'],
+                                },
+                                'Return the details of a model',
+                                "getModelDetails -n 'model name'"
+                                ],
 
             'setData': [console.set_data,
                         {
@@ -247,7 +254,12 @@ class Commands:
                          ]
             ,
 
-            'getDataDetails': [console.get_data_details, {'n': 'name'}, ''],
+            'getDataDetails': [console.get_data_details,
+                               {
+                                   '-n': ['--name', 'str', 'Name of data']
+                               },
+                               'Return the details of a data',
+                               "getDataDetails -n 'data name'"],
 
             'chatbotDataAddTwitter': [console.chatbot_data_add_twitter,
                                       {
