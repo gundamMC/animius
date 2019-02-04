@@ -1,5 +1,9 @@
 # Network Encryption
 
+**IMPORTANT** | Animius no longer uses *ANY* encrytion. It sends plain strings/bytes instead. The following is *outdated*
+
+------
+
 In short, Animius uses AES-CBC + base64 encryption.
 
 ## Initial Connection
