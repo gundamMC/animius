@@ -25,9 +25,9 @@ def new_client(c, console, event):
             if recvPwd != c.pwd:
                 # wrong password, close connection
                 c.close()
-            else:
-                # correct password
-                c.send('', 0, '', {})
+
+        # password verified and connected
+        c.send('', 0, 'success', {})
 
         while True:
             req = c.recv()
