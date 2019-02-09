@@ -153,9 +153,12 @@ class SpeakerVerificationModel(am.Model):
                 # tf.summary.scalar('accuracy', self.accuracy)
                 self.tb_merged = tf.summary.merge_all(name='tensorboard_merged')
 
-    def train(self, epochs=800):
+    def train(self, epochs=800, CancellationToken=None):
 
         for epoch in range(epochs):
+
+            if CancellationToken is not None and CancellationToken.is_cancalled:
+                return  # early stopping
 
             mini_batches_x, mini_batches_y = am.Utils.get_mini_batches(
                 am.Utils.shuffle([

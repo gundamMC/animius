@@ -96,7 +96,7 @@ class Model(ABC):
                               feed_dict={embedding_placeholder: self.data['embedding'].embedding})
 
     @abstractmethod
-    def train(self, epochs):
+    def train(self, epochs, CancellationToken):
         pass
 
     @abstractmethod

@@ -226,8 +226,12 @@ class ChatbotModel(am.Model):
         self.graph = graph
         return graph
 
-    def train(self, epochs=10):
+    def train(self, epochs=10, CancellationToken=None):
         for epoch in range(epochs):
+
+            if CancellationToken is not None and CancellationToken.is_cancalled:
+                return  # early stopping
+
             mini_batches_x, mini_batches_x_length, mini_batches_y, mini_batches_y_length, mini_batches_y_target \
                 = get_mini_batches(
                 shuffle([

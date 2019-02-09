@@ -3,6 +3,8 @@ import os
 import json
 from ast import literal_eval
 from shlex import split as arg_split
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 
 class ArgumentError(Exception):
@@ -32,6 +34,14 @@ class _ConsoleItem:
 
     def save(self):
         self.item.save(self.saved_directory, self.saved_name)
+
+
+class CancellationToken:
+    def __init__(self):
+        self.is_cancalled = False
+
+    def cancel(self):
+        self.is_cancalled = True
 
 
 class Console:
@@ -93,6 +103,9 @@ class Console:
                         console_item.saved_name = stored['items'][item]['saved_name']
                         # get the self. dictionary from sub_dir name
                         getattr(self, sub_dir)[item] = console_item
+
+        self.training_pool = ThreadPoolExecutor(max_workers=3)  # thread pool for training threads
+        self.training_models = dict()
 
     @staticmethod
     def ParseArgs(user_input):
@@ -506,6 +519,14 @@ class Console:
 
         self.models[kwargs['name']].item.set_data(self.data[kwargs['data']].item)
 
+    @staticmethod
+    def train_complete_callback(print_string, model_name, training_dict):
+        """
+        Called when a model finishes training. See train() for details
+        """
+        print(print_string)
+        training_dict.pop(model_name)
+
     def train(self, **kwargs):
         """
         Train a model
@@ -524,7 +545,40 @@ class Console:
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
 
-        self.models[kwargs['name']].item.train(kwargs['epoch'])
+        cancelToken = CancellationToken()
+
+        self.training_models[kwargs['name']] = cancelToken
+
+        future = self.training_pool.submit(self.models[kwargs['name']].item.train,
+                                           epochs=kwargs['epoch'],
+                                           CancellationToken=cancelToken)
+
+        callback_string = 'Model {0} has finished training for {1} epochs!'.format(kwargs['name'], kwargs['epoch'])
+
+        future.add_done_callback(partial(Console.train_complete_callback,
+                                         callback_string, kwargs['name'], self.training_models))
+
+        print('Started training model {0}'.format(kwargs['name']))
+
+    def stop_training(self, **kwargs):
+        """
+        Cancel training a model. (The model will stop once it finishes the current epoch)
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model to stop
+        """
+
+        Console.check_arguments(kwargs, hard_requirements=['name'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
+
+        if kwargs['name'] not in self.training_models:
+            raise NameNotFoundError("Model \"{0}\" is currently not training".format(kwargs['name']))
+
+        self.training_models[kwargs['name']].cancel()
 
     def predict(self, **kwargs):
         """
