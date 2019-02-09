@@ -299,7 +299,7 @@ class Console:
         waifu.load_combined_prediction_model()
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
-        console_item = _ConsoleItem(waifu, self.directories['waifu'], kwargs['name'])
+        console_item = _ConsoleItem(waifu, os.path.join(self.directories['waifu'], kwargs['name']), kwargs['name'])
         # saving it first to set up its saving location
         console_item.save()
 
@@ -421,7 +421,7 @@ class Console:
         if kwargs['type'] != 'CombinedChatbotModel':
             model.build_graph(self.model_configs[kwargs['model_config']].item, self.data[kwargs['data']].item)
 
-        console_item = _ConsoleItem(model, self.directories['model'], kwargs['name'])
+        console_item = _ConsoleItem(model, os.path.join(self.directories['model'], kwargs['name']), kwargs['name'])
         # saving it first to set up its saving location
         console_item.save()
 
