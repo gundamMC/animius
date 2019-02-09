@@ -75,6 +75,15 @@ class Commands:
                                'Get the detail information of a waifu.',
                                'getWaifuDetail -n \'waifu name\''
                                ],
+
+            'waifuPredict': [console.waifu_predict,
+                             {
+                                 '-n': ['name', 'str', 'Name of waifu'],
+                                 '-s': ['sentence', 'str', 'Sentence input']
+                             },
+                             'Make prediction using waifu',
+                             'waifuPredict -n \'waifu name\' -s \'Hello!\''
+                             ],
             # endregion
 
             # region model commands
