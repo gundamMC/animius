@@ -164,9 +164,12 @@ class IntentNERModel(am.Model):
         self.graph = graph
         return graph
 
-    def train(self, epochs=200):
+    def train(self, epochs=200, CancellationToken=None):
 
         for epoch in range(epochs):
+
+            if CancellationToken is not None and CancellationToken.is_cancalled:
+                return  # early stopping
 
             mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
                 = am.Utils.get_mini_batches(
