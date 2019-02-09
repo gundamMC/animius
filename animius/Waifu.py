@@ -98,7 +98,7 @@ class Waifu:
 
         # set up input data
         if 'data' in config and 'data' is not None:
-            waifu.input_data = am.ModelConfig.load(directory, '_model_config')
+            waifu.input_data = am.CombinedPredictionData.load(directory, name + '_input_data')
 
         waifu.saved_directory = directory
         waifu.saved_name = name

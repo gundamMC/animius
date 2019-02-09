@@ -293,7 +293,7 @@ class Console:
             else:
                 raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
 
-        desc = '' if 'description' in kwargs else kwargs['description']
+        desc = '' if 'description' not in kwargs else kwargs['description']
 
         waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']}, description=desc)
         waifu.load_combined_prediction_model()
