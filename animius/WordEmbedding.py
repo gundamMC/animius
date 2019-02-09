@@ -112,7 +112,7 @@ class WordEmbedding:
 
         with open(join(directory, name + '_words.pkl'), 'rb') as f:
             embedding.words = pickle.load(f)
-        with open(join(directory, name + 'words_to_index.pkl'), 'w') as f:
+        with open(join(directory, name + '_words_to_index.pkl'), 'rb') as f:
             embedding.words_to_index = pickle.load(f)
         embedding.embedding = np.load(join(directory, name + '.npy'))
 

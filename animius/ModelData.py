@@ -149,7 +149,8 @@ class Data(ABC):
             raise ValueError("Data class not found.")
 
         # Load data values
-        data.values = np.load(name + '_np_arrays.npz')
+        values = np.load(join(directory, name + '_np_arrays.npz'))
+        data.values = {key: values[key].item() for key in values}
 
         if 'embedding_directory' in stored:
 
