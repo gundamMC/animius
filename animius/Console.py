@@ -364,6 +364,24 @@ class Console:
         self.waifu[kwargs['name']].item = waifu
         self.waifu[kwargs['name']].loaded = True
 
+    def waifu_predict(self, **kwargs):
+        """
+        Predict waifu output
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu to use
+        * *sentence* (``str``) -- Sentence input
+        """
+
+        Console.check_arguments(kwargs, hard_requirements=['name', 'sentence'])
+
+        if kwargs['name'] not in self.waifu:
+            raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['waifu']))
+
+        return self.waifu[kwargs['name']].item.predict(kwargs['sentence'])
+
     def create_model(self, **kwargs):
         """
         Create a model and built its graph
