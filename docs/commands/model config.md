@@ -1,5 +1,15 @@
 # Model Config
 
+###getModelConfigs
+
+Get a list of existing model configs.
+
+```
+getModelConfigs
+```
+
+No argument required.
+
 ### createModelConfig
 
 Create a model config with the provided values.

@@ -2,6 +2,16 @@
 
 ## Overview
 
+###getData
+
+Get a list of existing data.
+
+```
+getData
+```
+
+No argument required.
+
 ### createData
 
 Create a data with empty values.
@@ -79,6 +89,19 @@ loadData -n 'data name'
 Keyword Arguments:
 
 * *-n, --name* (`str`) -- Name of data to load
+
+### getDataDetails
+
+Return the details of a data.
+
+```
+getDataDetails -n 'data name'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (``str``) -- Name of data
+
 
 ## Chatbot Data
 

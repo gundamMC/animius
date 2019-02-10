@@ -1,5 +1,15 @@
 # Model
 
+###getModels
+
+Get a list of existing models.
+
+```
+getModels
+```
+
+No argument required.
+
 ### createModel
 
 Create a model.
@@ -51,6 +61,18 @@ Keyword Arguments:
 * *-n, --name* (`str`) -- Name of model to load
 
 * *-d, --data* (`str`) -- Name of data to set to model
+
+### getModelDetails
+
+Return the details of a model.
+
+```
+getModelDetails -n 'model name'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (``str``) -- Name of model
 
 ### setData
 
