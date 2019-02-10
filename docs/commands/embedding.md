@@ -1,5 +1,15 @@
 # Embedding
 
+###getEmbeddings
+
+Get a list of existing word embeddings.
+
+```
+getEmbeddings
+```
+
+No argument required.
+
 ### createEmbedding
 
 Create a word embedding.
