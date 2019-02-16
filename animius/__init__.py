@@ -12,3 +12,5 @@ import animius.SpeakerVerification as SpeakerVerification
 import animius.Utils as Utils
 
 from animius.Waifu import Waifu
+
+from animius.ParseSubtitle import Parser as SubtitleParser

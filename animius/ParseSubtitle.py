@@ -1,31 +1,29 @@
-import os
-
 import pysubs2
 from pydub import AudioSegment
+from os import mkdir, path
 
 
 class Parser:
 
     def __init__(self):
         self.SSAFile = None
-        self.audio_sentences = None
+        self.audio_sentences = []
 
-    def load(self, path):
-        self.SSAFile = pysubs2.SSAFile.load(path)
+    def load(self, subtitle_path):
+        self.SSAFile = pysubs2.SSAFile.load(subtitle_path)
 
-    def slice_audio(self, path):
-        print("Processing " + path)
+    def slice_audio(self, audio_path, save_path):
+        print("Processing " + audio_path)
 
-        audio = AudioSegment.from_file(path)
-        savePath = ".\\audio\\" + os.path.splitext(os.path.basename(path))[0] + "\\"
-        if not os.path.exists(savePath):
-            os.mkdir(savePath)
+        audio = AudioSegment.from_file(audio_path)
+        if not path.exists(save_path):
+            mkdir(save_path)
         index = 0
         for sub in self.SSAFile:
             if sub.duration < 200:  # skip ones that are shorter than 0.2 seconds
                 continue
             segment = audio[sub.start:sub.end]
-            segment.export(savePath + str(index).zfill(4) + ".wav", format="wav")
+            segment.export(path.join(save_path, str(index).zfill(4) + ".wav"), format="wav")
             index += 1
             self.audio_sentences.append(sub.plaintext)
 
@@ -60,6 +58,7 @@ class Parser:
         startingIndex = 0
         # make connecting conversation frames as one large group
         while startingIndex < len(conversation) - 1:
+            i = startingIndex + 1
             for i in range(startingIndex + 1, len(conversation)):
                 if conversation[i][0] != conversation[i - 1][1]:
                     # if the ending does not follow the previous start, the conversation is not connected
