@@ -23,7 +23,9 @@ class SpeakerVerificationModel(am.Model):
             'pool_type': 'max',
             'filter_size_2': 5,
             'num_filter_2': 15,
-            'fully_connected_1': 128
+            'fully_connected_1': 128,
+            'input_window': 10,
+            'input_cepstral': 39
         }
 
     def __init__(self):
@@ -57,6 +59,8 @@ class SpeakerVerificationModel(am.Model):
 
         if graph is None:
             graph = tf.Graph()
+
+        self.graph = graph
 
         with graph.as_default():
 
