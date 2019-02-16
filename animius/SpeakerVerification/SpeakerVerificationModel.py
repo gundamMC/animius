@@ -210,18 +210,21 @@ class SpeakerVerificationModel(am.Model):
 
         model = SpeakerVerificationModel()
         model.restore_config(directory, name)
-        if data is None:
+        if data is not None:
             model.data = data
 
         graph = tf.Graph()
+
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        model.sess = tf.Session(config=config, graph=graph)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
         with graph.as_default():
             model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
-
-        model.saver.restore(model.sess, input_checkpoint)
+            model.saver.restore(model.sess, input_checkpoint)
 
         # set up self attributes used by other methods
         model.x = model.sess.graph.get_tensor_by_name('input_x:0')
@@ -230,14 +233,14 @@ class SpeakerVerificationModel(am.Model):
         model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
         model.prediction = model.sess.graph.get_tensor_by_name('output_predict:0')
 
-        model.init_tensorflow(graph)
+        model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
 
         return model
 
-    def predict(self, input_data, save_path=None):
+    def predict(self, input_data, save_path=None, save_raw=False):
         result = self.sess.run(self.prediction,
                                feed_dict={
                                    self.x: input_data.values['x'],
@@ -245,7 +248,11 @@ class SpeakerVerificationModel(am.Model):
 
         if save_path is not None:
             with open(save_path, "w") as file:
-                for i in range(len(result)):
-                    file.write(str(result[i]) + '\n')
+                if save_raw:
+                    for i in range(len(result)):
+                        file.write(str(result[i]) + '\n')
+                else:
+                    for i in range(len(result)):
+                        file.write(str(result[i] > 0.5) + '\n')
 
         return result
