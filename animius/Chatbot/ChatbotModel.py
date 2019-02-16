@@ -263,7 +263,7 @@ class ChatbotModel(am.Model):
 
                     print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
 
-                    self.config['cost'] = cost_value
+                    self.config['cost'] = cost_value.item()
 
                     if self.config['hyperdash'] is not None:
                         self.hyperdash.metric("cost", cost_value)
