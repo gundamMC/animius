@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from os import mkdir
-from os.path import join
+from os import mkdir, listdir
+from os.path import join, isfile
 import errno
 
 import numpy as np
@@ -378,19 +378,24 @@ class SpeakerVerificationData(Data):
         assert (isinstance(output_label, np.ndarray))
         self.values['y'] = np.concatenate([self.values['y'], output_label])
 
-    def add_parse_input_file(self, path):
+    def add_parse_input_path(self, path):
         data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
                                                     flatten=False)
         self.add_input_data(data)
         return data.shape[0]
         # return batch number
 
+    def add_parse_input_folder(self, directory, encoding='utf-8'):
+        file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+        for path in file_paths:
+            self.add_parse_input_path(path)
+
     def add_parse_data_paths(self, paths, output=None):
 
         count = 0
 
         for path in paths:
-            count += self.add_parse_input_file(path)
+            count += self.add_parse_input_path(path)
 
         if output is not None:
             if output is True:
@@ -400,6 +405,11 @@ class SpeakerVerificationData(Data):
 
     def add_parse_data_file(self, path, output=None, encoding='utf-8'):
         self.add_parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
+
+    def add_parse_data_folder(self, directory, output=None, encoding='utf-8'):
+        file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+        for path in file_paths:
+            self.add_parse_data_file(path, output, encoding)
 
 
 # Prediction data for CombinedPredictionModel (use ChatbotData for CombinedChatbotModel)
