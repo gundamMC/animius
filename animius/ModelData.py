@@ -385,10 +385,20 @@ class SpeakerVerificationData(Data):
         return data.shape[0]
         # return batch number
 
-    def add_parse_input_folder(self, directory, encoding='utf-8'):
-        file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
-        for path in file_paths:
-            self.add_parse_input_path(path)
+    def set_parse_input_path(self, path):
+        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
+                                                    flatten=False)
+        self.values['x'] = data
+        return data.shape[0]
+        # return batch number
+
+    # Nervermind... Don't use since this will mix the MFCC data of all inputs
+    # only parse ONE audio file at a time when predicting. This is now moved
+    # to predict_folder() in speaker verification model
+    # def add_parse_input_folder(self, directory, encoding='utf-8'):
+    #     file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+    #     for path in file_paths:
+    #         self.add_parse_input_path(path)
 
     def add_parse_data_paths(self, paths, output=None):
 

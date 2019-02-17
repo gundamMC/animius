@@ -240,19 +240,41 @@ class SpeakerVerificationModel(am.Model):
 
         return model
 
-    def predict(self, input_data, save_path=None, save_raw=False):
+    def predict(self, input_data, save_path=None, raw=False):
         result = self.sess.run(self.prediction,
                                feed_dict={
                                    self.x: input_data.values['x'],
                                })
 
+        result = result.squeeze().mean()
+
         if save_path is not None:
             with open(save_path, "w") as file:
-                if save_raw:
+                if raw:
                     for i in range(len(result)):
-                        file.write(str(result[i]) + '\n')
+                        file.write(str(result[i].item()) + '\n')
                 else:
                     for i in range(len(result)):
-                        file.write(str(result[i] > 0.5) + '\n')
+                        file.write(str(result[i].item() > 0.5) + '\n')
 
-        return result
+        return result if raw else result > 0.5
+
+    def predict_folder(self, input_data, folder_directory, save_path=None, raw=False):
+
+        from os import path, listdir
+
+        file_paths = [path.join(folder_directory, f) for f in listdir(folder_directory) if
+                      path.isfile(path.join(folder_directory, f))]
+
+        results = []
+
+        for path in file_paths:
+            input_data.set_parse_input_path(path)
+            results.append(self.predict(input_data, save_path=None, raw=raw).item())
+
+        if save_path is not None:
+            with open(save_path, "w") as file:
+                for i in range(len(results)):
+                    file.write(str(results[i]) + '\n')
+
+        return results
