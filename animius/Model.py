@@ -172,5 +172,11 @@ class Model(ABC):
         else:
             raise ValueError("Loading failed: class name not found")
 
+    def model_config(self):
+        return am.ModelConfig(
+            config=self.config,
+            hyperparameters=self.hyperparameters,
+            model_structure=self.model_structure)
+
     def close(self):
         self.sess.close()
