@@ -1,5 +1,15 @@
 # Waifu
 
+###getWaifu
+
+Get a list of existing waifu.
+
+```
+getWaifu
+```
+
+No argument required.
+
 ### createWaifu
 
 Create a waifu.
@@ -51,3 +61,27 @@ loadWaifu -n 'waifu name'
 Keyword Arguments:
 
 * *-n, --name* (``str``) -- Name of waifu to load
+
+### getWaifuDetail
+
+Get the detail information of a waifu.
+
+```
+getWaifuDetail -n 'waifu name'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (``str``) -- Name of waifu
+
+### waifuPredict
+
+Make prediction using waifu.
+
+```
+getWaifuDetail -n 'waifu name'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (``str``) -- Name of waifu
