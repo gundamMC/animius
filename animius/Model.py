@@ -87,13 +87,15 @@ class Model(ABC):
             from hyperdash import Experiment
             self.hyperdash = Experiment(name)
 
-    def restore_embedding(self, word_embedding_placeholder):
+    def init_embedding(self, word_embedding_placeholder):
         # Do not include word embedding when restoring models
         if word_embedding_placeholder is not None and 'embedding' in self.data.values:
             with self.sess.graph.as_default():
                 embedding_placeholder = tf.placeholder(tf.float32, shape=self.data['embedding'].embedding.shape)
                 self.sess.run(word_embedding_placeholder.assign(embedding_placeholder),
                               feed_dict={embedding_placeholder: self.data['embedding'].embedding})
+        else:
+            raise ValueError('Embedding not found.')
 
     @abstractmethod
     def train(self, epochs, CancellationToken):
