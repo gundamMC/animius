@@ -9,7 +9,7 @@ class IntentNERModel(am.Model):
     @staticmethod
     def DEFAULT_HYPERPARAMETERS():
         return {
-            'learning_rate': 0.001,
+            'learning_rate': 0.003,
             'batch_size': 1024,
             'optimizer': 'adam'
         }
@@ -37,6 +37,7 @@ class IntentNERModel(am.Model):
         self.train_op = None
         self.cost = None
         self.tb_merged = None
+        self.word_embedding = None
 
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
 
@@ -64,11 +65,10 @@ class IntentNERModel(am.Model):
             if embedding_tensor is None:
                 n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
                 word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
-                word_embedding = tf.Variable(tf.constant(0.0, shape=(word_count, n_vector)),
+                self.word_embedding = tf.Variable(tf.constant(0.0, shape=(word_count, n_vector)),
                                              trainable=False, name='word_embedding')
             else:
-                word_count, n_vector = embedding_tensor.shape
-                word_embedding = embedding_tensor
+                self.word_embedding = embedding_tensor
 
             # Tensorflow placeholders
             self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']],
@@ -100,7 +100,7 @@ class IntentNERModel(am.Model):
 
             def network():
 
-                embedded_x = tf.nn.embedding_lookup(word_embedding, self.x)
+                embedded_x = tf.nn.embedding_lookup(self.word_embedding, self.x)
                 batch_size = tf.shape(self.x)[0]
 
                 outputs, _ = tf.nn.bidirectional_dynamic_rnn(cell_fw,
@@ -164,7 +164,14 @@ class IntentNERModel(am.Model):
         self.graph = graph
         return graph
 
-    def train(self, epochs=200, CancellationToken=None):
+    def init_tensorflow(self, graph=None, init_param=True, init_sess=True):
+        super().init_tensorflow(graph=graph, init_param=init_param, init_sess=init_sess)
+
+        if init_param:
+            # only init embedding when initializing other variables
+            super().init_embedding(self.word_embedding)
+
+    def train(self, epochs=400, CancellationToken=None):
 
         for epoch in range(epochs):
 
@@ -235,13 +242,16 @@ class IntentNERModel(am.Model):
 
         graph = tf.Graph()
 
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        model.sess = tf.Session(config=config, graph=graph)
+
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
         with graph.as_default():
             model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
-
-        model.saver.restore(model.sess, input_checkpoint)
+            model.saver.restore(model.sess, input_checkpoint)
 
         # set up self attributes used by other methods
         model.x = model.sess.graph.get_tensor_by_name('input_x:0')
@@ -250,10 +260,10 @@ class IntentNERModel(am.Model):
         model.y_ner = model.sess.graph.get_tensor_by_name('train_y_ner:0')
         model.train_op = model.sess.graph.get_operation_by_name('train_op')
         model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
-        model.prediction = model.sess.graph.get_tensor_by_name('output_intent:0'),\
-                        model.sess.graph.get_tensor_by_name('output_ner:0')
+        model.prediction = model.sess.graph.get_tensor_by_name('output_intent:0'), \
+            model.sess.graph.get_tensor_by_name('output_ner:0')
 
-        model.init_tensorflow(graph)
+        model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
