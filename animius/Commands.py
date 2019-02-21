@@ -90,10 +90,12 @@ class Commands:
             'createModel': [console.create_model,
                             {
                                 '-n': ['name', 'str', 'Name of model'],
-                                't': ['type', 'str', 'Type of model']
+                                '-t': ['type', 'str', 'Type of model'],
+                                '-c': ['model_config', 'str', 'Name of model config to use'],
+                                '-d': ['data', 'str', 'Name of data to use']
                             },
                             'Create a Model',
-                            "createModel: -n 'model name' -t 'ModelType‘"
+                            "createModel: -n 'model name' -t 'ModelType‘ -c 'model_config name' -d 'data name'"
                             ],
 
             'deleteModel': [console.delete_model,
@@ -123,7 +125,7 @@ class Commands:
 
             'getModelDetails': [console.get_model_details,
                                 {
-                                 '-n': ['--name', 'str', 'Name of model'],
+                                    '-n': ['--name', 'str', 'Name of model'],
                                 },
                                 'Return the details of a model',
                                 "getModelDetails -n 'model name'"
@@ -419,7 +421,7 @@ class Commands:
             'startServer': [console.start_server,
                             {
                                 '-p': ['port', 'int', 'Port to listen on'], '-l': ['local', 'bool',
-                                                                                     'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
+                                                                                   'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
                                 '-pwd': ['password', 'str', 'Password of server (Optional)'],
                                 '-c': ['max_clients', 'int', 'Maximum number of clients (Optional)']
                             },

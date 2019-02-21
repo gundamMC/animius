@@ -15,7 +15,7 @@ No argument required.
 Create a model.
 
 ```
-createModel -n 'model name' -t 'ModelType'
+createModel -n 'model name' -t 'ModelType' -c 'model_config name' -d 'data name
 ```
 
 Keyword Arguments:
@@ -23,6 +23,10 @@ Keyword Arguments:
 * *-n, --name* (`str`) -- Name of model
 
 * *-t, --type* (`str`) -- Type of model
+
+* *-c, --model_config* (`str`) -- Name of model config to use
+
+* *-d, --data* (`str`) -- Name of data to use
 
 ### deleteModel
 
