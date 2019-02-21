@@ -405,7 +405,7 @@ class Console:
         * *name* (``str``) -- Name of model
         * *type* (``str``) -- Type of model
         * *model_config* (``str``) -- Name of model config to use
-        * *data* (``str``) -- Name of data to use
+        * *data* (``str``) -- Name of data
         """
 
         Console.check_arguments(kwargs,
@@ -684,20 +684,23 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of model config
-        * *cls* (``str``) -- Name of the model class
+        * *type* (``str``) -- Name of the model type
         * *config* (``dict``) -- Dictionary of config values
         * *hyperparameters* (``dict``) -- Dictionary of hyperparameters values
         * *model_structure* (``model_structure``) -- Dictionary of model_structure values
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'cls'],
+                                hard_requirements=['name', 'type'],
                                 soft_requirements=['config', 'hyperparameters', 'model_structure'])
 
         if kwargs['name'] in self.model_configs:
             raise NameAlreadyExistError("The name {0} is already used by another model config".format(kwargs['name']))
 
-        model_config = am.ModelConfig(cls=kwargs['cls'],
+        if kwargs['type'] not in ['SpeakVerification', 'Chatbot', 'IntentNER', 'CombinedChatbot']:
+            raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
+
+        model_config = am.ModelConfig(cls=kwargs['type'],
                                       config=kwargs['config'],
                                       hyperparameters=kwargs['hyperparameters'],
                                       model_structure=kwargs['model_structure'])
@@ -814,15 +817,15 @@ class Console:
 
         if kwargs['model_config'] in self.model_configs:
             if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
-                data = am.ChatbotData(kwargs['model_config'])
+                data = am.ChatbotData(self.model_configs[kwargs['model_config']].item)
             elif kwargs['type'] == 'IntentNERD':
-                data = am.IntentNERData(kwargs['model_config'])
+                data = am.IntentNERData(self.model_configs[kwargs['model_config']].item)
             elif kwargs['type'] == 'SpeakerVerification':
-                data = am.SpeakerVerificationData(kwargs['model_config'])
+                data = am.SpeakerVerificationData(self.model_configs[kwargs['model_config']].item)
             else:
                 raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
         else:
-            raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
+            raise KeyError("Model config \"{0}\" not found.".format(kwargs['model_config']))
 
         # saving it first to set up its saving location
         console_item = _ConsoleItem(data, os.path.join(self.directories['data'], kwargs['name']), kwargs['name'])
