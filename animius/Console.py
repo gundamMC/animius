@@ -425,7 +425,7 @@ class Console:
                 raise NameNotFoundError("Data {0} not found".format(kwargs['data']))
             model = am.Chatbot.CombinedChatbotModel(self.model_configs[kwargs['model_config']].item,
                                                     self.data[kwargs['data']].item)
-        elif kwargs['type'] == 'SpeakVerification':
+        elif kwargs['type'] == 'SpeakerVerification':
             model = am.SpeakerVerification.SpeakerVerificationModel()
         else:
             raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
@@ -701,7 +701,7 @@ class Console:
         if kwargs['name'] in self.model_configs:
             raise NameAlreadyExistError("The name {0} is already used by another model config".format(kwargs['name']))
 
-        if kwargs['type'] not in ['SpeakVerification', 'Chatbot', 'IntentNER', 'CombinedChatbot']:
+        if kwargs['type'] not in ['SpeakerVerification', 'Chatbot', 'IntentNER', 'CombinedChatbot']:
             raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
 
         model_config = am.ModelConfig(cls=kwargs['type'],
