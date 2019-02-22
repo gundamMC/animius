@@ -111,7 +111,6 @@ class IntentNERModel(am.Model):
                                                              swap_memory=True)
                 # see https://www.tensorflow.org/api_docs/python/tf/nn/bidirectional_dynamic_rnn
                 # swap_memory is optional.
-
                 outputs_fw, output_bw = outputs  # outputs is a tuple (output_fw, output_bw)
 
                 # get last time steps

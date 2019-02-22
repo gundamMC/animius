@@ -434,7 +434,8 @@ class Console:
         if kwargs['type'] != 'CombinedChatbotModel':
             model.build_graph(self.model_configs[kwargs['model_config']].item, self.data[kwargs['data']].item)
 
-        console_item = _ConsoleItem(model, os.path.join(self.directories['model'], kwargs['name']), kwargs['name'])
+        model.init_tensorflow()
+        console_item = _ConsoleItem(model, os.path.join(self.directories['models'], kwargs['name']), kwargs['name'])
         # saving it first to set up its saving location
         console_item.save()
 
@@ -520,11 +521,12 @@ class Console:
         self.models[kwargs['name']].item.set_data(self.data[kwargs['data']].item)
 
     @staticmethod
-    def train_complete_callback(print_string, model_name, training_dict):
+    def train_complete_callback(print_string, model_name, training_dict, empty):
         """
         Called when a model finishes training. See train() for details
         """
         print(print_string)
+        print(empty)
         training_dict.pop(model_name)
 
     def train(self, **kwargs):
@@ -553,10 +555,12 @@ class Console:
                                            epochs=kwargs['epoch'],
                                            CancellationToken=cancelToken)
 
-        callback_string = 'Model {0} has finished training for {1} epochs!'.format(kwargs['name'], kwargs['epoch'])
+        callback_string = "Model {0} has finished training for {1} epochs!".format(kwargs['name'], kwargs['epoch'])
 
-        future.add_done_callback(partial(Console.train_complete_callback,
-                                         callback_string, kwargs['name'], self.training_models))
+        func = partial(Console.train_complete_callback,
+                       callback_string, kwargs['name'], self.training_models)
+
+        future.add_done_callback(func)
 
         print('Started training model {0}'.format(kwargs['name']))
 
@@ -880,16 +884,16 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *name_embedding* (``str``) -- Name of the embedding to add to data
+        * *embedding* (``str``) -- Name of the embedding to add to data
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'name_embedding'])
+                                hard_requirements=['name', 'embedding'])
 
         if kwargs['name'] in self.data:
-            if kwargs['name_embedding'] in self.embeddings:
-                self.data[kwargs['name']].item.add_embedding_class(self.embeddings[kwargs['name_embedding']].item)
+            if kwargs['embedding'] in self.embeddings:
+                self.data[kwargs['name']].item.add_embedding_class(self.embeddings[kwargs['embedding']].item)
             else:
-                raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name_embedding']))
+                raise KeyError("Embedding \"{0}\" not found.".format(kwargs['embedding']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
@@ -1048,14 +1052,14 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *folder_directory* (``str``) -- Path to a folder contains input files
+        * *path* (``str``) -- Path to a folder contains input files
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'folder_directory'])
+                                hard_requirements=['name', 'path'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.add_parse_data_folder(kwargs['folder_directory'])
+                self.data[kwargs['name']].item.add_parse_data_folder(kwargs['path'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
