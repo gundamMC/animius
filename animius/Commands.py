@@ -226,10 +226,10 @@ class Commands:
             'dataAddEmbedding': [console.data_add_embedding,
                                  {
                                      '-n': ['name', 'str', 'Name of data'],
-                                     '-t': ['type', 'str', 'Type of data (based on the model)'],
-                                     '-c': ['model_config', 'str', 'Name of model config']
-                                 }, 'Add word embedding to data',
-                                 "createData -n 'data name' -t 'ModelType' -c 'model config name'"
+                                     '-e': ['embedding', 'str', 'Name of embedding']
+                                 },
+                                 'Add word embedding to data',
+                                 "dataAddEmbedding -n 'data name' -e 'embedding name'"
                                  ],
 
             'dataReset': [console.data_reset,
@@ -256,7 +256,7 @@ class Commands:
                          "saveData -n 'data name'"
                          ],
 
-            'loadData': ['console.load_data',
+            'loadData': [console.load_data,
                          {
                              '-n': ['name', 'str', 'Name of data to load']
                          },

@@ -74,7 +74,7 @@ Keyword Argument:
 
 ### loadModelConfig
 
-Load a model config from disk.
+Load a model config.
 
 ```
 loadModelConfig -n 'model config name'

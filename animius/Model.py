@@ -141,7 +141,6 @@ class Model(ABC):
                 raise exc
 
         self.saver.save(self.sess, join(directory, name), global_step=self.config['epoch'], write_meta_graph=meta)
-
         if graph:
             tf.train.write_graph(self.sess.graph.as_graph_def(), directory, name + '_graph.pb', as_text=False)
             self.config['graph'] = join(directory, name + '_graph.pb')
