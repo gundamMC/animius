@@ -8,42 +8,12 @@ from .ChatbotModel import ChatbotModel
 # and use the CombinedPredictionModel class instead.
 class CombinedChatbotModel(ChatbotModel):
 
-    def __init__(self, model_config, data, restore_directory=None, restore_name='model'):
+    def __init__(self):
+
         super().__init__()
 
-        # restoring graph
-        if restore_directory is not None:
-            self.restore_config(restore_directory, restore_name)
-            self.data = data
-
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
-
-            self.sess = tf.Session(graph=tf.Graph(), config=config)
-
-            checkpoint = tf.train.get_checkpoint_state(restore_directory)
-            input_checkpoint = checkpoint.model_checkpoint_path
-
-            with self.sess.graph.as_default():
-                self.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
-
-                self.saver.restore(self.sess, input_checkpoint)
-
-                # set up self vars and ops for predict/training
-                self.x = self.sess.graph.get_tensor_by_name('input_x:0')
-                self.x_length = self.sess.graph.get_tensor_by_name('input_x_length:0')
-                self.y = self.sess.graph.get_tensor_by_name('train_y:0')
-                self.y_length = self.sess.graph.get_tensor_by_name('train_y_length:0')
-                self.y_target = self.sess.graph.get_tensor_by_name('train_y_target:0')
-                self.train_op = self.sess.graph.get_operation_by_name('train_op')
-                self.cost = self.sess.graph.get_tensor_by_name('train_cost/truediv:0')
-                self.infer = self.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
-
-                # initialize tensorboard and hyperdash
-                self.init_tensorflow(graph=self.sess.graph, init_param=False, init_sess=False)
-                self.init_hyerdash(self.config['hyperdash'])
-
-            return
+    def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
+        # graph and embedding_tensor arguments doesn't really do anything
 
         # creating new graph
         intent_ner_path = model_config.config['intent_ner_path']
@@ -52,15 +22,52 @@ class CombinedChatbotModel(ChatbotModel):
         with tf.gfile.Open(intent_ner_path, "rb") as f:
             intent_ner_graph_def.ParseFromString(f.read())
 
-        intent_ner_graph = tf.Graph()
-        with intent_ner_graph.as_default():
+        self.graph = tf.Graph()
+        with self.graph.as_default():
             tf.import_graph_def(intent_ner_graph_def, name='intent')
 
-        self.build_graph(model_config,
-                         data,
-                         embedding_tensor=intent_ner_graph.get_tensor_by_name('intent/word_embedding:0'),
-                         graph=intent_ner_graph)
+        super().build_graph(model_config,
+                            data,
+                            embedding_tensor=self.graph.get_tensor_by_name('intent/word_embedding:0'),
+                            graph=self.graph)
 
         self.config['class'] = 'CombinedChatbot'
 
-        self.init_tensorflow()
+    @classmethod
+    def load(cls, directory, name='model', data=None):
+
+        model = CombinedChatbotModel()
+        model.restore_config(directory, name)
+        if data is not None:
+            model.data = data
+
+        graph = tf.Graph()
+
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        model.sess = tf.Session(config=config, graph=graph)
+
+        checkpoint = tf.train.get_checkpoint_state(directory)
+        input_checkpoint = checkpoint.model_checkpoint_path
+
+        with graph.as_default():
+            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+            model.saver.restore(model.sess, input_checkpoint)
+
+        # set up self vars and ops for predict/training
+        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
+        model.x_length = model.sess.graph.get_tensor_by_name('input_x_length:0')
+        model.y = model.sess.graph.get_tensor_by_name('train_y:0')
+        model.y_length = model.sess.graph.get_tensor_by_name('train_y_length:0')
+        model.y_target = model.sess.graph.get_tensor_by_name('train_y_target:0')
+        model.train_op = model.sess.graph.get_operation_by_name('train_op')
+        model.cost = model.sess.graph.get_tensor_by_name('train_cost/truediv:0')
+        model.infer = model.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
+
+        # initialize tensorboard and hyperdash
+        model.init_tensorflow(graph, init_param=False, init_sess=False)
+
+        model.saved_directory = directory
+        model.saved_name = name
+
+        return model
