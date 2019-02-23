@@ -2,6 +2,7 @@ import tensorflow as tf
 
 import animius as am
 from animius.Utils import get_mini_batches, shuffle
+from tensorflow.contrib.seq2seq.python.ops import beam_search_ops
 # force load beam_search_ops, see https://github.com/tensorflow/tensorflow/issues/12927
 
 
@@ -42,6 +43,9 @@ class ChatbotModel(am.Model):
         self.accuracy = None
         self.tb_merged = None
 
+        self.word_embedding = None
+        self.init_word_embedding = True
+
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
 
         # make copies of the dictionaries since we will be editing it
@@ -68,11 +72,14 @@ class ChatbotModel(am.Model):
             if embedding_tensor is None:
                 n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
                 word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
-                word_embedding = tf.Variable(tf.constant(0.0, shape=(word_count, n_vector)),
-                                             trainable=False, name='word_embedding')
+                self.word_embedding = tf.Variable(tf.constant(0.0, shape=(word_count, n_vector)),
+                                                  trainable=False, name='word_embedding')
+                self.init_word_embedding = True
+
             else:
                 word_count, n_vector = embedding_tensor.shape
-                word_embedding = embedding_tensor
+                self.word_embedding = embedding_tensor
+                self.init_word_embedding = False  # assume the provided tensor already has values
 
             # just to make it easier to refer to
             max_sequence = self.model_structure['max_sequence']
@@ -98,7 +105,7 @@ class ChatbotModel(am.Model):
 
             def network(mode="train"):
 
-                embedded_x = tf.nn.embedding_lookup(word_embedding, self.x)
+                embedded_x = tf.nn.embedding_lookup(self.word_embedding, self.x)
 
                 encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
                     cell_encode,
@@ -122,7 +129,7 @@ class ChatbotModel(am.Model):
                                                                              batch_size=tf.shape(self.x)[0]
                                                                              ).clone(cell_state=encoder_state)
 
-                        embedded_y = tf.nn.embedding_lookup(word_embedding, self.y)
+                        embedded_y = tf.nn.embedding_lookup(self.word_embedding, self.y)
 
                         train_helper = tf.contrib.seq2seq.TrainingHelper(
                             inputs=embedded_y,
@@ -165,7 +172,7 @@ class ChatbotModel(am.Model):
 
                         decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                             cell=attn_decoder_cell,
-                            embedding=word_embedding,
+                            embedding=self.word_embedding,
                             start_tokens=tf.tile(tf.constant([am.WordEmbedding.GO], dtype=tf.int32),
                                                  [tf.shape(self.x)[0]]),
                             end_token=am.WordEmbedding.EOS,
@@ -225,6 +232,12 @@ class ChatbotModel(am.Model):
 
         self.graph = graph
         return graph
+
+    def init_tensorflow(self, graph=None, init_param=True, init_sess=True):
+        super().init_tensorflow(graph=graph, init_param=init_param, init_sess=init_sess)
+
+        if self.init_word_embedding:
+            super().init_embedding(self.word_embedding)
 
     def train(self, epochs=10, CancellationToken=None):
         for epoch in range(epochs):
@@ -294,18 +307,21 @@ class ChatbotModel(am.Model):
 
         model = ChatbotModel()
         model.restore_config(directory, name)
-        if data is None:
+        if data is not None:
             model.data = data
 
         graph = tf.Graph()
+
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        model.sess = tf.Session(config=config, graph=graph)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
         with graph.as_default():
             model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
-
-        model.saver.restore(model.sess, input_checkpoint)
+            model.saver.restore(model.sess, input_checkpoint)
 
         # set up self attributes used by other methods
         model.x = model.sess.graph.get_tensor_by_name('input_x:0')
@@ -317,7 +333,7 @@ class ChatbotModel(am.Model):
         model.cost = model.sess.graph.get_tensor_by_name('train_cost/truediv:0')
         model.infer = model.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
 
-        model.init_tensorflow(graph)
+        model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
