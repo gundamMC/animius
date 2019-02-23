@@ -164,8 +164,10 @@ class Model(ABC):
             stored = json.load(f)
             class_name = stored['config']['class']
 
-        if class_name == 'Chatbot' or class_name == 'CombinedChatbot':
+        if class_name == 'Chatbot':
             return am.Chatbot.ChatbotModel.load(directory, name=name, data=data)
+        elif class_name == 'CombinedChatbot':
+            return am.Chatbot.CombinedChatbotModel.load(directory, name=name, data=data)
         elif class_name == 'IntentNER':
             return am.IntentNER.IntentNERModel.load(directory, name=name, data=data)
         elif class_name == 'SpeakerVerification':

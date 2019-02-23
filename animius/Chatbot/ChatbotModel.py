@@ -44,7 +44,7 @@ class ChatbotModel(am.Model):
         self.tb_merged = None
 
         self.word_embedding = None
-        self.init_word_embedding = True
+        self.init_word_embedding = False
 
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
 
