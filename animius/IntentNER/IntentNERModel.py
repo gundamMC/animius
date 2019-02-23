@@ -236,7 +236,7 @@ class IntentNERModel(am.Model):
 
         model = IntentNERModel()
         model.restore_config(directory, name)
-        if data is None:
+        if data is not None:
             model.data = data
 
         graph = tf.Graph()
