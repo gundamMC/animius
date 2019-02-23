@@ -85,21 +85,28 @@ def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
     return sequence
 
 
-def freeze_graph(model_dir, output_node_names, model_config):
+# pass model_dir and model_name if model is not loaded
+def freeze_graph(model, output_node_names, model_dir=None, model_name=None):
 
-    if isinstance(model_config, str):
-        print("Freeze graph: model config is a string object, attempting to read it as path to model config file")
-        with open(model_config, 'r') as f:
-            model_config = json.load(f)
+    stored = None
+
+    if model is not None:
+        config = model.config
+        model_dir = model.saved_directory
+        model_name = model.saved_name
+    else:
+        with open(join(model_dir, model_name + '.json'), 'r') as f:
+            stored = json.load(f)
+            config = stored['config']
+
+    if 'graph' not in config:
+        raise ValueError('No graph found. Save the model with graph=True')
 
     # Retrieve latest checkpoint
     checkpoint = tf.train.get_checkpoint_state(model_dir)
     input_checkpoint = checkpoint.model_checkpoint_path
 
-    if 'graph' not in model_config['config']:
-        raise ValueError('No graph found. Save the model with graph=True')
-
-    input_graph = model_config['config']['graph']
+    input_graph = config['graph']
     output_graph = join(model_dir, "frozen_model.pb")
 
     clear_devices = True
@@ -110,25 +117,43 @@ def freeze_graph(model_dir, output_node_names, model_config):
                                  input_meta_graph=input_checkpoint + ".meta"
                                  )
 
+    config['frozen_graph'] = output_graph
+
     # save frozen graph location
-    with open(join(model_dir, 'model_config.json'), 'w') as f:
-        model_config['config']['frozen_graph'] = output_graph
-        json.dump(model_config, f, indent=4)
+    with open(join(model_dir, model_name + '.json'), 'w') as f:
+        if model is not None:
+            json.dump({
+                'config': model.config,
+                'model_structure': model.model_structure,
+                'hyperparameters': model.hyperparameters
+            }, f, indent=4)
+        else:
+            json.dump(stored, f, indent=4)
 
     return output_graph  # output graph path
 
 
-def optimize(model_dir, input_node_names, output_node_names):
-    with open(join(model_dir, 'model_config.json'), 'r') as f:
-        stored = json.load(f)
+def optimize(model, input_node_names, output_node_names, model_dir=None, model_name=None):
 
-    if 'frozen_graph' in stored['config']:
-        frozen_graph = stored['config']['frozen_graph']
+    stored = None
+
+    if model is not None:
+        config = model.config
+        model_dir = model.saved_directory
+        model_name = model.saved_name
     else:
-        if 'graph' not in stored['config']:
+        with open(join(model_dir, model_name + '.json'), 'r') as f:
+            stored = json.load(f)
+            config = stored['config']
+
+    if 'frozen_graph' in config:
+        frozen_graph = config['frozen_graph']
+    else:
+        if 'graph' not in config:
             raise ValueError('No graph found. Save the model with graph=True')
         else:  # the model is not frozen
-            frozen_graph = freeze_graph(model_dir, ', '.join(output_node_names))
+            frozen_graph = freeze_graph(None, ', '.join(output_node_names), model_dir=model_dir, model_name=model_name)
+            config['frozen_graph'] = frozen_graph
 
     inputGraph = tf.GraphDef()
     with tf.gfile.Open(frozen_graph, "rb") as f:
@@ -145,8 +170,16 @@ def optimize(model_dir, input_node_names, output_node_names):
     tf.train.write_graph(output_graph, model_dir, 'optimized_graph.pb', as_text=False)
 
     # save optimized graph location
-    with open(join(model_dir, 'model_config.json'), 'w') as f:
-        stored['config']['optimized_graph'] = join(model_dir, 'optimized_graph.pb')
-        json.dump(stored, f, indent=4)
+    config['optimized_graph'] = join(model_dir, 'optimized_graph.pb')
+
+    with open(join(model_dir, model_name + '.json'), 'w') as f:
+        if model is not None:
+            json.dump({
+                'config': model.config,
+                'model_structure': model.model_structure,
+                'hyperparameters': model.hyperparameters
+            }, f, indent=4)
+        else:
+            json.dump(stored, f, indent=4)
 
     return join(model_dir, 'optimized_graph.pb')  # output graph path
