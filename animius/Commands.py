@@ -435,6 +435,7 @@ class Commands:
                            'Stop current socket server and close all connections',
                            'stopServer'
                            ],
+
             'freezeGraph': [console.freeze_graph,
                             {
                                 '-n': ['name', 'str', 'Name of model']
@@ -450,6 +451,17 @@ class Commands:
                          'Optimize a frozen model (see FreezeGraph) for inference.',
                          "optimize -n 'model name'"
                          ],
+
+            'sliceAudio': [console.slice_audio,
+                           {
+                               '-sp': ['subtitle_path', 'str', 'Path to subtitle file'],
+                               '-ap': ['audio_path', 'str', 'Path to audio file'],
+                               '-s': ['save_path', 'str', 'Path to save audio']
+                           },
+                           'Loading subtitle and slicing audio.',
+                           "sliceAudio -sp 'subtitle.ass' -ap 'test.mp3' -s 'some\\path\\save\\'"
+                           ],
+
             'save': [console.save,
                      {
 

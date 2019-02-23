@@ -278,6 +278,32 @@ class Console:
                 if req not in args:
                     args[req] = None
 
+    def slice_audio(self, **kwargs):
+        """
+        Loading subtitle and slicing audio
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *subtitle_path* (``str``)  -- Path to subtitle file
+        * *audio_path* (``str``) -- Path to audio file
+        * *save_path* (``str``) -- Path to save audio
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['subtitle_path', 'audio_path', 'save_path'])
+
+        if not os.path.isfile(kwargs['subtitle_path']):
+            raise FileNotFoundError('Subtitle File Does Not Exist')
+        elif not os.path.isfile(kwargs['audio_path']):
+            raise FileNotFoundError('Audio File Does Not Exist')
+        elif not os.path.exists(kwargs['save_path']):
+            raise NotADirectoryError('Save Path Not Found')
+
+        parser = am.SubtitleParser()
+
+        parser.load(kwargs['subtitle_path'])
+        parser.slice_audio(kwargs['audio_path'], kwargs['save_path'])
+
     def create_waifu(self, **kwargs):
         """
         Use existing model to create a waifu
