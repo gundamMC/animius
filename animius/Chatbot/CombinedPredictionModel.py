@@ -31,10 +31,9 @@ class CombinedPredictionModel:
 
         if 'frozen_graph' in self.model_config.config:
             restore_graph = self.model_config.config['frozen_graph']
-            print('Warning: Graph is not optimized. It will use more resources. (Use am.Utils.optimize)')
         elif 'graph' in self.model_config.config:
             restore_graph = self.model_config.config['graph']
-            print('Warning: Graph is not frozen and optimized. It will use more resources. (Use am.Utils.optimize)')
+            print('Warning: Graph is not frozen. It will use more resources. (Use am.Utils.freeze_graph)')
         else:
             raise ValueError('No graph found. Save the model with graph=True')
 
