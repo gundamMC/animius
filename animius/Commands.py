@@ -183,7 +183,25 @@ class Commands:
                                     '-h': ['hyperparameters', 'dict',
                                            'Dictionary containing the updated hyperparameters values (Optional)'],
                                     '-s': ['model_structure', 'dict',
-                                           'Dictionary containing the updated model structure values (Optional)']
+                                           'Dictionary containing the updated model structure values (Optional)'],
+
+                                    '-cls': ['class', 'str', 'eonfiig.Class'],
+                                    '-e': ['epoch', 'int', 'config.epoch'],
+                                    '-cost': ['cost', '', 'config.cost'],
+                                    '-ds': ['display_step', '', 'config.display_step'],
+                                    '-tb': ['tensorboard', '', 'config.tensorboard'],
+                                    '-hd': ['hyperdash', '', 'config.hyperdash'],
+
+                                    '-lr': ['learning_rate', 'float', 'hyperparamters.learning_rate'],
+                                    '-bs': ['batch_size', 'int', 'hyperparamters.batch_size'],
+                                    '-op': ['optimizer', 'str', 'hyperparamters.optimizer'],
+
+                                    '-ms': ['max_sequence', 'int', 'model_structure.max_sequence'],
+                                    '-nh': ['n_hidden', 'int', 'model_structure.n_hidden'],
+                                    '-gc': ['gradient_clip', 'float', 'model_structure.gradient_clip'],
+                                    '-no': ['node', 'str', 'model_structure.node'],
+                                    '-nio': ['n_intent_output', 'int', 'model_structure.n_intent_output'],
+                                    '-nno': ['n_ner_output', 'int', 'model.n_ner_output']
                                 },
                                 'Update a model config with the provided values',
                                 'editModelConfig -n \'model config name\' [-c \'{"some_key": "some_value"}\'] [-h \'{}\'] [-s \'{}\']'
