@@ -32,7 +32,8 @@ class Waifu:
         if 'CombinedPrediction' in self.config['models']:
             print('Waifu {0}: Overwriting existing combined prediction model'.format(self.config['name']))
 
-        self.config['models']['CombinedPrediction'] = directory
+        self.config['models']['CombinedPredictionDirectory'] = directory
+        self.config['models']['CombinedPredictionName'] = name
 
     def load_combined_prediction_model(self):
 
@@ -43,7 +44,9 @@ class Waifu:
         if 'CombinedPrediction' not in self.config['models']:
             print('Waifu {0}: No combined prediction model found.'.format(self.config['name']))
 
-        self.combined_prediction = am.Chatbot.CombinedPredictionModel(self.config['models']['CombinedPrediction'])
+        self.combined_prediction = am.Chatbot.CombinedPredictionModel(
+            self.config['models']['CombinedPredictionDirectory'], self.config['models']['CombinedPredictionName']
+        )
 
     def build_input(self, embedding):
         self.input_data = am.ModelData.CombinedPredictionData(self.combined_prediction.model_config)
@@ -93,7 +96,7 @@ class Waifu:
         waifu = cls(config['name'], config['models'], config['description'])
 
         # load models
-        if 'CombinedPrediction' in config['models']:
+        if 'CombinedPredictionDirectory' in config['models']:
             waifu.load_combined_prediction_model()
 
         # set up input data
