@@ -12,9 +12,9 @@ class CombinedPredictionModel:
     # For some reason using the optimized model fails.
     # Use the frozen one instead.
     # ALso, graph transform seems to perform worse than the frozen model...
-    def __init__(self, model_dir):
+    def __init__(self, model_dir, model_name):
 
-        with open(join(model_dir, 'model_config.json'), 'r') as f:
+        with open(join(model_dir, model_name + '.json'), 'r') as f:
             stored = json.load(f)
             config = stored['config']
             model_structure = stored['model_structure']
@@ -25,7 +25,16 @@ class CombinedPredictionModel:
                                                model_structure,
                                                hyperparameters)
 
-        restore_graph = self.model_config.config['graph']
+        if 'optimized_graph' in self.model_config.config:
+            restore_graph = self.model_config.config['optimized_graph']
+        elif 'frozen_graph' in self.model_config.config:
+            restore_graph = self.model_config.config['frozen_graph']
+            print('Warning: Graph is not optimized. It will use more resources. (Use am.Utils.optimize)')
+        elif 'graph' in self.model_config.config:
+            restore_graph = self.model_config.config['graph']
+            print('Warning: Graph is not frozen and optimized. It will use more resources. (Use am.Utils.optimize)')
+        else:
+            raise ValueError('No graph found. Save the model with graph=True')
 
         # restore graph
         graph_def = tf.GraphDef()
