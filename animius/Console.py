@@ -148,6 +148,7 @@ class Console:
 
     def get_waifu(self, **kwargs):
         results = {}
+
         for key in self.waifu:
             if self.waifu[key].loaded:
                 results[key] = {'name': self.waifu[key].item.config['name'],
@@ -157,16 +158,46 @@ class Console:
         return results
 
     def get_models(self, **kwargs):
-        return list(self.models.keys())
+        results = {}
+
+        for key in self.models:
+            if self.models[key].loaded:
+                results[key] = {'name': key,
+                                'type': type(self.models[key].item)}
+            else:
+                results[key] = {}
+        return results
 
     def get_model_configs(self, **kwargs):
-        return list(self.model_configs.keys())
+        results = {}
+
+        for key in self.model_configs:
+            if self.model_configs[key].loaded:
+                results[key] = {'name': key}
+            else:
+                results[key] = {}
+        return results
 
     def get_data(self, **kwargs):
-        return list(self.data.keys())
+        results = {}
+
+        for key in self.data:
+            if self.data[key].loaded:
+                results[key] = {'name': key,
+                                'type': type(self.data[key].item)}
+            else:
+                results[key] = {}
+        return results
 
     def get_embeddings(self, **kwargs):
-        return list(self.embeddings.keys())
+        results = {}
+
+        for key in self.embeddings:
+            if self.embeddings[key].loaded:
+                results[key] = {'name': key}
+            else:
+                results[key] = {}
+        return results
 
     def get_waifu_detail(self, **kwargs):
         """
