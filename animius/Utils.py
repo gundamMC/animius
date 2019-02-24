@@ -133,7 +133,13 @@ def freeze_graph(model, output_node_names, model_dir=None, model_name=None):
     return output_graph  # output graph path
 
 
+# WARNING: optimizing models seem to produce an invalid graph. Don't use it.
+# See: https://github.com/tensorflow/tensorflow/issues/19838
 def optimize(model, input_node_names, output_node_names, model_dir=None, model_name=None):
+    import warnings
+
+    warnings.warn('WARNING: Optimizing models seem to produce an invalid graph and should not be used. '
+                  'If you wish to undo this, simply remove the \'optimized_graph\' line in the config file')
 
     stored = None
 
