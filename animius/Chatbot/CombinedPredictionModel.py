@@ -25,9 +25,11 @@ class CombinedPredictionModel:
                                                model_structure,
                                                hyperparameters)
 
-        if 'optimized_graph' in self.model_config.config:
-            restore_graph = self.model_config.config['optimized_graph']
-        elif 'frozen_graph' in self.model_config.config:
+        # if 'optimized_graph' in self.model_config.config:
+        #     restore_graph = self.model_config.config['optimized_graph']
+        # Optimizing doesn't work for now. See https://github.com/tensorflow/tensorflow/issues/19838
+
+        if 'frozen_graph' in self.model_config.config:
             restore_graph = self.model_config.config['frozen_graph']
             print('Warning: Graph is not optimized. It will use more resources. (Use am.Utils.optimize)')
         elif 'graph' in self.model_config.config:
