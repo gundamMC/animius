@@ -21,13 +21,13 @@ class Waifu:
         self.saved_directory = None
         self.saved_name = None
 
-    def add_combined_prediction_model(self, directory):
+    def add_combined_prediction_model(self, directory, name):
 
         if self.combined_prediction is not None:
             self.combined_prediction.close()
             print('Waifu {0}: Closing existing combined prediction model'.format(self.config['name']))
 
-        self.combined_prediction = am.Chatbot.CombinedPredictionModel(directory)
+        self.combined_prediction = am.Chatbot.CombinedPredictionModel(directory, name)
 
         if 'CombinedPrediction' in self.config['models']:
             print('Waifu {0}: Overwriting existing combined prediction model'.format(self.config['name']))
