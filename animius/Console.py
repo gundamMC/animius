@@ -754,18 +754,50 @@ class Console:
         * *model_structure* (``model_structure``) -- Dictionary containing the updated model_structure values
         """
 
-        Console.check_arguments(kwargs,
-                                hard_requirements=['name'],
-                                soft_requirements=['config, hyperparameters, model_structure'])
+        """
+            Console.check_arguments(kwargs, hard_requirements=['name'], soft_requirements=['config, hyperparameters, model_structure'])
+    
+            if kwargs['name'] in self.model_configs:
+    
+                def update_dict(target, update_values):
+                    for key in update_values:
+                        target[key] = update_values[key]
+    
+                update_dict(self.model_configs[kwargs['name']].item.config, kwargs['config'])
+                update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['hyperparameters'])
+                update_dict(self.model_configs[kwargs['name']].item.model_structure, kwargs['model_structure'])
+    
+            else:
+                raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
+        """
+        Console.check_arguments(kwargs, hard_requirements=['name'])
+
+        configs = ['class', 'epoch', 'cost', 'display_step', 'tensorboard', 'hyperdash']
+        hyperparameters = ['learning_rate', 'batch_size', 'optimizer']
+        model_structures = ['n_ner_output', 'n_intent_output', 'node', 'gradient_clip', 'n_hidden', 'max_sequence']
 
         if kwargs['name'] in self.model_configs:
             def update_dict(target, update_values):
                 for key in update_values:
                     target[key] = update_values[key]
 
-            update_dict(self.model_configs[kwargs['name']].item.config, kwargs['config'])
-            update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['hyperparameters'])
-            update_dict(self.model_configs[kwargs['name']].item.model_structure, kwargs['model_structure'])
+            for key, value in kwargs:
+
+                if isinstance(value, dict):
+                    if key == 'config':
+                        update_dict(self.model_configs[kwargs['name']].item.config, value)
+                    if key == 'hyperparameters':
+                        update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['config'])
+                    if key == 'model_structure':
+                        update_dict(self.model_configs[kwargs['name']].item.model_structure, kwargs['model_structure'])
+
+                else:
+                    if key in configs:
+                        self.model_configs[kwargs['name']].item.config[key] = value
+                    if key in hyperparameters:
+                        self.model_configs[kwargs['name']].item.hyperparameters[key] = value
+                    if key in model_structures:
+                        self.model_configs[kwargs['name']].item.model_structure[key] = value
 
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
