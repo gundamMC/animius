@@ -160,6 +160,12 @@ class Commands:
                         ],
 
             # endregion
+            'getModelConfigDetails': [console.get_model_config_details,
+                                      {
+                                          '-n': ['--name', 'str', 'Name of Model Config']
+                                      },
+                                      'Return the details of a model config',
+                                      "getModelConfigDetails -n 'model config name'"],
 
             'createModelConfig': [console.create_model_config,
                                   {
@@ -403,6 +409,13 @@ class Commands:
                                                    'Read paths to raw audio files and add them to a speaker verification data',
                                                    "speakerVerificationDataAddDataFile -n 'data name' -p '\\some\\path\x07udios.txt' -y True"
                                                    ],
+
+            'getEmbeddingDetails': [console.get_embedding_details,
+                                    {
+                                        '-n': ['--name', 'str', 'Name of Embedding']
+                                    },
+                                    'Return the details of an embedding',
+                                    "getEmbeddingDetails -n 'embedding name'"],
 
             'createEmbedding': [console.create_embedding,
                                 {

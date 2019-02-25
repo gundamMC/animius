@@ -294,6 +294,51 @@ class Console:
 
         return tmp
 
+    def get_model_config_details(self, **kwargs):
+        """
+        Return the details of a model config
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.model_configs:
+            raise NameNotFoundError("Model Config {0} not found".format(kwargs['name']))
+
+        tmp = {'config': self.model_configs[kwargs['name']].item.config,
+               'model_structure': self.model_configs[kwargs['name']].item.model_structure,
+               'hyperparamters': self.model_configs[kwargs['name']].hyperparameters.config,
+               'saved_directory': self.model_configs[kwargs['name']].saved_directory,
+               'saved_name': self.model_configs[kwargs['name']].saved_name}
+
+        return tmp
+
+    def get_embedding_details(self, **kwargs):
+        """
+        Return the details of an embedding
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of embedding
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name'])
+
+        if kwargs['name'] not in self.embeddings:
+            raise NameNotFoundError("Embedding {0} not found".format(kwargs['name']))
+
+        tmp = {'saved_directory': self.model_configs[kwargs['name']].saved_directory,
+               'saved_name': self.model_configs[kwargs['name']].saved_name}
+
+        return tmp
+
     @staticmethod
     def check_arguments(args, hard_requirements=None, soft_requirements=None):
         # Check if the user-provided arguments meet the requirements of the method/command
