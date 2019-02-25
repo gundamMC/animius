@@ -64,6 +64,12 @@ class SpeakerVerificationModel(am.Model):
 
         with graph.as_default():
 
+            if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
+                device = '/device:CPU:0'
+            else:
+                device = self.config['device']
+            graph.device(device)
+
             input_window = test_model_structure('input_window', data.values['x'].shape[1])
             input_cepstral = test_model_structure('input_cepstral', data.values['x'].shape[2])
 

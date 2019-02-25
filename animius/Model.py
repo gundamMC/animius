@@ -14,6 +14,7 @@ class Model(ABC):
     @staticmethod
     def DEFAULT_CONFIG():
         return {
+            'device': '/device:GPU:0',
             'class': '',
             'epoch': 0,
             'cost': None,

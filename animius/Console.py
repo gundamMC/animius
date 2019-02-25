@@ -848,7 +848,7 @@ class Console:
         """
         Console.check_arguments(kwargs, hard_requirements=['name'])
 
-        configs = ['class', 'epoch', 'cost', 'display_step', 'tensorboard', 'hyperdash']
+        configs = ['device', 'class', 'epoch', 'cost', 'display_step', 'tensorboard', 'hyperdash']
         hyperparameters = ['learning_rate', 'batch_size', 'optimizer']
         model_structures = ['n_ner_output', 'n_intent_output', 'node', 'gradient_clip', 'n_hidden', 'max_sequence']
 
