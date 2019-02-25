@@ -191,7 +191,8 @@ class Commands:
                                     '-s': ['model_structure', 'dict',
                                            'Dictionary containing the updated model structure values (Optional)'],
 
-                                    '-cls': ['class', 'str', 'eonfiig.Class'],
+                                    '-d': ['device', 'str', 'cibfug.device'],
+                                    '-cls': ['class', 'str', 'confiig.class'],
                                     '-e': ['epoch', 'int', 'config.epoch'],
                                     '-cost': ['cost', '', 'config.cost'],
                                     '-ds': ['display_step', '', 'config.display_step'],

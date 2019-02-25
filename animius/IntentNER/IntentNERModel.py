@@ -62,6 +62,12 @@ class IntentNERModel(am.Model):
 
         with graph.as_default():
 
+            if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
+                device = '/device:CPU:0'
+            else:
+                device = self.config['device']
+            graph.device(device)
+
             if embedding_tensor is None:
                 n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
                 word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
