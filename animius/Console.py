@@ -462,14 +462,17 @@ class Console:
 
         if not os.path.isdir(kwargs['combined_chatbot_model']):
             if kwargs['combined_chatbot_model'] in self.models:
-                kwargs['combined_chatbot_model'] = self.models[kwargs['combined_chatbot_model']].saved_directory
+                model_directory = self.models[kwargs['combined_chatbot_model']].saved_directory
+                model_name = self.models[kwargs['combined_chatbot_model']].saved_name
             else:
                 raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
+        else:
+            model_directory = kwargs['combined_chatbot_model']
 
         desc = '' if 'description' not in kwargs else kwargs['description']
 
         waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']}, description=desc)
-        waifu.load_combined_prediction_model()
+        waifu.add_combined_prediction_model(model_directory, model_name)
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
         console_item = _ConsoleItem(waifu, os.path.join(self.directories['waifu'], kwargs['name']), kwargs['name'])
