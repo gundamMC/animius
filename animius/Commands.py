@@ -162,7 +162,7 @@ class Commands:
             # endregion
             'getModelConfigDetails': [console.get_model_config_details,
                                       {
-                                          '-n': ['--name', 'str', 'Name of Model Config']
+                                          '-n': ['name', 'str', 'Name of Model Config']
                                       },
                                       'Return the details of a model config',
                                       "getModelConfigDetails -n 'model config name'"],
@@ -413,7 +413,7 @@ class Commands:
 
             'getEmbeddingDetails': [console.get_embedding_details,
                                     {
-                                        '-n': ['--name', 'str', 'Name of Embedding']
+                                        '-n': ['name', 'str', 'Name of Embedding']
                                     },
                                     'Return the details of an embedding',
                                     "getEmbeddingDetails -n 'embedding name'"],

@@ -13,15 +13,16 @@ class Model(ABC):
 
     @staticmethod
     def _get_default_device():
-        if tf.test.is_gpu_available:
+        if tf.test.is_gpu_available():
             return tf.test.gpu_device_name()
         else:
             return '/cpu:0'
 
     @staticmethod
     def DEFAULT_CONFIG():
+        device_name = Model._get_default_device()
         return {
-            'device': Model._get_default_device(),
+            'device': device_name,
             'class': '',
             'epoch': 0,
             'cost': None,
