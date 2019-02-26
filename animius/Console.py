@@ -1,5 +1,6 @@
 import animius as am
 import os
+import zipfile
 import json
 from ast import literal_eval
 from shlex import split as arg_split
@@ -145,6 +146,63 @@ class Console:
                                        'saved_name': console_item.saved_name}
             with open(os.path.join(self.directories[sub_dir], sub_dir + '.json'), 'w') as f:
                 json.dump({'items': tmp_dict}, f, indent=4)
+
+    def export_waifu(self, **kwargs):
+        pass
+
+    def export_model(self, **kwargs):
+        pass
+
+    def export_model_config(self, **kwargs):
+        """
+        Export a model config
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config
+        * *path*  (``str``) -- Path to export file
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if kwargs['name'] not in self.model_configs:
+            raise NameNotFoundError("ModelConfig {0} not found".format(kwargs['name']))
+        elif not os.path.exists(kwargs['path']):
+            os.makedirs(kwargs['path'], exist_ok=True)
+
+        directory = self.model_configs[kwargs['name']].saved_directory
+        name = self.model_configs[kwargs['name']].saved_name
+        file_path = os.path.join(directory, name + '.json')
+
+        if os.path.isfile(file_path):
+            zip_path = os.path.join(kwargs['path'], name + '.zip')
+            zf = zipfile.ZipFile(zip_path, mode='w')
+            zf.write(file_path, name + '.json', compress_type=zipfile.ZIP_DEFLATED)
+        else:
+            raise FileNotFoundError()
+
+    def export_data(self, **kwargs):
+        pass
+
+    def export_embedding(self, **kwargs):
+        pass
+
+    def import_waifu(self, **kwargs):
+        pass
+
+    def import_model(self, **kwargs):
+        pass
+
+    def import_model_config(self, **kwargs):
+        pass
+
+    def import_data(self, **kwargs):
+        pass
+
+    def import_embedding(self, **kwargs):
+        pass
 
     def get_waifu(self, **kwargs):
         results = {}

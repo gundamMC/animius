@@ -11,6 +11,35 @@ class Commands:
             # command : console_method, arguments dict [long arg, type, message], help message, example
             # (example not provided if there are no arguments)
 
+            # region export commands
+            'exportWaifu': [],
+
+            'exportModel': [],
+
+            'exportModelConfig': [console.export_model_config,
+                                  {
+                                      '-n': ['name', 'str', 'Name of model config'],
+                                      '-p': ['path', 'str', 'Path to export file']
+                                  },
+                                  'Export a model config',
+                                  "exportModelConfig -n 'model config name' -p 'path_name'"
+                                  ],
+
+            'exportData': [],
+
+            'exportEmbedding': [],
+
+            # region import commands
+            'importWaifu': [],
+
+            'importModel': [],
+
+            'importModelConfig': [],
+
+            'importData': [],
+
+            'importEmbedding': [],
+
             # region list commands
             'getWaifu': [console.get_waifu, {},
                          'Get a list of existing waifu.'
