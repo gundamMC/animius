@@ -240,9 +240,9 @@ class Console:
 
         tmp = {'config': self.models[kwargs['name']].item.config,
                'model_structure': self.models[kwargs['name']].item.model_structure,
-               'hyperparamter': self.models[kwargs['name']].hyperparameters.config,
-               'saved_directory': self.models[kwargs['name']].saved_directory,
-               'saved_name': self.models[kwargs['name']].saved_name}
+               'hyperparamter': self.models[kwargs['name']].item.hyperparameters.config,
+               'saved_directory': self.models[kwargs['name']].item.saved_directory,
+               'saved_name': self.models[kwargs['name']].item.saved_name}
 
         return tmp
 
@@ -312,7 +312,7 @@ class Console:
 
         tmp = {'config': self.model_configs[kwargs['name']].item.config,
                'model_structure': self.model_configs[kwargs['name']].item.model_structure,
-               'hyperparamters': self.model_configs[kwargs['name']].hyperparameters.config,
+               'hyperparamters': self.model_configs[kwargs['name']].item.hyperparameters,
                'saved_directory': self.model_configs[kwargs['name']].saved_directory,
                'saved_name': self.model_configs[kwargs['name']].saved_name}
 
@@ -857,7 +857,7 @@ class Console:
                 for key in update_values:
                     target[key] = update_values[key]
 
-            for key, value in kwargs:
+            for key, value in kwargs.items():
 
                 if isinstance(value, dict):
                     if key == 'config':
