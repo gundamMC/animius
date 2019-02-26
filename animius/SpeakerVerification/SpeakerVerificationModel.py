@@ -60,108 +60,109 @@ class SpeakerVerificationModel(am.Model):
         if graph is None:
             graph = tf.Graph()
 
-        self.graph = graph
-
         with graph.as_default():
 
             if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
-                device = '/device:CPU:0'
-            else:
-                device = self.config['device']
-            graph.device(device)
+                self.config['device'] = '/cpu:0'
+                # override to CPU since no GPU is available
 
-            input_window = test_model_structure('input_window', data.values['x'].shape[1])
-            input_cepstral = test_model_structure('input_cepstral', data.values['x'].shape[2])
+            with graph.device(self.config['device']):
 
-            # Tensorflow placeholders
-            self.x = tf.placeholder(tf.float32,
-                                    [None,
-                                     input_window,
-                                     input_cepstral],
-                                    name='input_x'
-                                    )
-            self.y = tf.placeholder(tf.float32, [None, 1], name='train_y')
+                input_window = test_model_structure('input_window', data.values['x'].shape[1])
+                input_cepstral = test_model_structure('input_cepstral', data.values['x'].shape[2])
 
-            # Network parameters
-            weights = {
-                # 3x3 conv filter, 1 input layers, 10 output layers
-                'wc1': tf.Variable(tf.random_normal([self.model_structure['filter_size_1'],
-                                                     self.model_structure['filter_size_1'],
-                                                     1,
-                                                     self.model_structure['num_filter_1']]
-                                                    )),
-                # 5x5 conv filter, 10 input layers, 15 output layers
-                'wc2': tf.Variable(tf.random_normal([self.model_structure['filter_size_2'],
-                                                     self.model_structure['filter_size_2'],
-                                                     self.model_structure['num_filter_1'],
-                                                     self.model_structure['num_filter_2']]
-                                                    )),
-                # fully connected 1, 15 input layers, 128 outpute nodes
-                'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window'] / 2) *
-                                                     round(self.model_structure['input_cepstral'] / 2) *
-                                                     self.model_structure['num_filter_2'],
-                                                     self.model_structure['fully_connected_1']]
-                                                    )),
-                # output, 128 input nodes, 1 output node
-                'out': tf.Variable(tf.random_normal([128, 1]))
-            }
+                # Tensorflow placeholders
+                self.x = tf.placeholder(tf.float32,
+                                        [None,
+                                         input_window,
+                                         input_cepstral],
+                                        name='input_x'
+                                        )
+                self.y = tf.placeholder(tf.float32, [None, 1], name='train_y')
 
-            biases = {
-                'bc1': tf.Variable(tf.random_normal([self.model_structure['num_filter_1']])),
-                'bc2': tf.Variable(tf.random_normal([self.model_structure['num_filter_2']])),
-                'bd1': tf.Variable(tf.random_normal([self.model_structure['fully_connected_1']])),
-                'out': tf.Variable(tf.random_normal([1]))  # one output node
-            }
+                # Network parameters
+                weights = {
+                    # 3x3 conv filter, 1 input layers, 10 output layers
+                    'wc1': tf.Variable(tf.random_normal([self.model_structure['filter_size_1'],
+                                                         self.model_structure['filter_size_1'],
+                                                         1,
+                                                         self.model_structure['num_filter_1']]
+                                                        )),
+                    # 5x5 conv filter, 10 input layers, 15 output layers
+                    'wc2': tf.Variable(tf.random_normal([self.model_structure['filter_size_2'],
+                                                         self.model_structure['filter_size_2'],
+                                                         self.model_structure['num_filter_1'],
+                                                         self.model_structure['num_filter_2']]
+                                                        )),
+                    # fully connected 1, 15 input layers, 128 outpute nodes
+                    'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window'] / 2) *
+                                                         round(self.model_structure['input_cepstral'] / 2) *
+                                                         self.model_structure['num_filter_2'],
+                                                         self.model_structure['fully_connected_1']]
+                                                        )),
+                    # output, 128 input nodes, 1 output node
+                    'out': tf.Variable(tf.random_normal([128, 1]))
+                }
 
-            # define neural network
-            def network():
+                biases = {
+                    'bc1': tf.Variable(tf.random_normal([self.model_structure['num_filter_1']])),
+                    'bc2': tf.Variable(tf.random_normal([self.model_structure['num_filter_2']])),
+                    'bd1': tf.Variable(tf.random_normal([self.model_structure['fully_connected_1']])),
+                    'out': tf.Variable(tf.random_normal([1]))  # one output node
+                }
 
-                conv_x = tf.expand_dims(self.x, -1)
+                # define neural network
+                def network():
 
-                conv1 = tf.nn.conv2d(conv_x, weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
+                    conv_x = tf.expand_dims(self.x, -1)
 
-                if self.model_structure['pool_type'] == 'max':
-                    conv1_pooled = tf.nn.max_pool(conv1,
-                                                  ksize=[1, self.model_structure['pool_size_1'],
-                                                         self.model_structure['pool_size_1'],
-                                                         1],
-                                                  strides=[1, self.model_structure['pool_size_1'],
-                                                           self.model_structure['pool_size_1'],
-                                                           1],
-                                                  padding='SAME')
+                    conv1 = tf.nn.conv2d(conv_x, weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
 
-                else:
-                    conv1_pooled = tf.nn.avg_pool(conv1,
-                                                  ksize=[1, self.model_structure['pool_size_1'],
-                                                         self.model_structure['pool_size_1'],
-                                                         1],
-                                                  strides=[1, self.model_structure['pool_size_1'],
-                                                           self.model_structure['pool_size_1'],
-                                                           1],
-                                                  padding='SAME')
+                    if self.model_structure['pool_type'] == 'max':
+                        conv1_pooled = tf.nn.max_pool(conv1,
+                                                      ksize=[1, self.model_structure['pool_size_1'],
+                                                             self.model_structure['pool_size_1'],
+                                                             1],
+                                                      strides=[1, self.model_structure['pool_size_1'],
+                                                               self.model_structure['pool_size_1'],
+                                                               1],
+                                                      padding='SAME')
 
-                conv2 = tf.nn.conv2d(conv1_pooled, weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
+                    else:
+                        conv1_pooled = tf.nn.avg_pool(conv1,
+                                                      ksize=[1, self.model_structure['pool_size_1'],
+                                                             self.model_structure['pool_size_1'],
+                                                             1],
+                                                      strides=[1, self.model_structure['pool_size_1'],
+                                                               self.model_structure['pool_size_1'],
+                                                               1],
+                                                      padding='SAME')
 
-                conv2 = tf.reshape(conv2, [tf.shape(self.x)[0], -1])  # maintain batch size
-                fc1 = tf.add(tf.matmul(conv2, weights["wd1"]), biases["bd1"])
-                fc1 = tf.nn.relu(fc1)
+                    conv2 = tf.nn.conv2d(conv1_pooled, weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
 
-                out = tf.add(tf.matmul(fc1, weights['out']), biases['out'], name='output_predict')
+                    conv2 = tf.reshape(conv2, [tf.shape(self.x)[0], -1])  # maintain batch size
+                    fc1 = tf.add(tf.matmul(conv2, weights["wd1"]), biases["bd1"])
+                    fc1 = tf.nn.relu(fc1)
 
-                return out
+                    out = tf.add(tf.matmul(fc1, weights['out']), biases['out'], name='output_predict')
 
-            # Optimization
-            self.prediction = network()
-            self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(), labels=self.y),
-                                       name='train_cost')
-            self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(
-                self.cost, name='train_op')
+                    return out
 
-            # Tensorboard
-            if self.config['tensorboard'] is not None:
-                tf.summary.scalar('cost', self.cost)
-                # tf.summary.scalar('accuracy', self.accuracy)
-                self.tb_merged = tf.summary.merge_all(name='tensorboard_merged')
+                # Optimization
+                self.prediction = network()
+                self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(), labels=self.y),
+                                           name='train_cost')
+                self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(
+                    self.cost, name='train_op')
+
+                # Tensorboard
+                if self.config['tensorboard'] is not None:
+                    tf.summary.scalar('cost', self.cost)
+                    # tf.summary.scalar('accuracy', self.accuracy)
+                    self.tb_merged = tf.summary.merge_all(name='tensorboard_merged')
+
+        self.graph = graph
+        return graph
 
     def train(self, epochs=800, CancellationToken=None):
 
