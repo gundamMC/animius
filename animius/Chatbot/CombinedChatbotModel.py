@@ -24,7 +24,14 @@ class CombinedChatbotModel(ChatbotModel):
 
         self.graph = tf.Graph()
         with self.graph.as_default():
-            tf.import_graph_def(intent_ner_graph_def, name='intent')
+
+            if 'GPU' in model_config.config['device'] and not tf.test.is_gpu_available():
+                model_config.config['device'] = '/cpu:0'
+                # override to CPU since no GPU is available
+
+            with self.graph.device(model_config.config['device']):
+
+                tf.import_graph_def(intent_ner_graph_def, name='intent')
 
         super().build_graph(model_config,
                             data,

@@ -12,9 +12,16 @@ import animius as am
 class Model(ABC):
 
     @staticmethod
+    def _get_default_device():
+        if tf.test.is_gpu_available:
+            return tf.test.gpu_device_name()
+        else:
+            return '/cpu:0'
+
+    @staticmethod
     def DEFAULT_CONFIG():
         return {
-            'device': '/device:GPU:0',
+            'device': Model._get_default_device(),
             'class': '',
             'epoch': 0,
             'cost': None,
@@ -76,8 +83,13 @@ class Model(ABC):
                 self.tensorboard_writer = tf.summary.FileWriter(self.config['tensorboard'])
 
             if init_sess:
-                config = tf.ConfigProto()
-                config.gpu_options.allow_growth = True
+
+                # force cpu utilization
+                if self.config['device'] == '/cpu:0':
+                    config = tf.ConfigProto(device_count={'CPU': 1, 'GPU': 0}, allow_soft_placement=True)
+                else:  # gpu allow growth
+                    config = tf.ConfigProto()
+                    config.gpu_options.allow_growth = True
                 self.sess = tf.Session(config=config, graph=graph)
 
             if init_param:
