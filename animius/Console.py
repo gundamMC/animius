@@ -148,10 +148,76 @@ class Console:
                 json.dump({'items': tmp_dict}, f, indent=4)
 
     def export_waifu(self, **kwargs):
-        pass
+        """
+        Export a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *path*  (``str``) -- Path to export file
+        """
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if kwargs['name'] not in self.waifu:
+            raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
+        elif not os.path.exists(kwargs['path']):
+            os.makedirs(kwargs['path'], exist_ok=True)
+
+        waifu_directory = self.waifu[kwargs['name']].saved_directory
+        waifu_name = self.waifu[kwargs['name']].saved_name
+        waifu_path = os.path.join(waifu_directory, waifu_name + '.json')
+
+        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
+        model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionDirectory']
+        model_path = os.path.join(model_directory, model_name + '.json')
+
+        if os.path.isfile(waifu_path):
+            zip_path = os.path.join(kwargs['path'], waifu_name + '.zip')
+            zf = zipfile.ZipFile(zip_path, mode='w')
+            zf.write(waifu_path, '\\waifu\\' + waifu_name + '.json', compress_type=zipfile.ZIP_DEFLATED)
+            zf.write(model_path, '\\models\\' + model_name + "\\" + model_name + '.json',
+                     compress_type=zipfile.ZIP_DEFLATED)
+        else:
+            raise FileNotFoundError()
+   """
+
+    pass
 
     def export_model(self, **kwargs):
-        pass
+        """
+        Export a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model
+        * *path*  (``str``) -- Path to export file
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if kwargs['name'] not in self.models:
+            raise NameNotFoundError("Model {0} not found".format(kwargs['name']))
+        elif not os.path.exists(kwargs['path']):
+            os.makedirs(kwargs['path'], exist_ok=True)
+
+        model_name = self.models[kwargs['name']].saved_name
+        model_directory = self.models[kwargs['name']].saved_directory + "\\" + model_name + "\\"
+
+        if os.path.exists(model_directory):
+            zip_path = os.path.join(kwargs['path'], model_name + '.zip')
+            zf = zipfile.ZipFile(zip_path, mode='w')
+            files = os.listdir(model_directory)
+            for file in files:
+                if not os.path.isdir(file):
+                    file_name = os.path.split(file)
+                    zf.write(file, file_name[1], compress_type=zipfile.ZIP_DEFLATED)
+        else:
+            raise FileNotFoundError()
 
     def export_model_config(self, **kwargs):
         """
@@ -590,8 +656,8 @@ class Console:
                 raise NameNotFoundError("Model Config {0} not found".format(kwargs['model_config']))
             if kwargs['data'] not in self.data:
                 raise NameNotFoundError("Data {0} not found".format(kwargs['data']))
-            model = am.Chatbot.CombinedChatbotModel(self.model_configs[kwargs['model_config']].item,
-                                                    self.data[kwargs['data']].item)
+            model = am.Chatbot.CombinedChatbotModel()
+            model.build_graph(self.model_configs[kwargs['model_config']].item, self.data[kwargs['data']].item)
         elif kwargs['type'] == 'SpeakerVerification':
             model = am.SpeakerVerification.SpeakerVerificationModel()
         else:
