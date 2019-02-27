@@ -467,11 +467,15 @@ class Console:
             else:
                 raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
         else:
-            model_directory = kwargs['combined_chatbot_model']
+            # try parsing it as a path
+            # not really supposed to be dosing this when using console
+            norm_path = os.path.normpath(kwargs['combined_chatbot_model'])
+            model_directory = os.path.dirname(norm_path)
+            model_name = os.path.splitext(os.path.basename(norm_path))[0]
 
         desc = '' if 'description' not in kwargs else kwargs['description']
 
-        waifu = am.Waifu(kwargs['name'], {'CombinedPrediction': kwargs['combined_chatbot_model']}, description=desc)
+        waifu = am.Waifu(kwargs['name'], description=desc)
         waifu.add_combined_prediction_model(model_directory, model_name)
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
