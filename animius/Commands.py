@@ -12,7 +12,7 @@ class Commands:
             # (example not provided if there are no arguments)
 
             # region export commands
-            'exportWaifu': [console.export_waifu(),
+            'exportWaifu': [console.export_waifu,
                             {
                                 '-n': ['name', 'str', 'Name of waifu'],
                                 '-p': ['path', 'str', 'Path to export file']
@@ -21,7 +21,7 @@ class Commands:
                             "exportWaifu -n 'waifu name' -p 'path_name'"
                             ],
 
-            'exportModel': [console.export_model_config,
+            'exportModel': [console.export_model,
                             {
                                 '-n': ['name', 'str', 'Name of model'],
                                 '-p': ['path', 'str', 'Path to export file']
