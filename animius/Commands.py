@@ -135,7 +135,9 @@ class Commands:
                                 '-n': ['name', 'str', 'Name of model'],
                                 '-t': ['type', 'str', 'Type of model'],
                                 '-c': ['model_config', 'str', 'Name of model config to use'],
-                                '-d': ['data', 'str', 'Name of data to use']
+                                '-d': ['data', 'str', 'Name of data to use'],
+                                '-i': ['intent_ner_model', 'str',
+                                       'Name of IntentNER Model (Only required for creating CombinedChatbot Model)']
                             },
                             'Create a Model',
                             "createModel: -n 'model name' -t 'ModelType‘ -c 'model_config name' -d 'data name'"
