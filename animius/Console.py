@@ -163,6 +163,8 @@ class Console:
 
         if kwargs['name'] not in self.waifu:
             raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
+        elif self.waifu[kwargs['name']] is None:
+            raise NotLoadedError("Waifu {0} not loaded".format(kwargs['name']))
         elif not os.path.exists(kwargs['path']):
             os.makedirs(kwargs['path'], exist_ok=True)
 
@@ -208,17 +210,22 @@ class Console:
 
         model_name = self.models[kwargs['name']].saved_name
         model_directory = self.models[kwargs['name']].saved_directory
+        self.models[kwargs['name']].saved_directory = model_directory + "\\temp"
+        self.models[kwargs['name']].save()
 
         if os.path.exists(model_directory):
             zip_path = os.path.join(kwargs['path'], model_name + '.zip')
             zf = zipfile.ZipFile(zip_path, mode='w')
-            files = os.listdir(model_directory)
+            files = os.listdir(model_directory + "\\temp")
             for file in files:
-                if not os.path.isdir(file):
-                    # file_name = os.path.split(file)
-                    zf.write(model_directory + "\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
+                # file_name = os.path.split(file)
+                zf.write(model_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(model_directory + "\\temp\\" + file)
         else:
             raise FileNotFoundError()
+
+        os.rmdir(model_directory + "\\temp")
+        self.models[kwargs['name']].saved_directory = model_directory
 
     def export_model_config(self, **kwargs):
         """
@@ -640,6 +647,7 @@ class Console:
         * *type* (``str``) -- Type of model
         * *model_config* (``str``) -- Name of model config to use
         * *data* (``str``) -- Name of data
+        * *intent_ner_model* (``str``) -- Name of IntentNER Model (Only required for creating CombinedChatbot Model)
         """
 
         Console.check_arguments(kwargs,
@@ -650,17 +658,27 @@ class Console:
 
         if kwargs['type'] == 'Chatbot':
             model = am.Chatbot.ChatbotModel()
+
         elif kwargs['type'] == 'IntentNER':
             model = am.IntentNER.IntentNERModel()
+
         elif kwargs['type'] == 'CombinedChatbot':
             if kwargs['model_config'] not in self.model_configs:
                 raise NameNotFoundError("Model Config {0} not found".format(kwargs['model_config']))
             if kwargs['data'] not in self.data:
                 raise NameNotFoundError("Data {0} not found".format(kwargs['data']))
+
             model = am.Chatbot.CombinedChatbotModel()
-            model.build_graph(self.model_configs[kwargs['model_config']].item, self.data[kwargs['data']].item)
+            model_config = self.model_configs[kwargs['model_config']].item
+
+            graph_path = self.models[kwargs['intent_ner_model']].saved_directory + "\\frozen_model.pb"
+            if os.path.isfile(graph_path):
+                model_config.config['intent_ner_path'] = graph_path
+                model.build_graph(model_config, self.data[kwargs['data']].item)
+
         elif kwargs['type'] == 'SpeakerVerification':
             model = am.SpeakerVerification.SpeakerVerificationModel()
+
         else:
             raise KeyError("Model type \"{0}\" not found.".format(kwargs['type']))
 
@@ -700,6 +718,7 @@ class Console:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of model to save
+        * *graph* (``bool``) -- Save graph
         """
 
         Console.check_arguments(kwargs,
@@ -707,8 +726,10 @@ class Console:
 
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
-
-        self.models[kwargs['name']].save()
+        if 'graph' in kwargs and kwargs['graph'] == True:
+            self.models[kwargs['name']].item.save(graph=True)
+        else:
+            self.models[kwargs['name']].item.save(graph=False)
 
     def load_model(self, **kwargs):
         """
@@ -993,9 +1014,9 @@ class Console:
 
                 if isinstance(value, dict):
                     if key == 'config':
-                        update_dict(self.model_configs[kwargs['name']].item.config, value)
+                        update_dict(self.model_configs[kwargs['name']].item.config, kwargs['config'])
                     if key == 'hyperparameters':
-                        update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['config'])
+                        update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['hyperparamters'])
                     if key == 'model_structure':
                         update_dict(self.model_configs[kwargs['name']].item.model_structure, kwargs['model_structure'])
 
