@@ -157,7 +157,7 @@ class Console:
         * *name* (``str``) -- Name of waifu
         * *path*  (``str``) -- Path to export file
         """
-        """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
 
@@ -168,23 +168,24 @@ class Console:
 
         waifu_directory = self.waifu[kwargs['name']].saved_directory
         waifu_name = self.waifu[kwargs['name']].saved_name
-        waifu_path = os.path.join(waifu_directory, waifu_name + '.json')
 
-        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
+        # model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
         model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionDirectory']
-        model_path = os.path.join(model_directory, model_name + '.json')
 
-        if os.path.isfile(waifu_path):
-            zip_path = os.path.join(kwargs['path'], waifu_name + '.zip')
-            zf = zipfile.ZipFile(zip_path, mode='w')
-            zf.write(waifu_path, '\\waifu\\' + waifu_name + '.json', compress_type=zipfile.ZIP_DEFLATED)
-            zf.write(model_path, '\\models\\' + model_name + "\\" + model_name + '.json',
-                     compress_type=zipfile.ZIP_DEFLATED)
+        zip_path = os.path.join(kwargs['path'], waifu_name + '.zip')
+        zf = zipfile.ZipFile(zip_path, mode='w')
+
+        if os.path.exists(waifu_directory):
+            files = os.listdir(waifu_directory)
+            for file in files:
+                zf.write(waifu_directory + "\\" + file, '\\waifu\\' + file, compress_type=zipfile.ZIP_DEFLATED)
         else:
             raise FileNotFoundError()
-   """
 
-    pass
+        if os.path.exists(model_directory):
+            files = os.listdir(model_directory)
+            for file in files:
+                zf.write(model_directory + "\\" + file, '\\model\\' + file, compress_type=zipfile.ZIP_DEFLATED)
 
     def export_model(self, **kwargs):
         """
@@ -206,7 +207,7 @@ class Console:
             os.makedirs(kwargs['path'], exist_ok=True)
 
         model_name = self.models[kwargs['name']].saved_name
-        model_directory = self.models[kwargs['name']].saved_directory + "\\" + model_name + "\\"
+        model_directory = self.models[kwargs['name']].saved_directory
 
         if os.path.exists(model_directory):
             zip_path = os.path.join(kwargs['path'], model_name + '.zip')
@@ -214,8 +215,8 @@ class Console:
             files = os.listdir(model_directory)
             for file in files:
                 if not os.path.isdir(file):
-                    file_name = os.path.split(file)
-                    zf.write(file, file_name[1], compress_type=zipfile.ZIP_DEFLATED)
+                    # file_name = os.path.split(file)
+                    zf.write(model_directory + "\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
         else:
             raise FileNotFoundError()
 
