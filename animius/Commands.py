@@ -39,9 +39,22 @@ class Commands:
                                   "exportModelConfig -n 'model config name' -p 'path_name'"
                                   ],
 
-            'exportData': [],
+            'exportData': [console.export_data,
+                           {
+                               '-n': ['name', 'str', 'Name of data'],
+                               '-p': ['path', 'str', 'Path to export file']
+                           },
+                           'Export a data',
+                           "exportData -n 'data_name' -p 'path_name'"
+                           ],
 
-            'exportEmbedding': [],
+            'exportEmbedding': [console.export_embedding,
+                                {
+                                    '-n': ['name', 'str', 'Name of embedding'],
+                                    '-p': ['path', 'str', 'Path to export file']
+                                },
+                                'Export an embedding',
+                                "exportEmbedding -n 'embedding_name' -p 'path_name'"],
 
             # region import commands
             'importWaifu': [],
@@ -153,7 +166,8 @@ class Commands:
 
             'saveModel': [console.save_model,
                           {
-                              '-n': ['name', 'str', 'Name of model to save']
+                              '-n': ['name', 'str', 'Name of model to save'],
+                              '-g': ['graph', 'bool', 'Save graph']
                           },
                           'Save a model',
                           "saveModel -n 'model name'"
