@@ -171,7 +171,7 @@ class Console:
         waifu_directory = self.waifu[kwargs['name']].saved_directory
         waifu_name = self.waifu[kwargs['name']].saved_name
 
-        # model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
+        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
         model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionDirectory']
 
         zip_path = os.path.join(kwargs['path'], waifu_name + '.zip')
@@ -184,10 +184,17 @@ class Console:
         else:
             raise FileNotFoundError()
 
-        if os.path.exists(model_directory):
+        if os.path.exists(model_directory) and model_name in self.models:
+            self.models[kwargs['name']].saved_directory = model_directory + "\\temp"
+            self.models[kwargs['name']].save()
+
             files = os.listdir(model_directory)
             for file in files:
-                zf.write(model_directory + "\\" + file, '\\model\\' + file, compress_type=zipfile.ZIP_DEFLATED)
+                zf.write(model_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(model_directory + "\\temp\\" + file)
+
+            os.rmdir(model_directory + "\\temp")
+            self.models[kwargs['name']].saved_directory = model_directory
 
     def export_model(self, **kwargs):
         """
@@ -205,6 +212,8 @@ class Console:
 
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model {0} not found".format(kwargs['name']))
+        elif self.models[kwargs['name']] is None:
+            raise NotLoadedError("Model {0} not loaded".format(kwargs['name']))
         elif not os.path.exists(kwargs['path']):
             os.makedirs(kwargs['path'], exist_ok=True)
 
@@ -243,25 +252,115 @@ class Console:
 
         if kwargs['name'] not in self.model_configs:
             raise NameNotFoundError("ModelConfig {0} not found".format(kwargs['name']))
+        elif self.model_configs[kwargs['name']] is None:
+            raise NotLoadedError("Model Config {0} not loaded".format(kwargs['name']))
         elif not os.path.exists(kwargs['path']):
             os.makedirs(kwargs['path'], exist_ok=True)
 
-        directory = self.model_configs[kwargs['name']].saved_directory
-        name = self.model_configs[kwargs['name']].saved_name
-        file_path = os.path.join(directory, name + '.json')
+        model_config_directory = self.model_configs[kwargs['name']].saved_directory
+        model_config_name = self.model_configs[kwargs['name']].saved_name
+        file_path = os.path.join(model_config_directory, model_config_name + '.json')
 
-        if os.path.isfile(file_path):
-            zip_path = os.path.join(kwargs['path'], name + '.zip')
+        self.model_configs[kwargs['name']].saved_directory = model_config_directory + "\\temp"
+        self.model_configs[kwargs['name']].save()
+
+        if os.path.exists(model_config_directory):
+            zip_path = os.path.join(kwargs['path'], model_config_name + '.zip')
             zf = zipfile.ZipFile(zip_path, mode='w')
-            zf.write(file_path, name + '.json', compress_type=zipfile.ZIP_DEFLATED)
+            files = os.listdir(model_config_directory + "\\temp")
+            for file in files:
+                # file_name = os.path.split(file)
+                zf.write(model_config_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(model_config_directory + "\\temp\\" + file)
         else:
             raise FileNotFoundError()
 
+        os.rmdir(model_config_directory + "\\temp")
+        self.models[kwargs['name']].saved_directory = model_config_directory
+
     def export_data(self, **kwargs):
-        pass
+        """
+        Export a data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data
+        * *path*  (``str``) -- Path to export file
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if kwargs['name'] not in self.data:
+            raise NameNotFoundError("Data {0} not found".format(kwargs['name']))
+        elif self.data[kwargs['name']] is None:
+            raise NotLoadedError("Data {0} not loaded".format(kwargs['name']))
+        elif not os.path.exists(kwargs['path']):
+            os.makedirs(kwargs['path'], exist_ok=True)
+
+        data_directory = self.data[kwargs['name']].saved_directory
+        data_name = self.data[kwargs['name']].saved_name
+        file_path = os.path.join(data_directory, data_name + '.json')
+
+        self.data[kwargs['name']].saved_directory = data_directory + "\\temp"
+        self.data[kwargs['name']].save()
+
+        if os.path.exists(data_directory):
+            zip_path = os.path.join(kwargs['path'], data_name + '.zip')
+            zf = zipfile.ZipFile(zip_path, mode='w')
+            files = os.listdir(data_directory + "\\temp")
+            for file in files:
+                # file_name = os.path.split(file)
+                zf.write(data_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(data_directory + "\\temp\\" + file)
+        else:
+            raise FileNotFoundError()
+
+        os.rmdir(data_directory + "\\temp")
+        self.data[kwargs['name']].saved_directory = data_directory
 
     def export_embedding(self, **kwargs):
-        pass
+        """
+        Export a data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data
+        * *path*  (``str``) -- Path to export file
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if kwargs['name'] not in self.embeddings:
+            raise NameNotFoundError("Embedding {0} not found".format(kwargs['name']))
+        elif self.embeddings[kwargs['name']] is None:
+            raise NotLoadedError("Embedding {0} not loaded".format(kwargs['name']))
+        elif not os.path.exists(kwargs['path']):
+            os.makedirs(kwargs['path'], exist_ok=True)
+
+        embedding_directory = self.embeddings[kwargs['name']].saved_directory
+        embedding_name = self.embeddings[kwargs['name']].saved_name
+        file_path = os.path.join(embedding_directory, embedding_name + '.json')
+
+        self.embeddings[kwargs['name']].saved_directory = embedding_directory + "\\temp"
+        self.embeddings[kwargs['name']].save()
+
+        if os.path.exists(embedding_directory):
+            zip_path = os.path.join(kwargs['path'], embedding_name + '.zip')
+            zf = zipfile.ZipFile(zip_path, mode='w')
+            files = os.listdir(embedding_directory + "\\temp")
+            for file in files:
+                # file_name = os.path.split(file)
+                zf.write(embedding_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(embedding_directory + "\\temp\\" + file)
+        else:
+            raise FileNotFoundError()
+
+        os.rmdir(embedding_directory + "\\temp")
+        self.embeddings[kwargs['name']].saved_directory = embedding_directory
 
     def import_waifu(self, **kwargs):
         pass
@@ -726,7 +825,7 @@ class Console:
 
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
-        if 'graph' in kwargs and kwargs['graph'] == True:
+        if 'graph' in kwargs and kwargs['graph'] is True:
             self.models[kwargs['name']].item.save(graph=True)
         else:
             self.models[kwargs['name']].item.save(graph=False)
@@ -895,7 +994,7 @@ class Console:
         else:
             raise ValueError("Class name not found")
 
-        am.Utils.freeze_graph(self.models[kwargs['name']].saved_directory, output_node_names, stored)
+        am.Utils.freeze_graph(self.models[kwargs['name']].item, output_node_names, stored)
 
     def optimize(self, **kwargs):
         """
