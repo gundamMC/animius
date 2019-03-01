@@ -366,16 +366,121 @@ class Console:
         pass
 
     def import_model(self, **kwargs):
-        pass
+
+        """
+        Import a model
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model
+        * *path*  (``str``) -- Path to export file
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if os.path.isfile(kwargs['path']):
+            zf = zipfile.ZipFile(kwargs['path'], 'r')
+            file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
+
+            model_dir = self.directories['models'] + "\\" + file_name + "\\"
+            if not os.path.exists(model_dir):
+                os.mkdir(model_dir)
+
+            zf.extractall(model_dir)
+            model = _ConsoleItem(None, model_dir, file_name)
+            self.models[file_name] = model
+            self.models[file_name].loaded = False
+
+        else:
+            raise FileNotFoundError()
 
     def import_model_config(self, **kwargs):
-        pass
+        """
+        Import a model config
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of model config
+        * *path*  (``str``) -- Path to export file
+        """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if os.path.isfile(kwargs['path']):
+            zf = zipfile.ZipFile(kwargs['path'], 'r')
+            file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
+
+            model_config_dir = self.directories['model_configs'] + "\\" + file_name + "\\"
+            if not os.path.exists(model_config_dir):
+                os.mkdir(model_config_dir)
+
+            zf.extractall(model_config_dir)
+            model_config = _ConsoleItem(None, model_config_dir, file_name)
+            self.model_configs[file_name] = model_config
+            self.model_configs[file_name].loaded = False
+
+        else:
+            raise FileNotFoundError()
 
     def import_data(self, **kwargs):
-        pass
+        """
+         Import a data
+
+         :param kwargs:
+
+         :Keyword Arguments:
+         * *name* (``str``) -- Name of data
+         * *path*  (``str``) -- Path to export file
+         """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if os.path.isfile(kwargs['path']):
+            zf = zipfile.ZipFile(kwargs['path'], 'r')
+            file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
+
+            data_dir = self.directories['data'] + "\\" + file_name + "\\"
+            if not os.path.exists(data_dir):
+                os.mkdir(data_dir)
+
+            zf.extractall(data_dir)
+            data = _ConsoleItem(None, data_dir, file_name)
+            self.data[file_name] = data
+            self.data[file_name].loaded = False
+
+        else:
+            raise FileNotFoundError()
 
     def import_embedding(self, **kwargs):
-        pass
+        """
+         Import an embedding
+
+         :param kwargs:
+
+         :Keyword Arguments:
+         * *name* (``str``) -- Name of embedding
+         * *path*  (``str``) -- Path to export file
+         """
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if os.path.isfile(kwargs['path']):
+            zf = zipfile.ZipFile(kwargs['path'], 'r')
+            file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
+
+            embedding_dir = self.directories['embeddings'] + "\\" + file_name + "\\"
+            if not os.path.exists(embedding_dir):
+                os.mkdir(embedding_dir)
+
+            zf.extractall(embedding_dir)
+            embedding = _ConsoleItem(None, embedding_dir, file_name)
+            self.embeddings[file_name] = embedding
+            self.embeddings[file_name].loaded = False
+
+        else:
+            raise FileNotFoundError()
 
     def get_waifu(self, **kwargs):
         results = {}

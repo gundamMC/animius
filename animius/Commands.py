@@ -57,15 +57,40 @@ class Commands:
                                 "exportEmbedding -n 'embedding_name' -p 'path_name'"],
 
             # region import commands
-            'importWaifu': [],
+            'importWaifu': [console.import_waifu,
+                            {
+                                '-n': ['name', 'str', 'Name of waifu'],
+                                '-p': ['path', 'str', 'Path to export file']},
+                            "Import a waifu"
+                            "'importWaifu -n 'waifu_name' -p 'path_name'"],
 
-            'importModel': [],
+            'importModel': [console.import_model,
+                            {
+                                '-n': ['name', 'str', 'Name of model'],
+                                '-p': ['path', 'str', 'Path to export file']},
+                            "Import a model"
+                            "'importModel -n 'model_name' -p 'path_name'"],
 
-            'importModelConfig': [],
+            'importModelConfig': [console.import_model_config,
+                                  {
+                                      '-n': ['name', 'str', 'Name of model config'],
+                                      '-p': ['path', 'str', 'Path to export file']},
+                                  "Import a model config"
+                                  "importModelConfig -n 'model_config_name' -p 'path_name'"],
 
-            'importData': [],
+            'importData': [console.import_data,
+                           {
+                               '-n': ['name', 'str', 'Name of data'],
+                               '-p': ['path', 'str', 'Path to export file']},
+                           "Import a data",
+                           "importWaifu -n 'waifu_name' -p 'path_name'"],
 
-            'importEmbedding': [],
+            'importEmbedding': [console.import_embedding,
+                                {
+                                    '-n': ['name', 'str', 'Name of embedding'],
+                                    '-p': ['path', 'str', 'Path to export file']},
+                                "Import a embedding"
+                                "importEmbedding -n 'embedding_name' -p 'path_name'"],
 
             # region list commands
             'getWaifu': [console.get_waifu, {},
