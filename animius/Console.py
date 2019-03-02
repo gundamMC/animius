@@ -372,7 +372,7 @@ i
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
-        * *path*  (``str``) -- Path to export file
+        * *path*  (``str``) -- Path to import file
         """
 
         Console.check_arguments(kwargs,
@@ -419,7 +419,7 @@ i
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of model
-        * *path*  (``str``) -- Path to export file
+        * *path*  (``str``) -- Path to import file
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
@@ -448,7 +448,7 @@ i
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of model config
-        * *path*  (``str``) -- Path to export file
+        * *path*  (``str``) -- Path to import file
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
@@ -477,7 +477,7 @@ i
 
          :Keyword Arguments:
          * *name* (``str``) -- Name of data
-         * *path*  (``str``) -- Path to export file
+         * *path*  (``str``) -- Path to import file
          """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
@@ -506,7 +506,7 @@ i
 
          :Keyword Arguments:
          * *name* (``str``) -- Name of embedding
-         * *path*  (``str``) -- Path to export file
+         * *path*  (``str``) -- Path to import file
          """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
@@ -621,7 +621,7 @@ i
 
         tmp = {'config': self.models[kwargs['name']].item.config,
                'model_structure': self.models[kwargs['name']].item.model_structure,
-               'hyperparamter': self.models[kwargs['name']].item.hyperparameters.config,
+               'hyperparamter': self.models[kwargs['name']].item.hyperparameters,
                'saved_directory': self.models[kwargs['name']].item.saved_directory,
                'saved_name': self.models[kwargs['name']].item.saved_name}
 
