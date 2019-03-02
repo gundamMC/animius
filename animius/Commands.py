@@ -209,7 +209,7 @@ class Commands:
 
             'getModelDetails': [console.get_model_details,
                                 {
-                                    '-n': ['--name', 'str', 'Name of model'],
+                                    '-n': ['name', 'str', 'Name of model'],
                                 },
                                 'Return the details of a model',
                                 "getModelDetails -n 'model name'"
@@ -232,6 +232,14 @@ class Commands:
                       'Train a model',
                       "train -n 'model name' -e 10"
                       ],
+
+            'stopTraining': [console.stop_training,
+                             {
+                                 '-n': ['name', 'str', 'Name of model to stop']
+                             },
+                             'Cancel training a model. (The model will stop once it finishes the current epoch)',
+                             "stopTraining -n 'model name'"
+                             ],
 
             'predict': [console.predict,
                         {
