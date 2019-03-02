@@ -180,7 +180,8 @@ class Console:
         if os.path.exists(waifu_directory):
             files = os.listdir(waifu_directory)
             for file in files:
-                zf.write(waifu_directory + "\\" + file, '\\waifu\\' + file, compress_type=zipfile.ZIP_DEFLATED)
+                path = os.path.join(waifu_directory, file)
+                zf.write(path, '\\waifu\\' + file, compress_type=zipfile.ZIP_DEFLATED)
         else:
             raise FileNotFoundError()
 
@@ -189,11 +190,12 @@ class Console:
             self.models[kwargs['name']].save()
 
             files = os.listdir(model_directory)
+            path = os.path.join(model_directory, "temp", file)
             for file in files:
-                zf.write(model_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
-                os.remove(model_directory + "\\temp\\" + file)
+                zf.write(path, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(path)
 
-            os.rmdir(model_directory + "\\temp")
+            os.rmdir(os.path.join(model_directory + "temp"))
             self.models[kwargs['name']].saved_directory = model_directory
 
     def export_model(self, **kwargs):
@@ -225,15 +227,15 @@ class Console:
         if os.path.exists(model_directory):
             zip_path = os.path.join(kwargs['path'], model_name + '.zip')
             zf = zipfile.ZipFile(zip_path, mode='w')
-            files = os.listdir(model_directory + "\\temp")
+            files = os.listdir(os.path.join(model_directory, "temp"))
             for file in files:
-                # file_name = os.path.split(file)
-                zf.write(model_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
-                os.remove(model_directory + "\\temp\\" + file)
+                path = os.path.join(model_directory, "temp", file)
+                zf.write(path, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(path)
         else:
             raise FileNotFoundError()
 
-        os.rmdir(model_directory + "\\temp")
+        os.rmdir(os.path.join(model_directory, "temp"))
         self.models[kwargs['name']].saved_directory = model_directory
 
     def export_model_config(self, **kwargs):
@@ -267,11 +269,11 @@ class Console:
         if os.path.exists(model_config_directory):
             zip_path = os.path.join(kwargs['path'], model_config_name + '.zip')
             zf = zipfile.ZipFile(zip_path, mode='w')
-            files = os.listdir(model_config_directory + "\\temp")
+            files = os.listdir(os.path.join(model_config_directory, "temp"))
             for file in files:
-                # file_name = os.path.split(file)
-                zf.write(model_config_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
-                os.remove(model_config_directory + "\\temp\\" + file)
+                path = os.path.join(model_config_directory, "temp", file)
+                zf.write(path, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(path)
         else:
             raise FileNotFoundError()
 
@@ -303,21 +305,21 @@ class Console:
         data_name = self.data[kwargs['name']].saved_name
         file_path = os.path.join(data_directory, data_name + '.json')
 
-        self.data[kwargs['name']].saved_directory = data_directory + "\\temp"
+        self.data[kwargs['name']].saved_directory = os.path.join(data_directory, "temp")
         self.data[kwargs['name']].save()
 
         if os.path.exists(data_directory):
             zip_path = os.path.join(kwargs['path'], data_name + '.zip')
             zf = zipfile.ZipFile(zip_path, mode='w')
-            files = os.listdir(data_directory + "\\temp")
+            files = os.listdir(os.path.join(data_directory, "temp"))
             for file in files:
-                # file_name = os.path.split(file)
-                zf.write(data_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
-                os.remove(data_directory + "\\temp\\" + file)
+                path = os.path.join(data_directory, "temp", file)
+                zf.write(path, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(path)
         else:
             raise FileNotFoundError()
 
-        os.rmdir(data_directory + "\\temp")
+        os.rmdir(os.path.join(data_directory, "temp"))
         self.data[kwargs['name']].saved_directory = data_directory
 
     def export_embedding(self, **kwargs):
@@ -345,21 +347,21 @@ class Console:
         embedding_name = self.embeddings[kwargs['name']].saved_name
         file_path = os.path.join(embedding_directory, embedding_name + '.json')
 
-        self.embeddings[kwargs['name']].saved_directory = embedding_directory + "\\temp"
+        self.embeddings[kwargs['name']].saved_directory = os.path.join(embedding_directory, "temp")
         self.embeddings[kwargs['name']].save()
 
         if os.path.exists(embedding_directory):
             zip_path = os.path.join(kwargs['path'], embedding_name + '.zip')
             zf = zipfile.ZipFile(zip_path, mode='w')
-            files = os.listdir(embedding_directory + "\\temp")
+            files = os.listdir(os.path.join(embedding_directory, "temp"))
             for file in files:
-                # file_name = os.path.split(file)
-                zf.write(embedding_directory + "\\temp\\" + file, file, compress_type=zipfile.ZIP_DEFLATED)
-                os.remove(embedding_directory + "\\temp\\" + file)
+                path = os.path.join(embedding_directory, "temp", file)
+                zf.write(path, file, compress_type=zipfile.ZIP_DEFLATED)
+                os.remove(path)
         else:
             raise FileNotFoundError()
 
-        os.rmdir(embedding_directory + "\\temp")
+        os.rmdir(os.path.join(embedding_directory, "temp"))
         self.embeddings[kwargs['name']].saved_directory = embedding_directory
 
     def import_waifu(self, **kwargs):
@@ -383,7 +385,7 @@ class Console:
             zf = zipfile.ZipFile(kwargs['path'], 'r')
             file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
 
-            model_dir = self.directories['models'] + "\\" + file_name + "\\"
+            model_dir = os.path.join(self.directories['models'], file_name)
             if not os.path.exists(model_dir):
                 os.mkdir(model_dir)
 
@@ -412,7 +414,7 @@ class Console:
             zf = zipfile.ZipFile(kwargs['path'], 'r')
             file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
 
-            model_config_dir = self.directories['model_configs'] + "\\" + file_name + "\\"
+            model_config_dir = os.path.join(self.directories['model_configs'], file_name)
             if not os.path.exists(model_config_dir):
                 os.mkdir(model_config_dir)
 
@@ -441,7 +443,7 @@ class Console:
             zf = zipfile.ZipFile(kwargs['path'], 'r')
             file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
 
-            data_dir = self.directories['data'] + "\\" + file_name + "\\"
+            data_dir = os.path.join(self.directories['data'], file_name)
             if not os.path.exists(data_dir):
                 os.mkdir(data_dir)
 
@@ -470,7 +472,7 @@ class Console:
             zf = zipfile.ZipFile(kwargs['path'], 'r')
             file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
 
-            embedding_dir = self.directories['embeddings'] + "\\" + file_name + "\\"
+            embedding_dir = os.path.join(self.directories['embeddings'], file_name)
             if not os.path.exists(embedding_dir):
                 os.mkdir(embedding_dir)
 
