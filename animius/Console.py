@@ -190,8 +190,8 @@ class Console:
             self.models[kwargs['name']].save()
 
             files = os.listdir(model_directory)
-            path = os.path.join(model_directory, "temp", file)
             for file in files:
+                path = os.path.join(model_directory, "temp", file)
                 zf.write(path, file, compress_type=zipfile.ZIP_DEFLATED)
                 os.remove(path)
 
@@ -285,7 +285,7 @@ class Console:
         Export a data
 
         :param kwargs:
-
+i
         :Keyword Arguments:
         * *name* (``str``) -- Name of data
         * *path*  (``str``) -- Path to export file
@@ -365,7 +365,50 @@ class Console:
         self.embeddings[kwargs['name']].saved_directory = embedding_directory
 
     def import_waifu(self, **kwargs):
-        pass
+        """
+        Import a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *path*  (``str``) -- Path to export file
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'])
+
+        if os.path.isfile(kwargs['path']):
+            zf = zipfile.ZipFile(kwargs['path'], 'r')
+            file_name = kwargs['name']  # os.path.split(kwargs['path'])[1]
+            lists = zf.namelist()
+
+            waifu_dir = os.path.join(self.directories['waifu'], file_name)
+            if not os.path.exists(waifu_dir):
+                os.mkdir(waifu_dir)
+
+            for file in lists:
+                if 'waifu/' in file:
+                    zf.extract(file, waifu_dir)
+
+            waifu = _ConsoleItem(None, waifu_dir, file_name)
+            self.waifu[file_name] = waifu
+            self.waifu[file_name].loaded = False
+
+            model_dir = os.path.join(self.directories['models'], file_name)
+            if not os.path.exists(model_dir):
+                os.mkdir(model_dir)
+
+            for file in lists:
+                if 'model/' in file:
+                    zf.extract(file, model_dir)
+
+            model = _ConsoleItem(None, model_dir, file_name)
+            self.models[file_name] = model
+            self.models[file_name].loaded = False
+
+        else:
+            raise FileNotFoundError()
 
     def import_model(self, **kwargs):
 
