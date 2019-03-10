@@ -283,26 +283,39 @@ class Commands:
                                     '-s': ['model_structure', 'dict',
                                            'Dictionary containing the updated model structure values (Optional)'],
 
-                                    '-d': ['device', 'str', 'cibfug.device'],
-                                    '-cls': ['class', 'str', 'confiig.class'],
-                                    '-e': ['epoch', 'int', 'config.epoch'],
+                                    '-d': ['device', 'str', 'Name of device to use'],
+                                    '-cls': ['class', 'str', 'Model class'],
+                                    '-e': ['epoch', 'int', 'Number of epoches'],
                                     '-cost': ['cost', '', 'config.cost'],
                                     '-ds': ['display_step', '', 'config.display_step'],
                                     '-tb': ['tensorboard', '', 'config.tensorboard'],
                                     '-hd': ['hyperdash', '', 'config.hyperdash'],
 
-                                    '-lr': ['learning_rate', 'float', 'hyperparamters.learning_rate'],
-                                    '-bs': ['batch_size', 'int', 'hyperparamters.batch_size'],
-                                    '-op': ['optimizer', 'str', 'hyperparamters.optimizer'],
+                                    '-lr': ['learning_rate', 'float', 'Learning rate'],
+                                    '-bs': ['batch_size', 'int', 'Batch size'],
+                                    '-op': ['optimizer', 'str', 'Name of optimizer'],
 
                                     '-ms': ['max_sequence', 'int', 'model_structure.max_sequence'],
                                     '-nh': ['n_hidden', 'int', 'model_structure.n_hidden'],
                                     '-gc': ['gradient_clip', 'float', 'model_structure.gradient_clip'],
                                     '-no': ['node', 'str', 'model_structure.node'],
                                     '-nio': ['n_intent_output', 'int', 'model_structure.n_intent_output'],
-                                    '-nno': ['n_ner_output', 'int', 'model.n_ner_output']
+                                    '-nno': ['n_ner_output', 'int', 'model_structure.n_ner_output'],
+
+                                    '-l': ['layer', 'int', 'Number of layers'],
+                                    '-bw': ['beam_width', 'int', 'Beam width'],
+
+                                    '-fs1': ['filter_size_1', 'int', 'model_structure.filter_size_1'],
+                                    '-fs2': ['filter_size_2', 'int', 'model_structure.filter_size_2'],
+                                    '-nf1': ['num_filter_1', 'int', 'model_structure.num_filter_1'],
+                                    '-nf2': ['num_filter_2', 'int', 'model_structure.num_filter_2'],
+                                    '-ps1': ['pool_size_1', 'int', 'model_structure.pool_size_1'],
+                                    '-pt': ['pool_type', 'str', 'model_structure.pool_type'],
+                                    '-fc1': ['fully_connected_1', 'int', 'model_structure.fully_connect_1'],
+                                    '-iw': ['input_window', 'int', 'model_structure.input_window'],
+                                    '-ic': ['input_cepstral', 'int', 'model_structure.input_cepstral']
                                 },
-                                'Update a model config with the provided values',
+                                'Update a model config with provided values',
                                 'editModelConfig -n \'model config name\' [-c \'{"some_key": "some_value"}\'] [-h \'{}\'] [-s \'{}\']'
                                 ],
 

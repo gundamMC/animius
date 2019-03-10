@@ -1221,7 +1221,7 @@ i
 
     def edit_model_config(self, **kwargs):
         """
-        Update a model config with the provided values
+        Update a model config with provided values
 
         :param kwargs:
 
@@ -1252,7 +1252,11 @@ i
 
         configs = ['device', 'class', 'epoch', 'cost', 'display_step', 'tensorboard', 'hyperdash']
         hyperparameters = ['learning_rate', 'batch_size', 'optimizer']
-        model_structures = ['n_ner_output', 'n_intent_output', 'node', 'gradient_clip', 'n_hidden', 'max_sequence']
+        intent_model_structures = ['n_ner_output', 'n_intent_output', 'node', 'gradient_clip', 'n_hidden',
+                                   'max_sequence']
+        chatbot_model_structures = ['max_sequence', 'n_hidden', 'gradient_clip', 'node', 'layer', 'beam_width']
+        speaker_model_structures = ['filter_size_1', 'num_filter_1', 'pool_size_1', 'pool_type', 'filter_size_2',
+                                    'num_filter_2', 'fully_connected_1', 'input_window', 'input_cepstral']
 
         if kwargs['name'] in self.model_configs:
             def update_dict(target, update_values):
@@ -1274,7 +1278,7 @@ i
                         self.model_configs[kwargs['name']].item.config[key] = value
                     if key in hyperparameters:
                         self.model_configs[kwargs['name']].item.hyperparameters[key] = value
-                    if key in model_structures:
+                    if key in intent_model_structures or key in chatbot_model_structures or key in speaker_model_structures:
                         self.model_configs[kwargs['name']].item.model_structure[key] = value
 
         else:
