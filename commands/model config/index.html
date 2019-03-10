@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-3.2.0">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.0.2">
     
     
       
@@ -46,9 +46,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/application.572ca0f0.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/application.982221ab.css">
       
-        <link rel="stylesheet" href="../../assets/stylesheets/application-palette.22915126.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/application-palette.224b79ff.css">
       
       
         
@@ -57,7 +57,7 @@
       
     
     
-      <script src="../../assets/javascripts/modernizr.8c900955.js"></script>
+      <script src="../../assets/javascripts/modernizr.1f0bcf2b.js"></script>
     
     
       
@@ -68,6 +68,9 @@
     
     <link rel="stylesheet" href="../../assets/fonts/material-icons.css">
     
+    
+    
+      
     
     
   </head>
@@ -126,22 +129,19 @@
       <div class="md-flex__cell md-flex__cell--stretch">
         <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
           
-            
-              <span class="md-header-nav__topic">
-                Animius Docs
-              </span>
-              <span class="md-header-nav__topic">
-                Model Config
-              </span>
-            
+            <span class="md-header-nav__topic">
+              Animius Docs
+            </span>
+            <span class="md-header-nav__topic">
+              Model Config
+            </span>
           
         </div>
       </div>
       <div class="md-flex__cell md-flex__cell--shrink">
         
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
           
-            <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
-            
 <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
@@ -164,7 +164,6 @@
     </div>
   </div>
 </div>
-          
         
       </div>
       
@@ -175,20 +174,18 @@
 
   
 
-
-  <a href="https://github.com/gundamMC/Animius/" title="Go to repository" class="md-source" data-md-source="github">
-    
-      <div class="md-source__icon">
-        <svg viewBox="0 0 24 24" width="24" height="24">
-          <use xlink:href="#__github" width="24" height="24"></use>
-        </svg>
-      </div>
-    
-    <div class="md-source__repository">
-      gundamMC/Animius
+<a href="https://github.com/gundamMC/Animius/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
     </div>
-  </a>
-
+  
+  <div class="md-source__repository">
+    gundamMC/Animius
+  </div>
+</a>
           </div>
         </div>
       
@@ -224,20 +221,18 @@
 
   
 
-
-  <a href="https://github.com/gundamMC/Animius/" title="Go to repository" class="md-source" data-md-source="github">
-    
-      <div class="md-source__icon">
-        <svg viewBox="0 0 24 24" width="24" height="24">
-          <use xlink:href="#__github" width="24" height="24"></use>
-        </svg>
-      </div>
-    
-    <div class="md-source__repository">
-      gundamMC/Animius
+<a href="https://github.com/gundamMC/Animius/" title="Go to repository" class="md-source" data-md-source="github">
+  
+    <div class="md-source__icon">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <use xlink:href="#__github" width="24" height="24"></use>
+      </svg>
     </div>
-  </a>
-
+  
+  <div class="md-source__repository">
+    gundamMC/Animius
+  </div>
+</a>
     </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -393,6 +388,20 @@
         <li class="md-nav__item">
   <a href="#loadmodelconfig" title="loadModelConfig" class="md-nav__link">
     loadModelConfig
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exportmodelconfig" title="exportModelConfig" class="md-nav__link">
+    exportModelConfig
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#importmodelconfig" title="importModelConfig" class="md-nav__link">
+    importModelConfig
   </a>
   
 </li>
@@ -619,6 +628,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#exportmodelconfig" title="exportModelConfig" class="md-nav__link">
+    exportModelConfig
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#importmodelconfig" title="importModelConfig" class="md-nav__link">
+    importModelConfig
+  </a>
+  
+</li>
+      
       
       
       
@@ -671,8 +694,13 @@
 </li>
 </ul>
 <h3 id="editmodelconfig">editModelConfig</h3>
-<p>Update a model config with the provided values.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>editModelConfig -n &#39;model config name&#39; [-c &#39;{&quot;some_key&quot;: &quot;some_value&quot;}&#39;] [-h &#39;{}&#39;] [-s &#39;{}&#39;]
+<p>Update a model config with provided values.</p>
+<p>Either providing full dict of configs or changing specific values is allowed.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>editModelConfig -n &#39;model config name&#39; [-c &#39;{&quot;some_key&quot;: &quot;some_value&quot;}&#39;] [-h &#39;{}&#39;] [-s &#39;{}&#39;]
+
+editModelConfig -n &#39;model config name&#39; [-bs 1024] [-lr 0.1] [-d &#39;/gpu:0&#39;]
 </pre></div>
 </td></tr></table>
 
@@ -689,6 +717,84 @@
 </li>
 <li>
 <p><em>-s, --model_structure</em> (<code class="codehilite">dict</code>) -- Dictionary containing the updated model structure values (Optional)</p>
+</li>
+<li>
+<p><em>-d, --device</em> (<code class="codehilite">str</code>) -- Name of device to use (Optional)</p>
+</li>
+<li>
+<p><em>-cls, --class</em> (<code class="codehilite">str</code>) -- Model class (Optional)</p>
+</li>
+<li>
+<p><em>-e, --epoch</em> (<code class="codehilite">int</code>) -- Number of epoches (Optional)</p>
+</li>
+<li>
+<p><em>-cost, --cost</em> (``) -- config.cost (Optional)</p>
+</li>
+<li>
+<p><em>-ds, --display_step</em> (``) -- config.display_step (Optional)</p>
+</li>
+<li>
+<p><em>-tb, --tensorboard</em> (``) -- config.tensorboard (Optional)</p>
+</li>
+<li>
+<p><em>-lr, --learning_rate</em> (<code class="codehilite">float</code>) -- Learning rate (Optional)</p>
+</li>
+<li>
+<p><em>-bs, --batch_size</em> (<code class="codehilite">int</code>) -- Batch size (Optional)</p>
+</li>
+<li>
+<p><em>-op, --optimizer</em> (<code class="codehilite">str</code>) -- Name of optimizer (Optional)</p>
+</li>
+<li>
+<p><em>-ms, --max_sequence</em> (<code class="codehilite">int</code>) -- model_structure.max_sequence (Optional)</p>
+</li>
+<li>
+<p><em>-nh, --n_hidden</em> (<code class="codehilite">int</code>) -- model_structure.n_hidden (Optional)</p>
+</li>
+<li>
+<p><em>-gc, --gradient_clip</em> (<code class="codehilite">float</code>) -- model_structure.gradient_clip (Optional)</p>
+</li>
+<li>
+<p><em>-no, --node</em> (<code class="codehilite">str</code>) -- model_structure.node (Optional)</p>
+</li>
+<li>
+<p><em>-nio, --n_intent_output</em> (<code class="codehilite">int</code>) -- model_structure.n_intent_output (Optional)</p>
+</li>
+<li>
+<p><em>-nno, --n_ner_output</em> (<code class="codehilite">int</code>) -- model_structure.n_ner_output (Optional)</p>
+</li>
+<li>
+<p><em>-l, --layer</em> (<code class="codehilite">int</code>) -- Number of layers (Optional)</p>
+</li>
+<li>
+<p><em>-bw, --beam_width</em> (<code class="codehilite">int</code>) -- Beam width (Optional)</p>
+</li>
+<li>
+<p><em>-fs1, --filter_size_1</em> (<code class="codehilite">int</code>) -- model_structure.filter_size_1 (Optional)</p>
+</li>
+<li>
+<p><em>-fs2, --filter_size_2</em> (<code class="codehilite">int</code>) -- model_structure.filter_size_2 (Optional)</p>
+</li>
+<li>
+<p><em>-nf1, --num_filter_1</em> (<code class="codehilite">int</code>) -- model_structure.num_filter_1 (Optional)</p>
+</li>
+<li>
+<p><em>-nf2, --num_filter_2</em> (<code class="codehilite">int</code>) -- model_structure.num_filter_2 (Optional)</p>
+</li>
+<li>
+<p><em>-ps1, --pool_size_1</em> (<code class="codehilite">int</code>) -- model_structure.pool_size_1 (Optional)</p>
+</li>
+<li>
+<p><em>-pt, --pool_type</em> (<code class="codehilite">str</code>) -- model_structure.pool_type (Optional)</p>
+</li>
+<li>
+<p><em>-fc1, --fully_connected_1</em> (<code class="codehilite">int</code>) -- model_structure.fully_connect_1 (Optional)</p>
+</li>
+<li>
+<p><em>-iw, --input_window</em> (<code class="codehilite">int</code>) -- model_structure.input_window (Optional)</p>
+</li>
+<li>
+<p><em>-ic, --input_cepstral</em> (<code class="codehilite">int</code>) -- model_structure.input_cepstral (Optional)</p>
 </li>
 </ul>
 <h3 id="deletemodelconfig">deleteModelConfig</h3>
@@ -720,6 +826,36 @@
 <p>Keyword Argument:</p>
 <ul>
 <li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model config to load</li>
+</ul>
+<h3 id="exportmodelconfig">exportModelConfig</h3>
+<p>Export a model config to zip file.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>exportModelConfig -n &#39;model config name&#39; -p &#39;some\path\to\export\&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model config to export</p>
+</li>
+<li>
+<p><em>-p, --path</em> (<code class="codehilite">str</code>) -- Path to export file</p>
+</li>
+</ul>
+<h3 id="importmodelconfig">importModelConfig</h3>
+<p>Import a model config from zip file.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><span class="nx">importModel</span> <span class="o">-</span><span class="nx">n</span> <span class="s1">&#39;model name&#39;</span> <span class="o">-</span><span class="nx">p</span> <span class="s1">&#39;some\path\to\export\model_name.zip&#39;</span>
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of model config to export</p>
+</li>
+<li>
+<p><em>-p, --path</em> (<code class="codehilite">str</code>) -- Path to import file</p>
+</li>
 </ul>
                 
                   
@@ -788,7 +924,6 @@
           Material for MkDocs</a>
       </div>
       
-        
   <div class="md-footer-social">
     <link rel="stylesheet" href="../../assets/fonts/font-awesome.css">
     
@@ -796,19 +931,15 @@
     
   </div>
 
-      
     </div>
   </div>
 </footer>
       
     </div>
     
-      <script src="../../assets/javascripts/application.b41f3d20.js"></script>
+      <script src="../../assets/javascripts/application.d9aa80ab.js"></script>
       
       <script>app.initialize({version:"1.0.4",url:{base:"../.."}})</script>
-      
-    
-    
       
     
   </body>
