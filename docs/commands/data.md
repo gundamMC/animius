@@ -42,7 +42,7 @@ Keyword Arguments:
 
 * *-e, --embedding* (`str`) -- Name of embedding
 
-### resetData
+### dataReset
 
 Reset a data, clearing all stored data values.
 
@@ -90,6 +90,57 @@ Keyword Arguments:
 
 * *-n, --name* (`str`) -- Name of data to load
 
+### exportData
+
+Export a data to zip file.
+
+```
+exportData -n 'data name' -p 'some\path\to\export\'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of data to export
+
+* *-p, --path* (`str`) -- Path to export file
+
+### importData
+
+Import a data from zip file.
+
+```
+importModel -n 'data name' -p 'some\path\to\export\data_name.zip'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of data to import
+
+* *-p, --path* (`str`) -- Path to import file
+
+###getData
+
+Get a list of existing data.
+
+```
+getData
+```
+
+No argument required.
+
+This command returns a dictionary of which the keys are the name of data and the values are the details.
+
+The details will be empty if the data is not loaded.
+
+```
+{
+	"data_name": {
+		"name": "data_name",
+		"type": "<class 'data _class'>"
+	}
+}
+```
+
 ### getDataDetails
 
 Return the details of a data.
@@ -102,6 +153,18 @@ Keyword Arguments:
 
 * *-n, --name* (``str``) -- Name of data
 
+```
+{
+	'model_config_saved_directory': 'resources\\model_configs',
+	'model_config_saved_name': 'model_config_name',
+	'model_config_name': 'model_config_name',
+	'embedding_saved_directory': 'resources\\embeddings\\embedding_name',
+	'embedding_saved_name': 'embedding_name',
+	'embedding_name': 'embedding_name',
+	'cls': 'ChatbotData',
+	'values': ['arr_0', 'embedding']
+}
+```
 
 ## Chatbot Data
 
