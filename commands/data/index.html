@@ -392,8 +392,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#resetdata" title="resetData" class="md-nav__link">
-    resetData
+  <a href="#datareset" title="dataReset" class="md-nav__link">
+    dataReset
   </a>
   
 </li>
@@ -415,6 +415,27 @@
           <li class="md-nav__item">
   <a href="#loaddata" title="loadData" class="md-nav__link">
     loadData
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exportdata" title="exportData" class="md-nav__link">
+    exportData
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importdata" title="importData" class="md-nav__link">
+    importData
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getdata_1" title="getData" class="md-nav__link">
+    getData
   </a>
   
 </li>
@@ -745,8 +766,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#resetdata" title="resetData" class="md-nav__link">
-    resetData
+  <a href="#datareset" title="dataReset" class="md-nav__link">
+    dataReset
   </a>
   
 </li>
@@ -768,6 +789,27 @@
           <li class="md-nav__item">
   <a href="#loaddata" title="loadData" class="md-nav__link">
     loadData
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exportdata" title="exportData" class="md-nav__link">
+    exportData
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importdata" title="importData" class="md-nav__link">
+    importData
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getdata_1" title="getData" class="md-nav__link">
+    getData
   </a>
   
 </li>
@@ -961,7 +1003,7 @@
 <p><em>-e, --embedding</em> (<code class="codehilite">str</code>) -- Name of embedding</p>
 </li>
 </ul>
-<h3 id="resetdata">resetData</h3>
+<h3 id="datareset">dataReset</h3>
 <p>Reset a data, clearing all stored data values.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>dataReset -n &#39;data name&#39;
 </pre></div>
@@ -1001,6 +1043,59 @@
 <ul>
 <li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of data to load</li>
 </ul>
+<h3 id="exportdata">exportData</h3>
+<p>Export a data to zip file.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>exportData -n &#39;data name&#39; -p &#39;some\path\to\export\&#39;
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of data to export</p>
+</li>
+<li>
+<p><em>-p, --path</em> (<code class="codehilite">str</code>) -- Path to export file</p>
+</li>
+</ul>
+<h3 id="importdata">importData</h3>
+<p>Import a data from zip file.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span><span class="nx">importModel</span> <span class="o">-</span><span class="nx">n</span> <span class="s1">&#39;data name&#39;</span> <span class="o">-</span><span class="nx">p</span> <span class="s1">&#39;some\path\to\export\data_name.zip&#39;</span>
+</pre></div>
+</td></tr></table>
+
+<p>Keyword Arguments:</p>
+<ul>
+<li>
+<p><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of data to import</p>
+</li>
+<li>
+<p><em>-p, --path</em> (<code class="codehilite">str</code>) -- Path to import file</p>
+</li>
+</ul>
+<h3 id="getdata_1">getData</h3>
+<p>Get a list of existing data.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>getData
+</pre></div>
+</td></tr></table>
+
+<p>No argument required.</p>
+<p>This command returns a dictionary of which the keys are the name of data and the values are the details.</p>
+<p>The details will be empty if the data is not loaded.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>{
+    &quot;data_name&quot;: {
+        &quot;name&quot;: &quot;data_name&quot;,
+        &quot;type&quot;: &quot;&lt;class &#39;data _class&#39;&gt;&quot;
+    }
+}
+</pre></div>
+</td></tr></table>
+
 <h3 id="getdatadetails">getDataDetails</h3>
 <p>Return the details of a data.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>getDataDetails -n &#39;data name&#39;
@@ -1011,6 +1106,28 @@
 <ul>
 <li><em>-n, --name</em> (<code class="codehilite">str</code>) -- Name of data</li>
 </ul>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>{
+    &#39;model_config_saved_directory&#39;: &#39;resources\\model_configs&#39;,
+    &#39;model_config_saved_name&#39;: &#39;model_config_name&#39;,
+    &#39;model_config_name&#39;: &#39;model_config_name&#39;,
+    &#39;embedding_saved_directory&#39;: &#39;resources\\embeddings\\embedding_name&#39;,
+    &#39;embedding_saved_name&#39;: &#39;embedding_name&#39;,
+    &#39;embedding_name&#39;: &#39;embedding_name&#39;,
+    &#39;cls&#39;: &#39;ChatbotData&#39;,
+    &#39;values&#39;: [&#39;arr_0&#39;, &#39;embedding&#39;]
+}
+</pre></div>
+</td></tr></table>
+
 <h2 id="chatbot-data">Chatbot Data</h2>
 <h3 id="chatbotdataaddtwitter">chatbotDataAddTwitter</h3>
 <p>Add twitter dataset to a chatbot data.</p>
