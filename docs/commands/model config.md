@@ -1,15 +1,5 @@
 # Model Config
 
-###getModelConfigs
-
-Get a list of existing model configs.
-
-```
-getModelConfigs
-```
-
-No argument required.
-
 ### createModelConfig
 
 Create a model config with the provided values.
@@ -168,3 +158,69 @@ Keyword Arguments:
 
 * *-p, --path* (`str`) -- Path to import file
 
+###getModelConfigs
+
+Get a list of existing model configs.
+
+```
+getModelConfigs
+```
+
+No argument required.
+
+The details will be empty if the model is not loaded.
+
+```
+{
+	"model_config_name": {
+		"name": "model_config_name"
+	}
+}
+```
+
+### getModelConfigDetails
+
+Get the details of a model config.
+
+```
+getModelConfigDetails -n 'model config name'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (``str``) -- Name of model config
+
+This command returns a dictionary of details of a model config, which contains configs, hyperparameters, structures, saved name and saved directory of the model config.
+
+```
+{
+	'config': {
+		'device': '/gpu:0',
+		'class': 'IntentNER',
+		'epoch': 0,
+		'cost': None,
+		'display_step': 1,
+		'tensorboard': None,
+		'hyperdash': None,
+		'graph': 'resources\\models\\model_name\\model_name_graph.pb',
+		'frozen_graph': 'resources\\models\\model_name\\frozen_model.pb'
+	},
+	'model_structure': {
+		'max_sequence': 20,
+		'n_hidden': 128,
+		'gradient_clip': 5.0,
+		'node': 'gru',
+		'n_intent_output': 15,
+		'n_ner_output': 8,
+		'n_vector': 303,
+		'word_count': 100000
+	},
+	'hyperparamter': {
+		'learning_rate': 0.003,
+		'batch_size': 1024,
+		'optimizer': 'adam'
+	},
+	'saved_directory': 'resources\\models\\model_name',
+	'saved_name': 'model_name'
+}
+```

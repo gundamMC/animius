@@ -397,7 +397,7 @@ class Commands:
 
             'getDataDetails': [console.get_data_details,
                                {
-                                   '-n': ['--name', 'str', 'Name of data']
+                                   '-n': ['name', 'str', 'Name of data']
                                },
                                'Return the details of a data',
                                "getDataDetails -n 'data name'"],
