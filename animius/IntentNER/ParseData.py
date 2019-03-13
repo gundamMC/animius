@@ -15,8 +15,6 @@ class Parse:
     intents = ['Chat', 'Positive', 'Negative', 'GetCreativeWork', 'GetPlace', 'GetWeather', 'PlayMusic', 'GetTime',
                'GetHardware', 'OepnExplorer', 'SetReminder', 'SetTimer', 'SearchOnline', 'SetNote']
 
-    # TODO: Load entities/intents dynamically
-
     @staticmethod
     def get_ner_data(json_text):
 
@@ -60,6 +58,8 @@ class Parse:
         if not isinstance(word_embedding, am.WordEmbedding):
             raise TypeError('word embedding must be WordEmbedding object')
 
+        Parse.get_index(data_folder)
+
         x = []
         x_length = []
         y_intent = []
@@ -77,3 +77,13 @@ class Parse:
 
         return np.vstack([i for i in x]), np.hstack([i for i in x_length]), np.vstack([i for i in y_intent]), np.vstack(
             [i for i in y_ner])
+
+    @staticmethod
+    def get_index(data_folder):
+
+        if 'intent.json' in os.listdir(data_folder):
+            index = json.load(open(data_folder + "\\" + "intent.json", encoding="utf8"))
+            Parse.entities = index['entities']
+            Parse.intents = index['intents']
+            Parse.entity_to_index = dict(zip(Parse.entities, range(len(Parse.entities) - 1))).pop('none')
+            Parse.intent_to_index = dict(zip(Parse.intents, range(len(Parse.intents) - 1)))
