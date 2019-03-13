@@ -61,3 +61,73 @@ loadEmbedding -n 'embedding name'
 Keyword Arguments:
 
 * *-n, --name* (`str`) -- Name of embedding to load
+
+## exportEmbedding
+
+Export an embedding to zip file.
+
+```
+exportEmbedding -n 'embedding name' -p 'some\path\to\export\'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of embedding to export
+
+* *-p, --path* (`str`) -- Path to export file
+
+### importEmbedding
+
+Import an embedding from zip file.
+
+```
+importModel -n 'embedding name' -p 'some\path\to\export\embedding_name.zip'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of embedding to import
+
+* *-p, --path* (`str`) -- Path to import file
+
+###getEmbeddings
+
+Get a list of existing embedding.
+
+```
+getEmbeddings
+```
+
+No argument required.
+
+This command returns a dictionary of which the keys are the name of embeddings and the values are the details.
+
+The details will be empty if the embedding is not loaded.
+
+```
+{
+	"embedding_name": {
+		"name": "embedding_name"
+	}
+}
+```
+
+### getEmbeddingDetails
+
+Return the details of an embedding.
+
+```
+getEmbeddingDetails -n 'embedding name'
+```
+
+Keyword Arguments:
+
+* *-n, --name* (``str``) -- Name of embedding
+
+```
+{	
+    'name': 'embedding_name',
+	'saved_directory': 'resources\\embeddings\\embedding_name',
+	'saved_name': 'embedding_name'
+}
+```
