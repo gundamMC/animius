@@ -186,7 +186,7 @@ class Console:
             raise FileNotFoundError()
 
         if os.path.exists(model_directory) and model_name in self.models:
-            self.models[kwargs['name']].saved_directory = model_directory + "\\temp"
+            self.models[kwargs['name']].saved_directory = os.path.join(model_directory, "temp")
             self.models[kwargs['name']].save()
 
             files = os.listdir(model_directory)
@@ -221,7 +221,7 @@ class Console:
 
         model_name = self.models[kwargs['name']].saved_name
         model_directory = self.models[kwargs['name']].saved_directory
-        self.models[kwargs['name']].saved_directory = model_directory + "\\temp"
+        self.models[kwargs['name']].saved_directory = os.path.join(model_directory, "temp")
         self.models[kwargs['name']].save()
 
         if os.path.exists(model_directory):
@@ -263,7 +263,7 @@ class Console:
         model_config_name = self.model_configs[kwargs['name']].saved_name
         file_path = os.path.join(model_config_directory, model_config_name + '.json')
 
-        self.model_configs[kwargs['name']].saved_directory = model_config_directory + "\\temp"
+        self.model_configs[kwargs['name']].saved_directory = os.path.join(model_config_directory, "temp")
         self.model_configs[kwargs['name']].save()
 
         if os.path.exists(model_config_directory):
@@ -277,7 +277,7 @@ class Console:
         else:
             raise FileNotFoundError()
 
-        os.rmdir(model_config_directory + "\\temp")
+        os.rmdir(os.path.join(model_config_directory, "temp"))
         self.models[kwargs['name']].saved_directory = model_config_directory
 
     def export_data(self, **kwargs):
@@ -920,7 +920,7 @@ i
             model = am.Chatbot.CombinedChatbotModel()
             model_config = self.model_configs[kwargs['model_config']].item
 
-            graph_path = self.models[kwargs['intent_ner_model']].saved_directory + "\\frozen_model.pb"
+            graph_path = os.path.join(self.models[kwargs['intent_ner_model']].saved_directory + "frozen_model.pb")
             if os.path.isfile(graph_path):
                 model_config.config['intent_ner_path'] = graph_path
                 model.build_graph(model_config, self.data[kwargs['data']].item)
