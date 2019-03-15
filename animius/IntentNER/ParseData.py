@@ -7,13 +7,10 @@ import animius as am
 
 
 class Parse:
-    entity_to_index = dict(person_name=1, object_name=2, object_type=3, time=4, location_name=5, condition=6, info=7)
-    entities = ['none', 'person_name', 'object_name', 'object_type', 'time', 'location_name', 'condition', 'info']
-    intent_to_index = dict(Chat=0, Positive=1, Negative=2, GetCreativeWork=3, GetPlace=4, GetWeather=5, PlayMusic=6,
-                           GetTime=7, GetHardware=8, OpenExplorer=9, SetReminder=10, GetReminders=11, SetTimer=12,
-                           SearchOnline=13, SetNote=14)
-    intents = ['Chat', 'Positive', 'Negative', 'GetCreativeWork', 'GetPlace', 'GetWeather', 'PlayMusic', 'GetTime',
-               'GetHardware', 'OepnExplorer', 'SetReminder', 'SetTimer', 'SearchOnline', 'SetNote']
+    entity_to_index = None
+    entities = None
+    intent_to_index = None
+    intents = None
 
     @staticmethod
     def get_ner_data(json_text):
@@ -32,7 +29,7 @@ class Parse:
 
     @staticmethod
     def get_file_data(intent, words_to_index, data_folder, max_seq=20):
-        data = json.load(open(data_folder + "\\" + intent + ".json", encoding="utf8"))
+        data = json.load(open(os.path.join(data_folder, intent + ".json"), encoding="utf8"))
         data = data[intent]
         result_in = []
         result_length = []
@@ -58,7 +55,10 @@ class Parse:
         if not isinstance(word_embedding, am.WordEmbedding):
             raise TypeError('word embedding must be WordEmbedding object')
 
-        Parse.get_index(data_folder)
+        Parse.get_labels(data_folder)
+
+        if Parse.entity_to_index is None or Parse.intent_to_index is None:
+            raise ValueError("Intent and NER labels not found. Please include the labels in the labels.json file")
 
         x = []
         x_length = []
@@ -79,11 +79,11 @@ class Parse:
             [i for i in y_ner])
 
     @staticmethod
-    def get_index(data_folder):
+    def get_labels(data_folder):
 
-        if 'intent.json' in os.listdir(data_folder):
-            index = json.load(open(data_folder + "\\" + "intent.json", encoding="utf8"))
-            Parse.entities = index['entities']
-            Parse.intents = index['intents']
+        if 'labels.json' in os.listdir(data_folder):
+            labels = json.load(open(os.path.join(data_folder, "labels.json"), encoding="utf8"))
+            Parse.entities = labels['entities']
+            Parse.intents = labels['intents']
             Parse.entity_to_index = dict(zip(Parse.entities, range(len(Parse.entities) - 1))).pop('none')
             Parse.intent_to_index = dict(zip(Parse.intents, range(len(Parse.intents) - 1)))
