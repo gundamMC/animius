@@ -1,5 +1,5 @@
 # Project Information
-site_name: 'Animius Docs'
+site_name: 'Animius Documentation'
 site_description: 'A Documentation of Animius'
 site_author: 'gundamMC'
 site_url: 'https://gundammc.github.io/Animius'
@@ -10,11 +10,12 @@ copyright: 'Copyright &copy; 2019 gundamMC'
 # Navigation
 nav:
     - Home: 'index.md'
-    - About: 'about.md'
     - Quick Start:
         - Overview: 'quick start/overview.md'
         - Python Library: 'quick start/python.md'
         - Commands: 'quick start/commands.md'
+    - Python API:
+        - Overview: 'python/overview.md'
     - Commands:
         - Overview: 'commands/overview.md'
         - Waifu: 'commands/waifu.md'
@@ -30,6 +31,7 @@ nav:
         - Overview: 'network/overview.md'
         - Authentication: 'network/authentication.md'
         - Encryption: 'network/encryption.md'
+    - Animius Main Site: https://www.animius.org/
 
 # Themes
 theme:
@@ -39,11 +41,13 @@ theme:
         accent: 'blue'
 
 # Repo information
-repo_name: 'gundamMC/Animius'
+repo_name: 'Github'
 repo_url: 'https://github.com/gundamMC/Animius'
 
 # Extensions
 markdown_extensions:
+  - toc:
+      permalink: true
   - codehilite:
       linenums: true
   - pymdownx.tilde
