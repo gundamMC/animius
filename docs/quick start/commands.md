@@ -1,7 +1,7 @@
 # Quick Start
 
-Animius provides a featured Console that allows beginners to create their waifu conveniently, rather than using Python API.
-See the section below to get started.
+Animius provides a featured Console that allows beginners to create their waifu conveniently without writing code.
+*This guide assumes that you have already read the [Quick Start Overview](overview.md) and is familiar with Animius's models*
 
 ## Setup Console
 
