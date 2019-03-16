@@ -11,9 +11,12 @@ copyright: 'Copyright &copy; 2019 gundamMC'
 nav:
     - Home: 'index.md'
     - About: 'about.md'
+    - Quick Start:
+        - Overview: 'quick start/overview.md'
+        - Python Library: 'quick start/python.md'
+        - Commands: 'quick start/commands.md'
     - Commands:
         - Overview: 'commands/overview.md'
-        - Quick Start: 'commands/quick_start.md'
         - Waifu: 'commands/waifu.md'
         - Model: 'commands/model.md'
         - Model Config: 'commands/model config.md'
