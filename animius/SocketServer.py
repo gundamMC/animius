@@ -32,7 +32,6 @@ def new_client(c, console, event):
         while True:
             req = c.recv()
             response = console.handle_network(req)
-            print(response)
             c.send(*response)
 
     except socket.error as error:
