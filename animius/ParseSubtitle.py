@@ -20,8 +20,6 @@ class Parser:
             self.audio_sentences.append(sub.plaintext)
 
     def slice_audio(self, audio_path, save_path):
-        print("Processing " + audio_path)
-
         audio = AudioSegment.from_file(audio_path)
         if not path.exists(save_path):
             mkdir(save_path)
@@ -33,8 +31,6 @@ class Parser:
             segment.export(path.join(save_path, str(index).zfill(4) + ".wav"), format="wav")
             index += 1
             self.audio_sentences.append(sub.plaintext)
-
-        print("Done!")
 
     def detect_conversation(self, speaking, time_gap=5000):
         # time gap in milliseconds, default of 5 seconds

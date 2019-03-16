@@ -119,12 +119,9 @@ class Client:
         return self.socket.recv(mtu)
 
     def send(self, id, status, message, data):
-        print('trying to send:', id)
         resp = Response.createResp(id, status, message, data)
         # resp = self.AEScipher.encrypt(resp)
-        print('sending:', resp)
         self._send(resp)
-        print('sent!')
 
     # def sendWithoutAes(self, id, status, message, data):
     #     try:

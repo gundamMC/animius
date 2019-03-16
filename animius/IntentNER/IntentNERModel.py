@@ -66,8 +66,6 @@ class IntentNERModel(am.Model):
                 self.config['device'] = '/cpu:0'
                 # override to CPU since no GPU is available
 
-            print('using device', self.config['device'])
-
             with graph.device(self.config['device']):
 
                 if embedding_tensor is None:
