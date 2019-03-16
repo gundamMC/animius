@@ -13,6 +13,7 @@ nav:
     - About: 'about.md'
     - Commands:
         - Overview: 'commands/overview.md'
+        - Quick Start: 'commands/quick_start.md'
         - Waifu: 'commands/waifu.md'
         - Model: 'commands/model.md'
         - Model Config: 'commands/model config.md'
