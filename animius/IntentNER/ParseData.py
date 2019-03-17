@@ -1,5 +1,6 @@
 import json
 import os
+import warnings
 
 import numpy as np
 
@@ -14,6 +15,7 @@ class Parse:
 
     @staticmethod
     def get_ner_data(json_text):
+        # process ner data of a single sentence input
 
         input_data = []  # words
         output_ner = []  # indexes of the classes of each word
@@ -21,6 +23,9 @@ class Parse:
         for text in json_text:
             input_data.extend(str.split(str.lower(text["text"])))
             if "entity" in text:
+                if text["entity"] not in Parse.entity_to_index:
+                    warnings.warn("Entity label '{0}' does not exist. Replacing it with 0.")
+                    Parse.entity_to_index[text['entity']] = 0
                 output_ner.extend([Parse.entity_to_index[text["entity"]]] * len(str.split(text["text"])))
             else:
                 output_ner.extend([0] * len(str.split(text["text"])))
@@ -29,6 +34,8 @@ class Parse:
 
     @staticmethod
     def get_file_data(intent, words_to_index, data_folder, max_seq=20):
+        # process a single intent file
+
         data = json.load(open(os.path.join(data_folder, intent + ".json"), encoding="utf8"))
         data = data[intent]
         result_in = []
@@ -53,7 +60,7 @@ class Parse:
     def get_data(data_folder, word_embedding, max_seq=20):
 
         if not isinstance(word_embedding, am.WordEmbedding):
-            raise TypeError('word embedding must be WordEmbedding object')
+            raise TypeError('Word embedding must be WordEmbedding object')
 
         Parse.get_labels(data_folder)
 
@@ -66,7 +73,7 @@ class Parse:
         y_ner = []
         for filename in os.listdir(data_folder):
             filename = filename.split('.')[0]
-            if filename in Parse.intent_to_index:
+            if filename in Parse.intent_to_index:  # only process listed files
                 result_in, result_length, intent_out, ner_out = Parse.get_file_data(filename,
                                                                                     word_embedding.words_to_index,
                                                                                     data_folder, max_seq)
