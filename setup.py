@@ -13,6 +13,9 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://animius.org",
     packages=setuptools.find_packages(),
+    entry_points={
+        'console_scripts': ['animius = animius.Console:Console.start']
+    },
     python_requires='>=3',
     install_requires=['numpy', 'pysubs2', 'pydub', 'scipy', 'speechpy'],
     extras_require={
@@ -31,5 +34,5 @@ setuptools.setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     license='Apache 2.0',
-    keywords='animius ai virtual assistant deep learning',
+    keywords='animius ai virtual assistant deep learning'
 )
