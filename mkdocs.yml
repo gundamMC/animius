@@ -2,7 +2,7 @@
 site_name: 'Animius Documentation'
 site_description: 'A Documentation of Animius'
 site_author: 'gundamMC'
-site_url: 'https://gundammc.github.io/Animius'
+site_url: 'https://gundammc.github.io/animius'
 
 # Copyright
 copyright: 'Copyright &copy; 2019 gundamMC'
@@ -42,7 +42,7 @@ theme:
 
 # Repo information
 repo_name: 'Github'
-repo_url: 'https://github.com/gundamMC/Animius'
+repo_url: 'https://github.com/gundamMC/animius'
 
 # Extensions
 markdown_extensions:
