@@ -26,7 +26,7 @@ nav:
         - Server: 'commands/server.md'
         - Console: 'commands/console.md'
     - File Structure:
-        - Overview: 'file structure/overview.md'
+        - Overview: 'file_structure/overview.md'
     - Network: 
         - Overview: 'network/overview.md'
         - Authentication: 'network/authentication.md'
