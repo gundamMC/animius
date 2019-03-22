@@ -55,3 +55,21 @@ intentNERDataAddParseDatafolder --name 'myData' --path 'some/path/to/data/folder
 ```
 
 Now, the data will be parsed and stored in `myData`. You can have a closer look with `getModelConfigDetails`.
+
+## Setup Model
+
+After creating model config and data, we can create the model now.
+
+```
+createModel -n 'myModel' -t 'IntentNER' -c 'myModelConfig' -d 'myData'
+```
+
+The data equivalent of `getModelConfigs` and `getModelConfigDetails` are `getModels` and `getModelDetails`. 
+
+Now we need to train our model, which means making the model learn from the data we prepared.
+
+```
+train -n 'myModel' -e 10
+```
+
+The training process will be held in another thread, and you can cancel the training process by inputting `stopTrain -n 'myModel'`.
