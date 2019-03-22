@@ -9,7 +9,7 @@ Defined in animius\Console.py
 Create a model.
 
 ```
-createModel -n 'model name' -t 'ModelType' -c 'model_config name' -d 'data name
+createModel -n 'model name' -t 'ModelType' -c 'model_config name' -d 'data name'
 ```
 
 Keyword Arguments:
