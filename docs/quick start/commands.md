@@ -48,28 +48,92 @@ createData --name 'myData' --model_config 'myModelConfig'
 
 The data equivalent of `getModelConfigs` and `getModelConfigDetails` are `getData` and `getDataDetails`. 
 
-Next, download the Intent NER Data from our [resources page](https://animius.org/). Extract the zip file and place the folder somewhere safe. We can import the data by using:
+### Setting up the word embedding
+
+Next, download a word embedding (we recommend glove) and the Intent NER Data from our [resources page](https://animius.org/). Extract the zip file and place the folder somewhere safe. 
+
+To enable the parsing of English text, we will have to use a word embedding. We can create an embedding object with `createEmbedding`:
 
 ```
-intentNERDataAddParseDatafolder --name 'myData' --path 'some/path/to/data/folder'
+createEmbedding --name 'myEmbedding' --path '/some/path/to/embedding.txt' --vocab_size 50000
+```
+
+The vocab size parameter is optional but recommended to prevent loading enormous embeddings that take up too much resource.
+
+### Importing data
+
+We can import the data by using:
+
+```
+intentNERDataAddParseDatafolder --name 'myData' --path 'some/path/to/data_folder/'
 ```
 
 Now, the data will be parsed and stored in `myData`. You can have a closer look with `getModelConfigDetails`.
 
-## Setup Model
+## Setup the Model
 
 After creating model config and data, we can create the model now.
 
 ```
-createModel -n 'myModel' -t 'IntentNER' -c 'myModelConfig' -d 'myData'
+createModel -n 'myModel' -t 'IntentNER' --model_config 'myModelConfig' --data 'myData'
 ```
 
 The data equivalent of `getModelConfigs` and `getModelConfigDetails` are `getModels` and `getModelDetails`. 
 
-Now we need to train our model, which means making the model learn from the data we prepared.
+### Training
+
+Now we need to train our model, which means making the model learn from the data we prepared. Let's test it out by training 10 epochs. An epoch is just a cycle during which the model trains over the entire training set.
 
 ```
 train -n 'myModel' -e 10
 ```
 
-The training process will be held in another thread, and you can cancel the training process by inputting `stopTrain -n 'myModel'`.
+Training will be done in the background by another thread, and you can cancel the training process by using `stopTrain -n 'myModel'`.
+
+## The Console System
+
+### Saving
+
+The console provides an automatic clean saving system. To save any object, simple use the command `save{Type}`. For instance, to save a model config, use `saveModelConfig -n 'myModelConfig'`. To save a data, `saveData`. And, to save a model, `saveModel`.
+
+And, please remember to save the console also, or else your created objects will not be recognized the next time you start animius. To save the console, simply use:
+
+```
+save
+```
+
+### Loading
+
+A item created in the console will be automatically loaded. However, when restarting a console, an item will not be loaded to save performance. Thus, before an object can be used, it must be loaded with the `load{Type}` command. This is similar to the save command. (e.g. `loadModelConfig`, `loadData`)
+
+
+### Deleting
+
+If you would like to delete an object from the console, simply use `delete{Type}`. This will remove the object from console but will not remove the actual file storage. That is, any save files will remain. See [file structure](../file_structure/overview.md)
+
+## Creating your Waifu
+
+Now, this tutorial will jump a bit from the IntentNER model to a CombinedChatbot model to give a broader sense of using console. We will assume that we have already created a CombinedChatbot model called 'myCombinedChatbot' and a word embedding named 'myEmbedding'.
+
+Now, create your waifu with `createWaifu`.
+
+```
+createWaifu -n 'myWaifu' --combined_chatbot_model 'myCombinedChatbot' --embedding 'myEmbedding'
+```
+
+We can take a sneak peak with `getWaifuDetail -n 'myWaifu'`.
+
+### Prediction
+
+To make a prediction (also referred to as inference) using our waifu, simply use `waifuPredict`.
+
+```
+waifuPredict -n 'myWaifu' --sentence 'Hello world!'
+```
+
+## Other commands
+
+We have covered the basics of using commands to interact with the console in this tutorial. There are, nevertheless, much more commands that you can use to customize your workflow and your virutal assistant.
+
+To learn more about commands, visit the [commands section](../commands/overview.md).
+
