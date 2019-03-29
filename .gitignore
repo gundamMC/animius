@@ -398,11 +398,10 @@ ENV/
 .DS_Store
 
 #
-# Project Waifu:
+# Animius:
 # 
 
 # folders
-audio/
 model/
 tmp/
 resources/

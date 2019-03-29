@@ -379,15 +379,13 @@ class SpeakerVerificationData(Data):
         self.values['y'] = np.concatenate([self.values['y'], output_label])
 
     def add_parse_input_path(self, path):
-        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
-                                                    flatten=False)
+        data = am.audio.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, conv=True)
         self.add_input_data(data)
         return data.shape[0]
         # return batch number
 
     def set_parse_input_path(self, path):
-        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
-                                                    flatten=False)
+        data = am.audio.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral, conv=True)
         self.values['x'] = data
         return data.shape[0]
         # return batch number

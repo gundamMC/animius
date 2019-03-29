@@ -24,7 +24,7 @@ class SpeakerVerificationModel(am.Model):
             'filter_size_2': 5,
             'num_filter_2': 15,
             'fully_connected_1': 128,
-            'input_window': 10,
+            'input_window': 20,
             'input_cepstral': 39
         }
 

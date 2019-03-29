@@ -9,6 +9,7 @@ from animius.SocketServer import start_server
 import animius.Chatbot as Chatbot
 import animius.IntentNER as IntentNER
 import animius.SpeakerVerification as SpeakerVerification
+import animius.audio as audio
 import animius.Utils as Utils
 
 from animius.Waifu import Waifu
