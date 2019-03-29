@@ -72,7 +72,7 @@ class IntentNERModel(am.Model):
                     n_vector = test_model_structure('n_vector', lambda: len(self.data["embedding"].embedding[0]))
                     word_count = test_model_structure('word_count', lambda: len(self.data["embedding"].words))
                     self.word_embedding = tf.Variable(tf.constant(0.0, shape=(word_count, n_vector)),
-                                                 trainable=False, name='word_embedding')
+                                                      trainable=False, name='word_embedding')
                 else:
                     self.word_embedding = embedding_tensor
 
@@ -158,8 +158,8 @@ class IntentNERModel(am.Model):
                 gradients, variables = zip(*optimizer.compute_gradients(self.cost))
                 gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
                 self.train_op = optimizer.apply_gradients(zip(gradients, variables), name='train_op')
-                self.prediction = tf.nn.softmax(logits_intent, name='output_intent'),\
-                    tf.nn.softmax(logits_ner, name='output_ner')
+                self.prediction = tf.nn.softmax(logits_intent, name='output_intent'), \
+                                  tf.nn.softmax(logits_ner, name='output_ner')
 
                 # Tensorboard
                 if self.config['tensorboard'] is not None:
@@ -185,13 +185,13 @@ class IntentNERModel(am.Model):
 
             mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
                 = am.Utils.get_mini_batches(
-                    am.Utils.shuffle([
-                        self.data['x'],
-                        self.data['x_length'],
-                        self.data['y_intent'],
-                        self.data['y_ner']
-                    ]),
-                    self.hyperparameters['batch_size'])
+                am.Utils.shuffle([
+                    self.data['x'],
+                    self.data['x_length'],
+                    self.data['y_intent'],
+                    self.data['y_ner']
+                ]),
+                self.hyperparameters['batch_size'])
 
             for batch in range(len(mini_batches_x)):
 
@@ -266,7 +266,7 @@ class IntentNERModel(am.Model):
         model.train_op = model.sess.graph.get_operation_by_name('train_op')
         model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
         model.prediction = model.sess.graph.get_tensor_by_name('output_intent:0'), \
-            model.sess.graph.get_tensor_by_name('output_ner:0')
+                           model.sess.graph.get_tensor_by_name('output_ner:0')
 
         model.init_tensorflow(graph, init_param=False, init_sess=False)
 
@@ -291,3 +291,24 @@ class IntentNERModel(am.Model):
                     file.write(str(intent[i]) + ' - ' + ', '.join(str(x) for x in ner[i]) + '\n')
 
         return intent, ner
+
+    def parse_ner(self, ner):
+        # ner=parse_ner(ner)
+
+        output = []
+        last_label = ''
+
+        for i in ner:
+            word = i[0]
+            label = i[1]
+
+            if label != '':
+                if label == last_label:  # consecutive words
+                    index = len(output[label]) - 1
+                    output[label][index] = output[label][index], word
+                else:
+                    output[label].append(word)
+
+            last_label = label
+
+        return output
