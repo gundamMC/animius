@@ -1,5 +1,5 @@
 import pysubs2
-from pydub import AudioSegment
+import librosa
 from os import mkdir, path
 
 
@@ -19,8 +19,8 @@ class Parser:
                 continue
             self.audio_sentences.append(sub.plaintext)
 
-    def slice_audio(self, audio_path, save_path):
-        audio = AudioSegment.from_file(audio_path)
+    def slice_audio(self, audio_path, save_path, sample_rate=None):
+        audio, sample_rate = librosa.load(audio_path, sr=sample_rate)
         if not path.exists(save_path):
             mkdir(save_path)
         index = 0
@@ -28,7 +28,8 @@ class Parser:
             if sub.duration < 200 or sub.type == 'Comment':  # prevent short sentences and comments
                 continue
             segment = audio[sub.start:sub.end]
-            segment.export(path.join(save_path, str(index).zfill(4) + ".wav"), format="wav")
+            librosa.output.write_wav(path.join(save_path, str(index).zfill(4) + ".wav"), segment, sample_rate)
+            # segment.export(path.join(save_path, str(index).zfill(4) + ".wav"), format="wav")
             index += 1
             self.audio_sentences.append(sub.plaintext)
 
