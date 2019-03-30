@@ -291,24 +291,3 @@ class IntentNERModel(am.Model):
                     file.write(str(intent[i]) + ' - ' + ', '.join(str(x) for x in ner[i]) + '\n')
 
         return intent, ner
-
-    def parse_ner(self, ner):
-        # ner=parse_ner(ner)
-
-        output = []
-        last_label = ''
-
-        for i in ner:
-            word = i[0]
-            label = i[1]
-
-            if label != '':
-                if label == last_label:  # consecutive words
-                    index = len(output[label]) - 1
-                    output[label][index] = output[label][index], word
-                else:
-                    output[label].append(word)
-
-            last_label = label
-
-        return output
