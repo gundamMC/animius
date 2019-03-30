@@ -485,12 +485,15 @@ class SpeechRecognitionData(Data):
 
         super().__init__(model_config)
 
-        self.mfcc_cepstral = model_config.model_structure['input_cepstral']
-        self.max_seq = model_config.model_structure['max_sequence']
+        self.model_config = model_config
 
-        self.values['x'] = np.zeros((0, self.max_seq, self.mfcc_cepstral))
+        self.mfcc_cepstral = self.model_config.model_structure['input_cepstral']
+
+        max_seq = self.model_config.model_structure['max_sequence']
+
+        self.values['x'] = np.zeros((0, max_seq, self.mfcc_cepstral))
         self.values['seq_length'] = np.zeros((0,))
-        self.values['y'] = np.zeros((0, self.max_seq))
+        self.values['y'] = np.zeros((0, max_seq))
 
     def add_data(self, data):
         self.add_input_data(data[0], data[1])
@@ -511,7 +514,7 @@ class SpeechRecognitionData(Data):
 
         self.values['y'] = np.concatenate([self.values['y'], output_data])
 
-    def add_libri_speech(self, path, sample_rate=None):
+    def add_libri_speech(self, path, sample_rate=None, init=True):
         # this takes way too long...
         # really need to move to tf.data
 
@@ -550,5 +553,19 @@ class SpeechRecognitionData(Data):
                             sequence_length.append(sequence.shape[0])
                             output_characters.append(list(trans))
 
-        self.add_data((input_sequence, sequence_length, output_characters))
+        if init:
+            max_seq = self.model_config.model_structure['max_sequence'] = max(sequence_length)
+
+            # please don't actually use this
+            # move to tf.data
+            length_x = len(sequence_length)
+            self.values['x'] = np.zeros((length_x, max_seq, self.mfcc_cepstral))
+            for i in range(length_x):
+                self.values['x'][i, 0:sequence_length[i]] = input_sequence[i]
+
+            self.values['seq_length'] = np.array(sequence_length)
+            self.values['y'] = np.array(output_characters)  # not really sure what to do with this... prob. embedding?
+
+        else:
+            self.add_data((input_sequence, sequence_length, output_characters))
 
