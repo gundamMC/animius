@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from os import mkdir, listdir
-from os.path import join, isfile
+from os.path import join, isfile, isdir
 import errno
 
 import numpy as np
@@ -478,3 +478,77 @@ class CombinedPredictionData(Data):
             new_data.add_data(self.chatbot_format(i))
 
         return new_data
+
+
+class SpeechRecognitionData(Data):
+    def __init__(self, model_config):
+
+        super().__init__(model_config)
+
+        self.mfcc_cepstral = model_config.model_structure['input_cepstral']
+        self.max_seq = model_config.model_structure['max_sequence']
+
+        self.values['x'] = np.zeros((0, self.max_seq, self.mfcc_cepstral))
+        self.values['seq_length'] = np.zeros((0,))
+        self.values['y'] = np.zeros((0, self.max_seq))
+
+    def add_data(self, data):
+        self.add_input_data(data[0], data[1])
+        self.add_output_data(data[2])
+
+    def add_input_data(self, input_data, input_length):
+        if not isinstance(input_data, np.ndarray):
+            input_data = np.array(input_data)
+        if not isinstance(input_length, np.ndarray):
+            input_length = np.array(input_length)
+
+        self.values['x'] = np.concatenate([self.values['x'], input_data])
+        self.values['seq_length'] = np.concatenate([self.values['seq_length'], input_length])
+
+    def add_output_data(self, output_data):
+        if not isinstance(output_data, np.ndarray):
+            output_data = np.array(output_data)
+
+        self.values['y'] = np.concatenate([self.values['y'], output_data])
+
+    def add_libri_speech(self, path, sample_rate=None):
+        # this takes way too long...
+        # really need to move to tf.data
+
+        input_sequence = []
+        sequence_length = []
+        output_characters = []
+
+        for dir_name in listdir(path):
+            # reader dir
+            dir_path = join(path, dir_name)
+            if isdir(dir_path):
+                for chapter_id in listdir(dir_path):
+                    # chapter dir
+                    chapter_dir = join(dir_path, chapter_id)
+
+                    trans_file = None
+                    audio_files = {}
+
+                    for item_name in listdir(chapter_dir):
+                        if item_name.endswith('trans.txt'):
+                            trans_file = join(chapter_dir, item_name)
+                        elif item_name.endswith('.flac'):
+                            audio_files[item_name.replace('.flac', '')] = join(chapter_dir, item_name)
+
+                    if trans_file is not None and len(audio_files) > 0:
+                        # this folder actually has stuff
+
+                        lines = [line.rstrip('\n') for line in open(trans_file, 'r')]
+
+                        for line in lines:
+                            audio_id, trans = line.split(' ', 1)
+
+                            sequence = am.audio.get_MFCC(audio_files[audio_id], sample_rate=sample_rate, num_cepstral=self.mfcc_cepstral, conv=False)
+
+                            input_sequence.append(sequence)
+                            sequence_length.append(sequence.shape[0])
+                            output_characters.append(list(trans))
+
+        self.add_data((input_sequence, sequence_length, output_characters))
+
