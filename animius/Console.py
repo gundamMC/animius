@@ -1,11 +1,13 @@
-import animius as am
-import os
-import zipfile
 import json
+import os
+import threading
+import zipfile
 from ast import literal_eval
-from shlex import split as arg_split
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from shlex import split as arg_split
+
+import animius as am
 
 
 class ArgumentError(Exception):
@@ -1934,9 +1936,10 @@ i
     @staticmethod
     def start():
         import readline
-
+        queue = am.Queue()
         console = am.Console()
-        console.init_commands()
+        thread = _ClientThread(console, queue)
+        thread.start()
 
         def completer(user_input, state):
             options = [i for i in console.commands if i.startswith(user_input)]
@@ -1956,4 +1959,46 @@ i
             if user_input.lower() == 'exit':
                 break
 
-            console.handle_command(user_input)
+            queue.addTask(user_input)
+
+
+class _ClientThread(threading.Thread):
+    def __init__(self, console, queue):
+        super(_ClientThread, self).__init__()
+        self.queue = queue
+        self.console = console
+        self.console.init_commands()
+
+    def run(self):
+        try:
+            while True:
+                task = self.queue.getLastet
+                self.console.handle_command(task)
+                self.queue.delTask()
+        except:
+            return None
+
+    def stop(self):
+        self.queue = None
+
+
+class Queue:
+    def __init__(self):
+        self.queue = list()
+
+    def addTask(self, user_input):
+        self.queue.append(user_input)
+
+    def delTask(self):
+        # remove latest task
+        last = len(self.queue) - 1
+        self.queue.pop(last)
+
+    def delTask(self, index):
+        self.queue.pop(index)
+
+    def getList(self):
+        return self.queue
+
+    def getLatest(self):
+        return self.queue[len(self.queue) - 1]
