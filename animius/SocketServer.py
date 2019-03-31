@@ -7,7 +7,6 @@ clients = {}
 
 
 def new_client(c, console, event):
-
     # check if event is set (then this client is probably the 'fake' one from stop())
     if event.is_set():
         return
@@ -31,7 +30,8 @@ def new_client(c, console, event):
 
         while True:
             req = c.recv()
-            response = console.handle_network(req)
+            console.queue.addTask(req)
+            response = await_result(console)
             c.send(*response)
 
     except socket.error as error:
@@ -41,6 +41,13 @@ def new_client(c, console, event):
     finally:
         print('Closing connection with {0}:{1}'.format(c.address, c.port))
         c.close()
+
+
+def await_result(console):
+    while True:
+        result = console.queue[0]['result']
+        if result is not None:
+            return result
 
 
 def start_server(console, port, local=True, pwd='', max_clients=10):
