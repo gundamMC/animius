@@ -50,7 +50,7 @@ class CancellationToken:
 class Console:
 
     def __init__(self, init_directory=None):
-
+        self.queue = am.Queue()
         self.commands = None
 
         animius_dir = os.path.dirname(os.path.realpath(__file__))
@@ -1965,21 +1965,29 @@ i
 class _ClientThread(threading.Thread):
     def __init__(self, console, queue):
         super(_ClientThread, self).__init__()
-        self.queue = queue
+
         self.console = console
         self.console.init_commands()
+        self.console.queue = queue
 
     def run(self):
         try:
             while True:
-                task = self.queue.getLastet
-                self.console.handle_command(task)
-                self.queue.delTask()
+                task = self.console.queue.getLastet
+                command = task['command']
+
+                if isinstance(command, str):
+                    self.console.handle_command(command)
+                    self.console.queue.delTask()
+                else:
+                    result = self.console.handle_network(command)
+                    task['result'] = result
+
         except:
             return None
 
     def stop(self):
-        self.queue = None
+        self.console.queue = None
 
 
 class Queue:
@@ -1987,7 +1995,8 @@ class Queue:
         self.queue = list()
 
     def addTask(self, user_input):
-        self.queue.append(user_input)
+        dict = {'command': user_input, 'result': None}
+        self.queue.append(dict)
 
     def delTask(self):
         # remove latest task
