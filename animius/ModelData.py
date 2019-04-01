@@ -1,10 +1,11 @@
+import errno
+import json
 from abc import ABC, abstractmethod
 from os import mkdir, listdir
 from os.path import join, isfile
-import errno
 
 import numpy as np
-import json
+import tensorflow as tf
 
 import animius as am
 
@@ -301,55 +302,103 @@ class IntentNERData(Data):
         else:
             raise TypeError('model_config must be a ModelConfig object')
 
-        self.values['x'] = np.zeros((0, max_seq))
-        self.values['x_length'] = np.zeros((0,))
-        self.values['y_intent'] = np.zeros((0, model_config.model_structure['n_intent_output']))
-        self.values['y_ner'] = np.zeros((0, max_seq, model_config.model_structure['n_ner_output']))
+        self.values['x'] = tf.data.Dataset.from_tensor_slices(
+            tf.zeros([0, max_seq], tf.int32))  # np.zeros((0, max_seq))
+
+        self.values['x_length'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, ], tf.int32))  # np.zeros((0,))
+
+        self.values['y_intent'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, model_config.model_structure[
+            'n_intent_output']], tf.int32))  # np.zeros((0, model_config.model_structure['n_intent_output']))
+
+        self.values['y_ner'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, max_seq, model_config.model_structure[
+            'n_ner_output']], tf.int32))  # np.zeros((0, max_seq, model_config.model_structure['n_ner_output']))
 
     def add_data(self, data):
         self.add_input_data(data[0], data[1])
         self.add_output_data(data[2], data[3])
 
     def add_input_data(self, input_data, input_length):
-        if not isinstance(input_data, np.ndarray):
-            input_data = np.array(input_data)
-        if not isinstance(input_length, np.ndarray):
-            input_length = np.array(input_length)
 
-        self.values['x'] = np.concatenate([self.values['x'], input_data])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+        # if not isinstance(input_data, tf.data.Dataset):
+        # input_data = np.array(input_data)
+
+        # if not isinstance(input_length, tf.data.Dataset):
+        # input_length = np.array(input_length)
+
+        self.values['x'] = self.values['x'].concatenate(input_data)
+        self.values['x_length'] = self.values['x_length'].concatenate(input_length)
 
     def add_output_data(self, output_intent, output_ner):
-        if not isinstance(output_intent, np.ndarray):
-            output_intent = np.array(output_intent)
-        if not isinstance(output_ner, np.ndarray):
-            output_ner = np.array(output_ner)
 
-        self.values['y_intent'] = np.concatenate([self.values['y_intent'], output_intent])
-        self.values['y_ner'] = np.concatenate([self.values['y_ner'], output_ner])
+        # if not isinstance(output_intent, np.ndarray):
+        #    output_intent = np.array(output_intent)
+        # if not isinstance(output_ner, np.ndarray):
+        #    output_ner = np.array(output_ner)
+
+        self.values['y_intent'] = self.values['y_intent'].concatenate(output_intent)
+        self.values['y_ner'] = self.values['y_ner'].concatenate(output_ner)
+
+        # self.values['y_intent'] = np.concatenate([self.values['y_intent'], output_intent])
+        # self.values['y_ner'] = np.concatenate([self.values['y_ner'], output_ner])
 
     def add_parse_data_folder(self, folder_directory):
 
-        x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory,
-                                                                   self.values['embedding'],
-                                                                   self.model_config.model_structure['max_sequence'])
+        # x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory,
+        #                                                          self.values['embedding'],
+        #                                                         self.model_config.model_structure['max_sequence'])
+
+        x, x_length, y_intent, y_ner = tf.py_func(IntentNERData.parse_input,
+                                                  [folder_directory, self.values['embedding'],
+                                                   self.model_config.model_structure['max_sequence']],
+                                                  (tf.float32, tf.float32))
 
         self.add_data([x, x_length, y_intent, y_ner])
 
     def add_parse_input(self, input_x):
 
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=False, eos=False)
+        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        #                                           self.values['embedding'].words_to_index, go=False, eos=False)
 
-        self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1,)))
+        x, x_length = tf.py_func(IntentNERData.parse_input, [input_x, self.values['embedding']],
+                                 (tf.float32, tf.float32))
+
+        x = tf.reshape(x, [1, tf.size(x)])
+        x_length = tf.reshape(x_length, [1, ])
+        self.add_input_data(x, x_length)
+
+        # self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1,)))
 
     def set_parse_input(self, input_x):
 
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=False, eos=False)
+        x, x_length = tf.py_func(IntentNERData.parse_input, [input_x, self.values['embedding']],
+                                 (tf.float32, tf.float32))
 
-        self.values['x'] = np.array(x).reshape((1, len(x)))
-        self.values['x_length'] = np.array(x_length).reshape((1,))
+        x = tf.reshape(x, [1, tf.size(x)])
+        x_length = tf.reshape(x_length, [1, ])
+
+        x_data = tf.data.Dataset.from_tensor_slices(x)
+        x_length_data = tf.data.Dataset.from_tensor_slices(x_length)
+
+        self.values['x'] = x_data
+        self.values['x_length'] = x_length_data
+
+        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        # self.values['embedding'].words_to_index, go=False, eos=False)
+
+        # self.values['x'] = np.array(x).reshape((1, len(x)))
+        # self.values['x_length'] = np.array(x_length).reshape((1,))
+
+    @staticmethod
+    def parse_input(input_x, embedding):
+        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+                                                    embedding.words_to_index, go=False, eos=False)
+        return x, x_length
+
+    @staticmethod
+    def parse_folder(folder, embedding, max_sequence):
+        x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder, embedding, max_sequence)
+
+        return x, x_length, y_intent, y_ner
 
 
 class SpeakerVerificationData(Data):
