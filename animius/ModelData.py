@@ -1,8 +1,8 @@
 import errno
 import json
 from abc import ABC, abstractmethod
-from os import mkdir, listdir
-from os.path import join, isfile
+from os import mkdir
+from os.path import join
 
 import numpy as np
 import tensorflow as tf
@@ -192,103 +192,125 @@ class ChatbotData(Data):
         else:
             raise TypeError('sequence_length must be either an integer or a ModelConfig object')
 
-        self.values['x'] = np.zeros((0, max_seq))
-        self.values['x_length'] = np.zeros((0,))
-        self.values['y'] = np.zeros((0, max_seq))
-        self.values['y_length'] = np.zeros((0,))
-        self.values['y_target'] = np.zeros((0, max_seq))
+        self.values['x'] = None  # tf.data.Dataset.from_tensor_slices(tf.zeros([0, max_seq]))
+        # self.values['x_length'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, ]))
+        # self.values['y'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, max_seq]))
+        # self.values['y_length'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, ]))
+        # self.values['y_target'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, max_seq]))
 
-    def add_data(self, data):
-        self.add_input_data(data[0], data[1])
-        self.add_output_data(data[2], data[3], None if len(data) < 5 else data[4])
+    # def add_data(self, data):
+    #     self.add_input_data(data[0], data[1])
+    #     self.add_output_data(data[2], data[3], None if len(data) < 5 else data[4])
 
-    def add_input_data(self, input_data, input_length):
-        if not isinstance(input_data, np.ndarray):
-            input_data = np.array(input_data)
-        if not isinstance(input_length, np.ndarray):
-            input_length = np.array(input_length)
+    # def add_input_data(self, input_data):
 
-        self.values['x'] = np.concatenate([self.values['x'], input_data])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+    # if not isinstance(input_data, np.ndarray):
+    #    input_data = np.array(input_data)
+    # if not isinstance(input_length, np.ndarray):
+    #    input_length = np.array(input_length)
+
+    # self.values['x'] = self.values['x'].concatenate(['text', input_data])
+    # self.values['x_length'] = self.values['x_length'].concatenate(input_length)
 
     def add_output_data(self, output_data, output_length, output_target=None):
-        if not isinstance(output_data, np.ndarray):
-            output_data = np.array(output_data)
-        if not isinstance(output_length, np.ndarray):
-            output_length = np.array(output_length)
-        if output_target is not None and not isinstance(output_target, np.ndarray):
-            output_target = np.array(output_target)
 
-        self.values['y'] = np.concatenate([self.values['y'], output_data])
-        self.values['y_length'] = np.concatenate([self.values['y_length'], output_length])
-        if output_target is None:
-            self.values['y_target'] = np.concatenate([
-                self.values['y_target'],
-                np.concatenate([
-                    output_data[:, 1:],
-                    np.full([output_data.shape[0], 1], self.values['embedding'].EOS)], axis=1)
-            ])
-        else:
-            self.values['y_target'] = np.concatenate([self.values['y_target'], np.array(output_target)])
+    # if not isinstance(output_data, np.ndarray):
+    # output_data = np.array(output_data)
+    # if not isinstance(output_length, np.ndarray):
+    # output_length = np.array(output_length)
+    # if output_target is not None and not isinstance(output_target, np.ndarray):
+    #    output_target = np.array(output_target)
 
-    def add_parse_input(self, input_x):
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=True, eos=True)
+    # self.values['y'] = self.values['y'].concatenate(output_data)
+    # self.values['y_length'] = self.values['y_length'].concatenate(output_length)
+    #
+    # if output_target is None:
+    #     self.values['y_target'] = self.values['y_target'].concatenate(
+    #         tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(
+    #             np.concatenate(
+    #                 [output_data[:, 1:], np.full([output_data.shape[0], 1], self.values['embedding'].EOS)], axis=1)
+    #         )))
+    # else:
+    #     self.values['y_target'] = self.values['y_target'].concatenate(
+    #         tf.data.Dataset.from_tensor_slices(output_target))
 
-        self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
+    def add_input(self, input_x):
+        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        #                                            self.values['embedding'].words_to_index, go=True, eos=True)
 
-    def set_parse_input(self, input_x):
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=True, eos=True)
+        # self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
+        x = tf.data.Dataset.from_tensor_slices(('text', input_x))
+        self.add_input_data(x)
+
+    def set_input(self, input_x):
+        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        #                                           self.values['embedding'].words_to_index, go=True, eos=True)
 
         # directly set the values
-        self.values['x'] = np.array(x).reshape((1, len(x)))
-        self.values['x_length'] = np.array(x_length).reshape(1, )
+        # self.values['x_length'] = np.array(x_length).reshape(1, )
+        self.values['x'] = tf.data.Dataset.from_tensor_slices(('text', input_x))
 
-    def add_parse_file(self, path_x, path_y):
-        x = []
-        x_length = []
+    def add_file(self, path_x, path_y):
+        # x = []
+        # x_length = []
+        #
+        # f = open(path_x, 'r', encoding='utf8')
+        # for line in f:
+        #     x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
+        #                                                       self.values['embedding'].words_to_index, go=True,
+        #                                                       eos=True)
+        #     x.append(x_tmp)
+        #     x_length.append(length_tmp)
+        #
+        # self.add_input_data(x)
+        #
+        # y = []
+        # y_length = []
+        #
+        # f = open(path_y, 'r', encoding='utf8')
+        # for line in f:
+        #     y_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
+        #                                                       self.values['embedding'].words_to_index, go=True,
+        #                                                       eos=True)
+        #     y.append(y_tmp)
+        #     y_length.append(length_tmp)
+        #
+        # self.add_output_data(np.array(y), np.array(y_length))
 
-        f = open(path_x, 'r', encoding='utf8')
-        for line in f:
-            x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
-                                                              self.values['embedding'].words_to_index, go=True,
-                                                              eos=True)
-            x.append(x_tmp)
-            x_length.append(length_tmp)
+        x = tf.data.Dataset.from_tensor_slices(
+            tf.convert_to_tensor(['file', path_x]))
+        self.add_dataset(x)
 
-        self.add_input_data(np.array(x), np.array(x_length))
-
-        y = []
-        y_length = []
-
-        f = open(path_y, 'r', encoding='utf8')
-        for line in f:
-            y_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
-                                                              self.values['embedding'].words_to_index, go=True,
-                                                              eos=True)
-            y.append(y_tmp)
-            y_length.append(length_tmp)
-
-        self.add_output_data(np.array(y), np.array(y_length))
-
-    def add_parse_sentences(self, x, y):
-        x = am.Chatbot.Parse.split_data(x)
-        y = am.Chatbot.Parse.split_data(y)
-
-        x, y, x_length, y_length, y_target = \
-            am.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index,
-                                           max_seq=self.values['x'].shape[-1])
-
-        self.add_data([x, x_length, y, y_length, y_target])
+    # def add_parse_sentences(self, x, y):
+    #     x = am.Chatbot.Parse.split_data(x)
+    #     y = am.Chatbot.Parse.split_data(y)
+    #
+    #     x, y, x_length, y_length, y_target = \
+    #         am.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index,
+    #                                        max_seq=self.values['x'].shape[-1])
+    #
+    #     self.add_data([x, x_length, y, y_length, y_target])
 
     def add_cornell(self, conversations_path, movie_lines_path, lower_bound=None, upper_bound=None):
-        x, y = am.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
-        self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+        # x, y = am.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
+        # self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
 
-    def add_twitter(self, chat_path, lower_bound=None, upper_bound=None):
-        x, y = am.Chatbot.Parse.load_twitter(chat_path)
-        self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+        x = tf.data.Dataset.from_tensor_slices(
+            tf.convert_to_tensor(['cornell', [conversations_path, movie_lines_path]]))
+        self.add_dataset(x)
+
+    def add_twitter(self, chat_path):
+        # x, y = am.Chatbot.Parse.load_twitter(chat_path)
+        # self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+
+        x = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(['twitter', chat_path]))
+        self.add_dataset(x)
+
+    def add_dataset(self, x):
+        if self.values['x'] is None:
+            self.values['x'] = x
+        else:
+            self.values['x'].concatenate(x)
 
 
 class IntentNERData(Data):
@@ -302,91 +324,30 @@ class IntentNERData(Data):
         else:
             raise TypeError('model_config must be a ModelConfig object')
 
-        self.values['x'] = tf.data.Dataset.from_tensor_slices(
-            tf.zeros([0, max_seq], tf.int32))  # np.zeros((0, max_seq))
+        self.values['x'] = None  # tf.data.Dataset.from_tensor_slices(
+        # tf.zeros([0, max_seq], tf.int32))  # np.zeros((0, max_seq))
 
-        self.values['x_length'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, ], tf.int32))  # np.zeros((0,))
+        # self.values['x_length'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, ], tf.int32))  # np.zeros((0,))
+        #
+        # self.values['y_intent'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, model_config.model_structure[
+        #     'n_intent_output']], tf.int32))  # np.zeros((0, model_config.model_structure['n_intent_output']))
+        #
+        # self.values['y_ner'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, max_seq, model_config.model_structure[
+        #     'n_ner_output']], tf.int32))  # np.zeros((0, max_seq, model_config.model_structure['n_ner_output']))
 
-        self.values['y_intent'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, model_config.model_structure[
-            'n_intent_output']], tf.int32))  # np.zeros((0, model_config.model_structure['n_intent_output']))
+    def add_data(self, x_input):
+        x = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(['text', x_input]))
+        self.add_dataset(x)
 
-        self.values['y_ner'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, max_seq, model_config.model_structure[
-            'n_ner_output']], tf.int32))  # np.zeros((0, max_seq, model_config.model_structure['n_ner_output']))
+    def add_path(self, x_folder):
+        x = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(['folder', x_folder]))
+        self.add_dataset(x)
 
-    def add_data(self, data):
-        self.add_input_data(data[0], data[1])
-        self.add_output_data(data[2], data[3])
-
-    def add_input_data(self, input_data, input_length):
-
-        # if not isinstance(input_data, tf.data.Dataset):
-        # input_data = np.array(input_data)
-
-        # if not isinstance(input_length, tf.data.Dataset):
-        # input_length = np.array(input_length)
-
-        self.values['x'] = self.values['x'].concatenate(input_data)
-        self.values['x_length'] = self.values['x_length'].concatenate(input_length)
-
-    def add_output_data(self, output_intent, output_ner):
-
-        # if not isinstance(output_intent, np.ndarray):
-        #    output_intent = np.array(output_intent)
-        # if not isinstance(output_ner, np.ndarray):
-        #    output_ner = np.array(output_ner)
-
-        self.values['y_intent'] = self.values['y_intent'].concatenate(output_intent)
-        self.values['y_ner'] = self.values['y_ner'].concatenate(output_ner)
-
-        # self.values['y_intent'] = np.concatenate([self.values['y_intent'], output_intent])
-        # self.values['y_ner'] = np.concatenate([self.values['y_ner'], output_ner])
-
-    def add_parse_data_folder(self, folder_directory):
-
-        # x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory,
-        #                                                          self.values['embedding'],
-        #                                                         self.model_config.model_structure['max_sequence'])
-
-        x, x_length, y_intent, y_ner = tf.py_func(IntentNERData.parse_input,
-                                                  [folder_directory, self.values['embedding'],
-                                                   self.model_config.model_structure['max_sequence']],
-                                                  (tf.float32, tf.float32))
-
-        self.add_data([x, x_length, y_intent, y_ner])
-
-    def add_parse_input(self, input_x):
-
-        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-        #                                           self.values['embedding'].words_to_index, go=False, eos=False)
-
-        x, x_length = tf.py_func(IntentNERData.parse_input, [input_x, self.values['embedding']],
-                                 (tf.float32, tf.float32))
-
-        x = tf.reshape(x, [1, tf.size(x)])
-        x_length = tf.reshape(x_length, [1, ])
-        self.add_input_data(x, x_length)
-
-        # self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1,)))
-
-    def set_parse_input(self, input_x):
-
-        x, x_length = tf.py_func(IntentNERData.parse_input, [input_x, self.values['embedding']],
-                                 (tf.float32, tf.float32))
-
-        x = tf.reshape(x, [1, tf.size(x)])
-        x_length = tf.reshape(x_length, [1, ])
-
-        x_data = tf.data.Dataset.from_tensor_slices(x)
-        x_length_data = tf.data.Dataset.from_tensor_slices(x_length)
-
-        self.values['x'] = x_data
-        self.values['x_length'] = x_length_data
-
-        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-        # self.values['embedding'].words_to_index, go=False, eos=False)
-
-        # self.values['x'] = np.array(x).reshape((1, len(x)))
-        # self.values['x_length'] = np.array(x_length).reshape((1,))
+    def add_dataset(self, x):
+        if self.values['x'] is None:
+            self.values['x'] = x
+        else:
+            self.values['x'].concatenate(x)
 
     @staticmethod
     def parse_input(input_x, embedding):
@@ -400,6 +361,88 @@ class IntentNERData(Data):
 
         return x, x_length, y_intent, y_ner
 
+    def add_data(self, data):
+        # self.add_input_data(data[0], data[1])
+        # self.add_output_data(data[2], data[3])
+        pass
+
+    def add_input_data(self, input_data, input_length):
+
+        # if not isinstance(input_data, tf.data.Dataset):
+        # input_data = np.array(input_data)
+
+        # if not isinstance(input_length, tf.data.Dataset):
+        # input_length = np.array(input_length)
+
+        # self.values['x'] = self.values['x'].concatenate(input_data)
+        # self.values['x_length'] = self.values['x_length'].concatenate(input_length)
+        pass
+
+    def add_output_data(self, output_intent, output_ner):
+
+        # if not isinstance(output_intent, np.ndarray):
+        #    output_intent = np.array(output_intent)
+        # if not isinstance(output_ner, np.ndarray):
+        #    output_ner = np.array(output_ner)
+
+        # self.values['y_intent'] = self.values['y_intent'].concatenate(output_intent)
+        # self.values['y_ner'] = self.values['y_ner'].concatenate(output_ner)
+
+        # self.values['y_intent'] = np.concatenate([self.values['y_intent'], output_intent])
+        # self.values['y_ner'] = np.concatenate([self.values['y_ner'], output_ner])
+        pass
+
+    def add_parse_data_folder(self, folder_directory):
+
+        # x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory,
+        #                                                          self.values['embedding'],
+        #                                                         self.model_config.model_structure['max_sequence'])
+
+        # x, x_length, y_intent, y_ner = tf.py_func(IntentNERData.parse_input,
+        #                                          [folder_directory, self.values['embedding'],
+        #                                           self.model_config.model_structure['max_sequence']],
+        #                                          (tf.float32, tf.float32))
+
+        # self.add_data([x, x_length, y_intent, y_ner])
+        pass
+
+    def add_parse_input(self, input_x):
+
+        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        #                                           self.values['embedding'].words_to_index, go=False, eos=False)
+
+        #  x, x_length = tf.py_func(IntentNERData.parse_input, [input_x, self.values['embedding']],
+        #                          (tf.float32, tf.float32))
+        #
+        # x = tf.reshape(x, [1, tf.size(x)])
+        # x_length = tf.reshape(x_length, [1, ])
+        # self.add_input_data(x, x_length)
+
+        # self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1,)))
+
+        pass
+
+    def set_parse_input(self, input_x):
+
+        # x, x_length = tf.py_func(IntentNERData.parse_input, [input_x, self.values['embedding']],
+        #                          (tf.float32, tf.float32))
+        #
+        # x = tf.reshape(x, [1, tf.size(x)])
+        # x_length = tf.reshape(x_length, [1, ])
+        #
+        # x_data = tf.data.Dataset.from_tensor_slices(x)
+        # x_length_data = tf.data.Dataset.from_tensor_slices(x_length)
+        #
+        # self.values['x'] = x_data
+        # self.values['x_length'] = x_length_data
+
+        # x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        # self.values['embedding'].words_to_index, go=False, eos=False)
+
+        # self.values['x'] = np.array(x).reshape((1, len(x)))
+        # self.values['x_length'] = np.array(x_length).reshape((1,))
+        pass
+
 
 class SpeakerVerificationData(Data):
 
@@ -410,32 +453,26 @@ class SpeakerVerificationData(Data):
         self.mfcc_window = model_config.model_structure['input_window']
         self.mfcc_cepstral = model_config.model_structure['input_cepstral']
 
-        self.values['x'] = tf.data.Dataset.from_tensor_slices(
-            tf.zeros([0, self.mfcc_window, self.mfcc_cepstral],
-                     tf.int32))  # np.zeros((0,self.mfcc_window,self.mfcc_cepstral))
+        self.values['x'] = None
 
-        self.values['y'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, 1], tf.int32))
+    def add_data_file(self, file):
+        x = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(['file', file]))
+        self.add_dataset(x)
 
-    def add_data(self, data):
+    def add_data_path(self, path):
+        x = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(['path', path]))
+        self.add_dataset(x)
 
-        self.add_input_data(data[0])
-        self.add_output_data(data[1])
+    def add_data_paths(self, paths):
 
-    def add_input_data(self, input_mfcc):
-        # assert (isinstance(input_mfcc, np.ndarray))  # get_MFCC() returns a numpy array
-        self.values['x'] = self.values['x'].concatenate(input_mfcc)
+        for path in paths:
+            self.add_data_path(path)
 
-    def add_output_data(self, output_label):
-        # assert (isinstance(output_label, np.ndarray))
-        self.values['y'] = self.values['y'].concatenate(output_label)
-
-    def add_parse_input_path(self, path):
-        data = tf.py_func(SpeakerVerificationData.parse, [path, self.mfcc_window, self.mfcc_cepstral],
-                          (tf.float32, tf.float32))
-
-        self.add_input_data(data)
-        return tf.shape(data)[0]
-        # return batch number
+    def add_dataset(self, x):
+        if self.values['x'] is None:
+            self.values['x'] = x
+        else:
+            self.values['x'].concatenate(x)
 
     @staticmethod
     def parse(path, mfcc_window, mfcc_cepstral):
@@ -443,51 +480,83 @@ class SpeakerVerificationData(Data):
                                                     flatten=False)
         return data
 
-    def set_parse_input_path(self, path):
+        # self.values['x'] = tf.data.Dataset.from_tensor_slices(
+        #     tf.zeros([0, self.mfcc_window, self.mfcc_cepstral],
+        #              tf.int32))
+        # np.zeros((0,self.mfcc_window,self.mfcc_cepstral))
 
-        data = tf.py_func(SpeakerVerificationData.parse, [path, self.mfcc_window, self.mfcc_cepstral],
-                          (tf.float32, tf.float32))
+        # self.values['y'] = tf.data.Dataset.from_tensor_slices(tf.zeros([0, 1], tf.int32))
 
-        self.values['x'] = tf.data.Dataset.from_tensor_slices(data)
+    # def add_data(self, data):
+    #
+    #     self.add_input_data(data[0])
+    #     self.add_output_data(data[1])
+    #
+    # def add_input_data(self, input_mfcc):
+    #     # assert (isinstance(input_mfcc, np.ndarray))  # get_MFCC() returns a numpy array
+    #     self.values['x'] = self.values['x'].concatenate(input_mfcc)
+    #
+    # def add_output_data(self, output_label):
+    #     # assert (isinstance(output_label, np.ndarray))
+    #     self.values['y'] = self.values['y'].concatenate(output_label)
+    #
+    # def add_parse_input_path(self, path):
+    #     # data = tf.py_func(SpeakerVerificationData.parse, [path, self.mfcc_window, self.mfcc_cepstral],
+    #     #                  (tf.float32, tf.float32))
+    #
+    #     data = [path]
+    #     self.add_input_data(data)
+    #     return tf.shape(data)[0]
+    #     # return batch number
 
-        return tf.shape(data)[0]
-        # return batch number
+    # def set_parse_input_path(self, path):
+    #
+    #     # data = tf.py_func(SpeakerVerificationData.parse, [path, self.mfcc_window, self.mfcc_cepstral],
+    #     #                  (tf.float32, tf.float32))
+    #
+    #     data = [path]
+    #     self.values['x'] = tf.data.Dataset.from_tensor_slices(data)
 
-        # Nervermind... Don't use since this will mix the MFCC data of all inputs
-        # only parse ONE audio file at a time when predicting. This is now moved
-        # to predict_folder() in speaker verification model
-        # def add_parse_input_folder(self, directory, encoding='utf-8'):
-        #     file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
-        #     for path in file_paths:
-        #         self.add_parse_input_path(path)
+    #    return tf.shape(data)[0]
 
-    def add_parse_data_paths(self, paths, output=None):
+    # return batch number
 
-        count = 0
+    # Nervermind... Don't use since this will mix the MFCC data of all inputs
+    # only parse ONE audio file at a time when predicting. This is now moved
+    # to predict_folder() in speaker verification model
+    # def add_parse_input_folder(self, directory, encoding='utf-8'):
+    #     file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+    #     for path in file_paths:
+    #         self.add_parse_input_path(path)
 
-        for path in paths:
-            count += self.add_parse_input_path(path)
-
-        if output is not None:
-            if output is True:
-                tensor = tf.convert_to_tensor(np.expand_dims(np.tile([1], count), -1))
-                data = tf.data.Dataset.from_tensor_slices(tensor)
-                self.add_output_data(data)
-            elif output is False:
-                tensor = tf.convert_to_tensor(np.expand_dims(np.tile([0], count), -1))
-                data = tf.data.Dataset.from_tensor_slices(tensor)
-                self.add_output_data(data)
-
-    def add_parse_data_file(self, path, output=None, encoding='utf-8'):
-        self.add_parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
-
-    def add_parse_data_folder(self, directory, output=None, encoding='utf-8'):
-        file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
-        for path in file_paths:
-            self.add_parse_data_file(path, output, encoding)
+    # def add_parse_data_paths(self, paths, output=None):
+    #
+    #     count = 0
+    #
+    #     for path in paths:
+    #         count += self.add_parse_input_path(path)
+    #
+    #     if output is not None:
+    #         if output is True:
+    #             tensor = tf.convert_to_tensor(np.expand_dims(np.tile([1], count), -1))
+    #             data = tf.data.Dataset.from_tensor_slices(tensor)
+    #             self.add_output_data(data)
+    #         elif output is False:
+    #             tensor = tf.convert_to_tensor(np.expand_dims(np.tile([0], count), -1))
+    #             data = tf.data.Dataset.from_tensor_slices(tensor)
+    #             self.add_output_data(data)
+    #
+    # def add_parse_data_file(self, path, output=None, encoding='utf-8'):
+    #     self.add_parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
+    #
+    # def add_parse_data_folder(self, directory, output=None, encoding='utf-8'):
+    #     file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
+    #     for path in file_paths:
+    #         self.add_parse_data_file(path, output, encoding)
 
     # Prediction data for CombinedPredictionModel (use ChatbotData for CombinedChatbotModel)
     # You are not supposed to manually create this. Use CombinedPredictionModel for prediction.
+
     class CombinedPredictionData(Data):
 
         def __init__(self, model_config):
@@ -501,46 +570,55 @@ class SpeakerVerificationData(Data):
             else:
                 raise TypeError('sequence_length must be either an integer or a ModelConfig object')
 
-            self.values['x'] = np.zeros((0, self.max_seq))
-            self.values['x_length'] = np.zeros((0,))
+            self.values['x'] = None  # np.zeros((0, self.max_seq))
+            # self.values['x_length'] = np.zeros((0,))
 
-        def add_data(self, data):
-            self.add_input_data(data[0], data[1])
+        def add_input_data(self, data):
 
-        def add_input_data(self, input_data, input_length):
-            if not isinstance(input_data, np.ndarray):
-                input_data = np.array(input_data)
-            if not isinstance(input_length, np.ndarray):
-                input_length = np.array(input_length)
+            x = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(['text', data]))
 
-            self.values['x'] = np.concatenate([self.values['x'], input_data])
-            self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+            if self.values['x'] is None:
+                self.values['x'] = x
+            else:
+                self.values['x'].concatenate(x)
 
-        def add_parse_input(self, input_x):
-            x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                        self.values['embedding'].words_to_index, go=False, eos=True)
-
-            self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
-
-        def set_parse_input(self, input_x):
-            x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                        self.values['embedding'].words_to_index, go=False, eos=True)
-
-            # directly set the values
-            self.values['x'] = np.array(x).reshape((1, len(x)))
-            self.values['x_length'] = np.array(x_length).reshape(1, )
-
-        def chatbot_format(self, index):
-            return np.append([self.values['embedding'].GO], self.values['x'][index]), self.values['x_length'][None] + 1
-
-        def get_chatbot_input(self, index):
-            if isinstance(index, int):
-                index = []
-
-            new_data = CombinedPredictionData(self.max_seq)
-            new_data.add_embedding_class(self.values['embedding'])
-
-            for i in index:
-                new_data.add_data(self.chatbot_format(i))
-
-            return new_data
+        # def add_data(self, data):
+        #     self.add_input_data(data[0], data[1])
+        #
+        # def add_input_data(self, input_data, input_length):
+        #     if not isinstance(input_data, np.ndarray):
+        #         input_data = np.array(input_data)
+        #     if not isinstance(input_length, np.ndarray):
+        #         input_length = np.array(input_length)
+        #
+        #     self.values['x'] = np.concatenate([self.values['x'], input_data])
+        #     self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+        #
+        # def add_parse_input(self, input_x):
+        #     x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        #                                                 self.values['embedding'].words_to_index, go=False, eos=True)
+        #
+        #     self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
+        #
+        # def set_parse_input(self, input_x):
+        #     x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
+        #                                                 self.values['embedding'].words_to_index, go=False, eos=True)
+        #
+        #     # directly set the values
+        #     self.values['x'] = np.array(x).reshape((1, len(x)))
+        #     self.values['x_length'] = np.array(x_length).reshape(1, )
+        #
+        # def chatbot_format(self, index):
+        #     return np.append([self.values['embedding'].GO], self.values['x'][index]), self.values['x_length'][None] + 1
+        #
+        # def get_chatbot_input(self, index):
+        #     if isinstance(index, int):
+        #         index = []
+        #
+        #     new_data = CombinedPredictionData(self.max_seq)
+        #     new_data.add_embedding_class(self.values['embedding'])
+        #
+        #     for i in index:
+        #         new_data.add_data(self.chatbot_format(i))
+        #
+        #     return new_data
