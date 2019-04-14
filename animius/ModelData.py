@@ -4,9 +4,6 @@ from abc import ABC, abstractmethod
 from os import mkdir
 from os.path import join
 
-import numpy as np
-import tensorflow as tf
-
 import animius as am
 
 
@@ -224,23 +221,36 @@ class IntentNERData(Data):
     def add_data(self, x_input):
         self.values['train'].append(x_input)
 
-    def add_folder(self, x_folder):
-        self.values['train'].append(('folder', x_folder))
+    def add_intent_folder(self, x_path):
+        self.values['train'] = am.IntentNER.Parse.get_data(x_path)
 
-    def add_input(self, input_x):
-        self.values['input'].append(('text', input_x))
+    def set_input(self, x_input):
+        self.values['input'] = x_input
 
-    def set_input(self, input_x):
-        self.values['input'] = ('text', input_x)
+    def add_input(self, x_input):
+        self.values['input'].append(x_input)
 
     def parse(self, item, model_config):
         if 'embedding' not in self.values:
             raise ValueError('Word embedding not found')
 
-        # TODO: Change this please...
-        self.values['train'].append(am.IntentNER.Parse.get_data(item,
-                                                                self.values['embedding'],
-                                                                model_config.model_structure['max_sequence']))
+        if isinstance(item, int):
+            # if item is an index
+            input_sentence = self.values['train'][0][item]
+            out_intent = self.values['train'][1][item]
+            out_ner = self.values['train'][2][item]
+        else:
+            # unpack
+            input_sentence, out_intent, out_ner = item
+
+        input_sentence, input_length, _ = am.Utils.sentence_to_index(input_sentence,
+                                                                     word_to_index=self.values[
+                                                                         'embedding'].words_to_index,
+                                                                     max_seq=model_config.model_structure[
+                                                                         'max_sequence'],
+                                                                     go=True, eos=False)
+
+        return input_sentence, input_length, out_intent, out_ner
 
 
 class SpeakerVerificationData(Data):
