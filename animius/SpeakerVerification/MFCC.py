@@ -28,4 +28,4 @@ class MFCC:
             for i in range(window, mfcc_data.shape[0], step):
                 data.append(mfcc_data[i - window:i])
 
-        return np.array(data)  # (number_of_frames - 10) x 390
+        return np.array(data, dtype='float32')  # (number_of_frames - 10) x 390

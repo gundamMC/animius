@@ -39,6 +39,38 @@ class SpeakerVerificationModel(am.Model):
         self.cost = None
         self.tb_merged = None
 
+        self.data_count = None
+        self.iterator = None
+
+    def init_dataset(self, data=None):
+
+        super().init_dataset(data)
+
+        self.data_count = tf.placeholder(tf.int64, shape=(), name='ds_data_count')
+
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        # ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data_count))
+
+        index_ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=8))
+
+        def _py_func(x):
+            return tf.py_func(self.data.parse, [x], [tf.float32, tf.float32])
+
+        ds = index_ds.map(_py_func, num_parallel_calls=4)
+
+        ds = ds.apply(tf.data.experimental.unbatch())  # testing needed
+
+        ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
+
+        ds.prefetch(1024)  # TODO
+
+        ds = ds.cache()
+
+        self.dataset = ds
+
+        return ds
+
     def build_graph(self, model_config, data, graph=None):
 
         # make copies of the dictionaries since we will be editing it
@@ -47,15 +79,6 @@ class SpeakerVerificationModel(am.Model):
         self.model_structure = dict(model_config.model_structure)
         self.hyperparameters = dict(model_config.hyperparameters)
         self.data = data
-
-        def test_model_structure(key, lambda_value):
-            if key in self.model_structure:
-                return self.model_structure[key]
-            elif self.data is None:
-                raise ValueError('Data cannot be none')
-            else:
-                self.model_structure[key] = lambda_value()
-                return lambda_value()
 
         if graph is None:
             graph = tf.Graph()
@@ -68,17 +91,12 @@ class SpeakerVerificationModel(am.Model):
 
             with graph.device(self.config['device']):
 
-                input_window = test_model_structure('input_window', data.values['x'].shape[1])
-                input_cepstral = test_model_structure('input_cepstral', data.values['x'].shape[2])
+                if self.dataset is None:
+                    self.init_dataset(data)
 
-                # Tensorflow placeholders
-                self.x = tf.placeholder(tf.float32,
-                                        [None,
-                                         input_window,
-                                         input_cepstral],
-                                        name='input_x'
-                                        )
-                self.y = tf.placeholder(tf.float32, [None, 1], name='train_y')
+                self.iterator = self.dataset.make_initializable_iterator()
+
+                self.x, self.y = self.iterator.get_next()
 
                 # Network parameters
                 weights = {
@@ -164,50 +182,54 @@ class SpeakerVerificationModel(am.Model):
         self.graph = graph
         return graph
 
-    def train(self, epochs=800, CancellationToken=None):
+    def train(self, epochs=800, cancellation_token=None):
 
-        for epoch in range(epochs):
+        print('starting training')
 
-            if CancellationToken is not None and CancellationToken.is_cancalled:
+        self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_y'])})
+
+        print('initialized iterator')
+
+        epoch = 0
+
+        while epoch < epochs:
+
+            print('training epoch', epoch, '|', self.data.steps_per_epoch)
+
+            if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
 
-            mini_batches_x, mini_batches_y = am.Utils.get_mini_batches(
-                am.Utils.shuffle([
-                    self.data['x'],
-                    self.data['y']]
-                ), self.hyperparameters['batch_size'])
+            try:
 
-            for batch in range(len(mini_batches_x)):
-                batch_x = mini_batches_x[batch]
-                batch_y = mini_batches_y[batch]
+                batch_num = 0
 
-                if (self.config['display_step'] == 0 or
-                    self.config['epoch'] % self.config['display_step'] == 0 or
-                    epoch == epochs) and \
-                        (batch % 100 == 0 or batch == 0):
-                    _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
-                        self.x: batch_x,
-                        self.y: batch_y
-                    })
+                while batch_num < self.data.steps_per_epoch:
 
-                    print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
+                    print('batch', batch_num)
 
-                    self.config['cost'] = cost_value.item()
+                    if (self.config['display_step'] == 0 or
+                        self.config['epoch'] % self.config['display_step'] == 0 or
+                        epoch == epochs) and \
+                            (batch_num % 100 == 0 or batch_num == 0):
+                        _, cost_value = self.sess.run([self.train_op, self.cost])
 
-                    if self.config['hyperdash'] is not None:
-                        self.hyperdash.metric("cost", cost_value)
+                        print("epoch:", self.config['epoch'], "- (", batch_num, ") -", cost_value)
 
-                else:
-                    self.sess.run([self.train_op], feed_dict={
-                        self.x: batch_x,
-                        self.y: batch_y
-                    })
+                        self.config['cost'] = cost_value.item()
+
+                        if self.config['hyperdash'] is not None:
+                            self.hyperdash.metric("cost", cost_value)
+
+                    else:
+                        self.sess.run([self.train_op])
+
+                    batch_num += 1
+
+            except tf.errors.OutOfRangeError:
+                print(batch_num)
 
             if self.config['tensorboard'] is not None:
-                summary = self.sess.run(self.tb_merged, feed_dict={
-                    self.x: mini_batches_x[0],
-                    self.y: mini_batches_y[0]
-                })
+                summary = self.sess.run(self.tb_merged)
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
             self.config['epoch'] += 1
