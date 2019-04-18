@@ -5,6 +5,7 @@ from os import mkdir
 from os.path import join
 
 import animius as am
+import numpy as np
 
 
 class Data(ABC):
@@ -13,6 +14,10 @@ class Data(ABC):
         self.values = {}
         self.saved_directory = None
         self.saved_name = None
+        self.model_config = None
+
+    def set_model_config(self, model_config):
+        self.model_config = model_config
 
     def __getitem__(self, item):
         return self.values[item]
@@ -28,7 +33,7 @@ class Data(ABC):
         pass
 
     @abstractmethod
-    def parse(self, item, model_config):
+    def parse(self, item):
         pass
 
     def reset(self):
@@ -40,9 +45,7 @@ class Data(ABC):
 
         :param directory: directory to save the data
         :param name: string to name the saved files
-        :param compress: whether to compress the numpy arrays
         :param save_embedding: whether to save a separate copy of the word embedding
-        :param save_model_config: whether to save a separate copy of the model config
         :return: the directory in which the data is saved
         """
         if directory is None:
@@ -194,7 +197,7 @@ class ChatData(Data):
         self.values['train_x'].extend(x[lower_bound:upper_bound])
         self.values['train_y'].extend(y[lower_bound:upper_bound])
 
-    def parse(self, item, model_config):
+    def parse(self, item):
 
         if 'embedding' not in self.values:
             raise ValueError('Word embedding not found')
@@ -206,7 +209,7 @@ class ChatData(Data):
         item_x, item_y = item  # unpack first
 
         return am.Chatbot.Parse.data_to_index(item_x, item_y, self.values['embedding'].words_to_index,
-                                              max_seq=model_config.model_structure['max_sequence'])
+                                              max_seq=self.model_config.model_structure['max_sequence'])
 
 
 class IntentNERData(Data):
@@ -230,7 +233,7 @@ class IntentNERData(Data):
     def add_input(self, x_input):
         self.values['input'].append(x_input)
 
-    def parse(self, item, model_config):
+    def parse(self, item):
         if 'embedding' not in self.values:
             raise ValueError('Word embedding not found')
 
@@ -246,7 +249,7 @@ class IntentNERData(Data):
         input_sentence, input_length, _ = am.Utils.sentence_to_index(input_sentence,
                                                                      word_to_index=self.values[
                                                                          'embedding'].words_to_index,
-                                                                     max_seq=model_config.model_structure[
+                                                                     max_seq=self.model_config.model_structure[
                                                                          'max_sequence'],
                                                                      go=True, eos=False)
 
@@ -263,6 +266,8 @@ class SpeakerVerificationData(Data):
         self.values['train_y'] = []
         self.values['input'] = []
 
+        self.steps_per_epoch_cache = None
+
     def add_data(self, input_path, is_speaker=True):
         self.values['train_x'].append(input_path)
         self.values['train_y'].append(is_speaker)
@@ -273,13 +278,18 @@ class SpeakerVerificationData(Data):
     def add_text_file(self, input_path, is_speaker=True):
         count = len(self.values['train_x'])
         for line in open(input_path, 'r', encoding='utf8'):
-            self.values['train_x'].append(line)
+            self.values['train_x'].append(line.strip())
 
         count = len(self.values['train_x']) - count
 
         self.values['train_y'].extend([is_speaker] * count)
 
-    def parse(self, item, model_config):
+    def parse(self, item):
+
+        if isinstance(item, np.ndarray):
+            item = item[0]
+
+            item = self.values['train_x'][item], self.values['train_y'][item]
 
         if isinstance(item, int):
             item = self.values['train_x'][item], self.values['train_y'][item]
@@ -288,8 +298,28 @@ class SpeakerVerificationData(Data):
         item_path, item_label = item
 
         data = am.SpeakerVerification.MFCC.get_MFCC(item_path,
-                                                    window=model_config.model_structure['input_window'],
-                                                    num_cepstral=model_config.model_structure['input_cepstral'],
+                                                    window=self.model_config.model_structure['input_window'],
+                                                    num_cepstral=self.model_config.model_structure['input_cepstral'],
                                                     flatten=False)
 
-        return data, item_label
+        return data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
+
+    @property
+    def steps_per_epoch(self):
+        if self.steps_per_epoch_cache is not None:
+            return self.steps_per_epoch_cache
+        else:
+            total_length = 0
+            for item_path in self.values['train_x']:
+                # simulate one epoch to obtain steps per epoch
+                elements = \
+                    am.SpeakerVerification.MFCC.get_MFCC(item_path,
+                                                         window=self.model_config.model_structure['input_window'],
+                                                         num_cepstral=self.model_config.model_structure['input_cepstral'],
+                                                         flatten=False).shape[0]
+
+                total_length += elements
+
+            import math
+            self.steps_per_epoch_cache = math.ceil(total_length / 1024)
+            return self.steps_per_epoch_cache

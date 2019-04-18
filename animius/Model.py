@@ -53,6 +53,7 @@ class Model(ABC):
         self.hyperparameters = None
 
         self.data = None
+        self.dataset = None
 
         # prep for tensorflow
         self.graph = None
@@ -110,6 +111,18 @@ class Model(ABC):
                               feed_dict={embedding_placeholder: self.data['embedding'].embedding})
         else:
             raise ValueError('Embedding not found.')
+
+    # @abstractmethod
+    def init_dataset(self, data=None):
+        if data is not None:
+            self.data = data
+
+        if self.data is None:
+            raise ValueError('data not found')
+
+        self.data.set_model_config(self.model_config())
+
+        return None
 
     @abstractmethod
     def train(self, epochs, CancellationToken):
