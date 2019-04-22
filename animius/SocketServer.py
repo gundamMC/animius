@@ -11,41 +11,42 @@ def new_client(c, console, event):
     if event.is_set():
         return
 
-    try:
-        print('Establishing connection with: {0}:{1}'.format(c.address, c.port))
-        # initialize AES
-        # c.initRandomAEScipher()
-        # send AES keys to client
-        # c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
+    print('Establishing connection with: {0}:{1}'.format(c.address, c.port))
+    # initialize AES
+    # c.initRandomAEScipher()
+    # send AES keys to client
+    # c.sendWithoutAes(0, 200, 'InitAes', {'key': c.AEScipher.getKey(), 'iv': c.AEScipher.getIv()})
 
-        # check for password
-        if c.pwd != '':
-            recvPwd = c.recv_pass()
-            if recvPwd != c.pwd:
-                # wrong password, close connection
-                c.close()
+    # check for password
+    if c.pwd != '':
+        recvPwd = c.recv_pass()
+        if recvPwd != c.pwd:
+            # wrong password, close connection
+            c.close()
 
-        # password verified and connected
-        c.send('', 0, 'success', {})
+    # password verified and connected
+    c.send('', 0, 'success', {})
 
-        while True:
-            req = c.recv()
-            console.queue.addTask(req)
-            response = await_result(console)
-            c.send(*response)
-
-    except socket.error as error:
-        print('Socket error from {0}: {1]'.format(c.address, error))
-    except Exception as error:
-        print('Unexpected exception from {0}: {1}'.format(c.address, error))
-    finally:
-        print('Closing connection with {0}:{1}'.format(c.address, c.port))
-        c.close()
-
-
-def await_result(console):
     while True:
-        result = console.queue[0]['result']
+        req = c.recv()
+        if req is None:
+            continue
+        index = console.queue.addTask(req)
+        response = await_result(console, index)
+        c.send(*response)
+
+    # except socket.error as error:
+    #     print('Socket error from {0}: {1]'.format(c.address, error))
+    # except Exception as error:
+    #     print('Unexpected exception from {0}: {1}'.format(c.address, error))
+    # finally:
+    #     print('Closing connection with {0}:{1}'.format(c.address, c.port))
+    #     c.close()
+
+
+def await_result(console, index):
+    while True:
+        result = console.queue.queue[index]['result']
         if result is not None:
             return result
 

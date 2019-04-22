@@ -2002,6 +2002,7 @@ class Queue:
     def addTask(self, user_input):
         dict = {'command': user_input, 'result': None}
         self.queue.append(dict)
+        return len(self.queue) - 1
 
     def delTask(self, index):
         self.queue[index] = None
