@@ -1971,20 +1971,25 @@ class _ClientThread(threading.Thread):
         self.console.queue = queue
 
     def run(self):
-        try:
-            while True:
-                task = self.console.queue.getLastet
-                command = task['command']
+        while True:
+            task = self.console.queue.getLatest()
 
-                if isinstance(command, str):
-                    self.console.handle_command(command)
-                    self.console.queue.delTask()
-                else:
-                    result = self.console.handle_network(command)
-                    task['result'] = result
+            if task is None:
+                continue
 
-        except:
-            return None
+            index = task[1]
+            task = task[0]
+
+            if task is None:
+                continue
+            command = task['command']
+
+            if isinstance(command, str):
+                self.console.handle_command(command)
+                self.console.queue.delTask(index)
+            else:
+                result = self.console.handle_network(command)
+                task['result'] = result
 
     def stop(self):
         self.console.queue = None
@@ -1998,16 +2003,18 @@ class Queue:
         dict = {'command': user_input, 'result': None}
         self.queue.append(dict)
 
-    def delTask(self):
-        # remove latest task
-        last = len(self.queue) - 1
-        self.queue.pop(last)
-
     def delTask(self, index):
-        self.queue.pop(index)
+        self.queue[index] = None
 
     def getList(self):
         return self.queue
 
+    def isEmpty(self):
+        return len(self.queue) == 0
+
     def getLatest(self):
-        return self.queue[len(self.queue) - 1]
+        if not self.isEmpty():
+            index = len(self.queue) - 1
+            return self.queue[index], index
+        else:
+            return None
