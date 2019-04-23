@@ -6,6 +6,7 @@ from ast import literal_eval
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from shlex import split as arg_split
+import queue
 
 import animius as am
 
@@ -50,7 +51,7 @@ class CancellationToken:
 class Console:
 
     def __init__(self, init_directory=None):
-        self.queue = am.Queue()
+        self.queue = None
         self.commands = None
 
         animius_dir = os.path.dirname(os.path.realpath(__file__))
@@ -1866,9 +1867,9 @@ i
                 result = {}
             return request.id, 0, 'success', result
         except ArgumentError as exc:
-            return request.id, 1, exc, {}
+            return request.id, 1, str(exc), {}
         except Exception as exc:  # all other errors
-            return request.id, 2, exc, {}
+            return request.id, 2, str(exc), {}
 
     def handle_command(self, user_input):
 
@@ -1923,22 +1924,22 @@ i
                     print(self.commands[command][0])
                     print('==================================================')
 
-                    try:
-                        result = self.commands[command][0].__call__(**kwargs)
-                        if result is not None:
-                            print(result)
-                    except Exception as exc:
-                        print('{0}: {1}'.format(type(exc).__name__, exc))
-                        raise exc
+                    # try:
+                    result = self.commands[command][0].__call__(**kwargs)
+                    if result is not None:
+                        print(result)
+                    # except Exception as exc:
+                    #     print('{0}: {1}'.format(type(exc).__name__, exc))
+                    #     raise exc
             else:
                 print('Invalid command')
 
     @staticmethod
     def start():
         import readline
-        queue = am.Queue()
+        TaskQueue = queue.Queue(0)
         console = am.Console()
-        thread = _ClientThread(console, queue)
+        thread = _ClientThread(console, TaskQueue)
         thread.start()
 
         def completer(user_input, state):
@@ -1958,64 +1959,28 @@ i
 
             if user_input.lower() == 'exit':
                 break
-
-            queue.addTask(user_input)
+            TaskQueue.put(user_input)
 
 
 class _ClientThread(threading.Thread):
-    def __init__(self, console, queue):
+    def __init__(self, console, TaskQueue):
         super(_ClientThread, self).__init__()
 
         self.console = console
         self.console.init_commands()
-        self.console.queue = queue
+        self.console.queue = TaskQueue
 
     def run(self):
         while True:
-            task = self.console.queue.getLatest()
+            if not self.console.queue.empty():
+                task = self.console.queue.get()
+                if isinstance(task, str):
+                    self.console.handle_command(task)
+                else:
+                    id, status, result, data = self.console.handle_network(task)
+                    am.SocketServer.client_object.send(id, status, result, data)
 
-            if task is None:
-                continue
-
-            index = task[1]
-            task = task[0]
-
-            if task is None:
-                continue
-            command = task['command']
-
-            if isinstance(command, str):
-                self.console.handle_command(command)
-                self.console.queue.delTask(index)
-            else:
-                result = self.console.handle_network(command)
-                task['result'] = result
+                self.console.queue.task_done()
 
     def stop(self):
         self.console.queue = None
-
-
-class Queue:
-    def __init__(self):
-        self.queue = list()
-
-    def addTask(self, user_input):
-        dict = {'command': user_input, 'result': None}
-        self.queue.append(dict)
-        return len(self.queue) - 1
-
-    def delTask(self, index):
-        self.queue[index] = None
-
-    def getList(self):
-        return self.queue
-
-    def isEmpty(self):
-        return len(self.queue) == 0
-
-    def getLatest(self):
-        if not self.isEmpty():
-            index = len(self.queue) - 1
-            return self.queue[index], index
-        else:
-            return None
