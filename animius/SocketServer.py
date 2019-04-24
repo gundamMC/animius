@@ -3,7 +3,7 @@ import threading
 
 from .SocketServerModel import Client
 
-client_object = None
+clients = []
 
 
 def new_client(c, console, event):
@@ -13,12 +13,12 @@ def new_client(c, console, event):
 
     print('Establishing connection with: {0}:{1}'.format(c.address, c.port))
 
-    global client_object
-    client_object = c
+    clients.append(c)
     # check for password
-    if c.pwd != '':
-        recvPwd = c.recv_pass()
-        if recvPwd != c.pwd:
+    if c.password != '':
+        print('qqqxx', c.password)
+        recvPassword = c.recv_pass()
+        if recvPassword != c.password:
             # wrong password, close connection
             c.close()
 
@@ -26,22 +26,31 @@ def new_client(c, console, event):
     c.send('', 0, 'success', {})
 
     while True:
+        if not console.queue[1].empty():
+            result = console.queue[1].get()
+            c.send(result['id'], result['status'], result['result'], result['data'])
+            print(result)
+            console.queue[1].task_done()
+
         req = c.recv()
-        if req is None:
+        print(req)
+        if req is None or req is "":
             continue
         print(req)
-        console.queue.put(req)
+        console.queue[0].put(req)
 
 
-def start_server(console, port, local=True, pwd='', max_clients=10):
-    thread = _ServerThread(console, port, local, pwd, max_clients)
+def start_server(console, port, local=True, password='', max_clients=10):
+    print(password, 0)
+    thread = _ServerThread(console, port, local, password, max_clients)
     thread.start()
     return thread
 
 
 class _ServerThread(threading.Thread):
-    def __init__(self, console, port, local=True, pwd='', max_clients=10):
+    def __init__(self, console, port, local=True, password='', max_clients=10):
         super(_ServerThread, self).__init__()
+        print(password, 1)
         self.event = threading.Event()
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -56,7 +65,7 @@ class _ServerThread(threading.Thread):
         self.server.bind((self.host, port))
 
         self.console = console
-        self.pwd = pwd
+        self.password = password
         self.max_clients = max_clients
 
     def run(self):
@@ -66,7 +75,7 @@ class _ServerThread(threading.Thread):
         while not self.event.is_set():
             # Accept Connection
             conn, addr = self.server.accept()
-            c = Client(conn, addr, self.pwd)
+            c = Client(conn, addr, self.password)
             t = threading.Thread(target=new_client, args=(c, self.console, self.event))
             t.start()
 
