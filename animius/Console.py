@@ -1815,7 +1815,7 @@ i
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['port'],
-                                soft_requirements=['local', 'pwd', 'max_clients'])
+                                soft_requirements=['local', 'password', 'max_clients'])
 
         if self.socket_server is not None:
             raise ValueError("A server is already running on this console.")
@@ -1823,14 +1823,14 @@ i
         if kwargs['max_clients'] is None:
             kwargs['max_clients'] = 10
 
-        if kwargs['pwd'] is None:
-            kwargs['pwd'] = ''
+        if kwargs['password'] is None:
+            kwargs['password'] = ''
 
         if kwargs['local'] is None:
             kwargs['local'] = True
 
         self.socket_server = \
-            am.start_server(self, kwargs['port'], kwargs['local'], kwargs['pwd'], kwargs['max_clients'])
+            am.start_server(self, kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
 
     def stop_server(self, **kwargs):
         """
@@ -1938,8 +1938,9 @@ i
     def start():
         import readline
         TaskQueue = queue.Queue(0)
+        ResultQueue = queue.Queue(0)
         console = am.Console()
-        thread = _ClientThread(console, TaskQueue)
+        thread = _ClientThread(console, TaskQueue, ResultQueue)
         thread.start()
 
         def completer(user_input, state):
@@ -1963,24 +1964,24 @@ i
 
 
 class _ClientThread(threading.Thread):
-    def __init__(self, console, TaskQueue):
+    def __init__(self, console, TaskQueue, ResultQueue):
         super(_ClientThread, self).__init__()
 
         self.console = console
         self.console.init_commands()
-        self.console.queue = TaskQueue
+        self.console.queue = [TaskQueue, ResultQueue]
 
     def run(self):
         while True:
-            if not self.console.queue.empty():
-                task = self.console.queue.get()
+            if not self.console.queue[0].empty():
+                task = self.console.queue[0].get()
                 if isinstance(task, str):
                     self.console.handle_command(task)
                 else:
                     id, status, result, data = self.console.handle_network(task)
-                    am.SocketServer.client_object.send(id, status, result, data)
+                    self.console.queue[1].put({"id": id, "status": status, "result": result, "data": data})
 
-                self.console.queue.task_done()
+                self.console.queue[0].task_done()
 
     def stop(self):
         self.console.queue = None
