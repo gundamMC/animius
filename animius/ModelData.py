@@ -289,13 +289,14 @@ class SpeakerVerificationData(Data):
         if isinstance(item, np.ndarray):
             item = item[0]
 
-            item = self.values['train_x'][item], self.values['train_y'][item]
+            item_path, item_label = self.values['train_x'][item], self.values['train_y'][item]
 
-        if isinstance(item, int):
-            item = self.values['train_x'][item], self.values['train_y'][item]
+        elif isinstance(item, int):
+            item_path, item_label = self.values['train_x'][item], self.values['train_y'][item]
             # if item is an index
 
-        item_path, item_label = item
+        else:
+            item_path, item_label = item
 
         data = am.SpeakerVerification.MFCC.get_MFCC(item_path,
                                                     window=self.model_config.model_structure['input_window'],
@@ -321,5 +322,5 @@ class SpeakerVerificationData(Data):
                 total_length += elements
 
             import math
-            self.steps_per_epoch_cache = math.ceil(total_length / 1024)
+            self.steps_per_epoch_cache = math.ceil(total_length / self.model_config.hyperparameters['batch_size'])
             return self.steps_per_epoch_cache
