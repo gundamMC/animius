@@ -268,6 +268,9 @@ class SpeakerVerificationData(Data):
 
         self.steps_per_epoch_cache = None
 
+        # brut-force cache to prevent io bottleneck
+        self.cache = dict()
+
     def add_data(self, input_path, is_speaker=True):
         self.values['train_x'].append(input_path)
         self.values['train_y'].append(is_speaker)
@@ -284,14 +287,15 @@ class SpeakerVerificationData(Data):
 
         self.values['train_y'].extend([is_speaker] * count)
 
-    def parse(self, item):
-
+    def parse(self, item, cache=True):
         if isinstance(item, np.ndarray):
-            item = item[0]
+            item = int(item[0])
 
-            item_path, item_label = self.values['train_x'][item], self.values['train_y'][item]
+        if cache and item in self.cache:
+            return self.cache[item]
 
-        elif isinstance(item, int):
+        # not in cache or cache not enabled, proceed to process
+        if isinstance(item, int):
             item_path, item_label = self.values['train_x'][item], self.values['train_y'][item]
             # if item is an index
 
@@ -303,7 +307,11 @@ class SpeakerVerificationData(Data):
                                                     num_cepstral=self.model_config.model_structure['input_cepstral'],
                                                     flatten=False)
 
-        return data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
+        if cache:
+            self.cache[item] = data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
+            return self.cache[item]
+        else:
+            return data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
 
     @property
     def steps_per_epoch(self):
