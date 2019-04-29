@@ -10,7 +10,7 @@ class SpeakerVerificationModel(am.Model):
     def DEFAULT_HYPERPARAMETERS():
         return {
             'learning_rate': 0.005,
-            'batch_size': 2048,
+            'batch_size': 512,
             'optimizer': 'adam'
         }
 
@@ -50,22 +50,18 @@ class SpeakerVerificationModel(am.Model):
 
         index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
 
-        # ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data_count))
-
-        index_ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=8))
+        ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data.steps_per_epoch))
 
         def _py_func(x):
             return tf.py_func(self.data.parse, [x], [tf.float32, tf.float32])
 
-        ds = index_ds.map(_py_func, num_parallel_calls=4)
+        ds = ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         ds = ds.apply(tf.data.experimental.unbatch())  # testing needed
 
         ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
 
-        ds.prefetch(1024)  # TODO
-
-        ds = ds.cache()
+        ds = ds.apply(tf.data.experimental.prefetch_to_device('/gpu:0', buffer_size=tf.data.experimental.AUTOTUNE))
 
         self.dataset = ds
 
@@ -85,16 +81,16 @@ class SpeakerVerificationModel(am.Model):
 
         with graph.as_default():
 
+            with graph.device('/cpu:0'):
+                if self.dataset is None:
+                    self.init_dataset(data)
+                self.iterator = self.dataset.make_initializable_iterator()
+
             if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
                 self.config['device'] = '/cpu:0'
                 # override to CPU since no GPU is available
 
             with graph.device(self.config['device']):
-
-                if self.dataset is None:
-                    self.init_dataset(data)
-
-                self.iterator = self.dataset.make_initializable_iterator()
 
                 self.x, self.y = self.iterator.get_next()
 
@@ -205,8 +201,6 @@ class SpeakerVerificationModel(am.Model):
 
                 while batch_num < self.data.steps_per_epoch:
 
-                    print('batch', batch_num)
-
                     if (self.config['display_step'] == 0 or
                         self.config['epoch'] % self.config['display_step'] == 0 or
                         epoch == epochs) and \
@@ -226,7 +220,10 @@ class SpeakerVerificationModel(am.Model):
                     batch_num += 1
 
             except tf.errors.OutOfRangeError:
+                # this should never happen
                 print(batch_num)
+
+            epoch += 1
 
             if self.config['tensorboard'] is not None:
                 summary = self.sess.run(self.tb_merged)
