@@ -16,32 +16,39 @@ def new_client(c, console, event):
     clients.append(c)
     # check for password
     if c.password != '':
-        print('qqqxx', c.password)
         recvPassword = c.recv_pass()
+        print(recvPassword)
         if recvPassword != c.password:
             # wrong password, close connection
             c.close()
+            return None
 
     # password verified and connected
     c.send('', 0, 'success', {})
 
+    queue = console.queue[1]
+    sendThread = threading.Thread(target=send_queue, args=(c, queue,))
+    sendThread.start()
+
     while True:
-        if not console.queue[1].empty():
-            result = console.queue[1].get()
-            c.send(result['id'], result['status'], result['result'], result['data'])
-            print(result)
-            console.queue[1].task_done()
 
         req = c.recv()
-        print(req)
         if req is None or req is "":
             continue
         print(req)
         console.queue[0].put(req)
 
 
+def send_queue(client, queue):
+    while True:
+        if not queue.empty():
+            result = queue.get()
+            client.send(result['id'], result['status'], result['result'], result['data'])
+            print(result)
+            queue.task_done()
+
+
 def start_server(console, port, local=True, password='', max_clients=10):
-    print(password, 0)
     thread = _ServerThread(console, port, local, password, max_clients)
     thread.start()
     return thread
@@ -50,7 +57,6 @@ def start_server(console, port, local=True, password='', max_clients=10):
 class _ServerThread(threading.Thread):
     def __init__(self, console, port, local=True, password='', max_clients=10):
         super(_ServerThread, self).__init__()
-        print(password, 1)
         self.event = threading.Event()
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
