@@ -1,12 +1,12 @@
 import json
 import os
+import queue
 import threading
 import zipfile
 from ast import literal_eval
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from shlex import split as arg_split
-import queue
 
 import animius as am
 
@@ -1850,7 +1850,7 @@ i
         self.commands = am.Commands(self)
 
     def handle_network(self, request):
-
+        print(request.id, request.command)
         # initialize commands first
         if self.commands is None:
             self.init_commands()
@@ -1862,7 +1862,11 @@ i
         method_to_call = self.commands[request.command][0]
 
         try:
-            result = method_to_call.__call__(**request.arguments)
+            if request.arguments == '':
+                result = method_to_call.__call__()
+            else:
+                result = method_to_call.__call__(**request.arguments)
+
             if result is None:
                 result = {}
             return request.id, 0, 'success', result
