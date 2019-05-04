@@ -10,7 +10,7 @@ from tensorflow.python.tools import optimize_for_inference_lib
 
 
 def get_system_info():
-    system_info = {}
+    system_info = dict()
 
     # cpu info
     system_info['cpu_percent'] = psutil.cpu_percent(interval=None, percpu=False)
@@ -34,7 +34,9 @@ def get_system_info():
     # gpu info
     if tf.test.is_gpu_available():
         pynvml.nvmlInit()
-        system_info['gpu_driver_version'] = pynvml.nvmlSystemGetDriverVersion()
+        gpu_driver_version = pynvml.nvmlSystemGetDriverVersion()
+        system_info['gpu_driver_version'] = gpu_driver_version.decode("utf-8")
+
         gpu_device_count = pynvml.nvmlDeviceGetCount()
 
         system_info['gpu_device_list'] = []
@@ -47,7 +49,7 @@ def get_system_info():
             gpu_mem_percent = int(gpu_mem_used / gpu_mem_total)
 
             system_info['gpu_device_list'].append(
-                {'gpu_name': gpu_name,
+                {'gpu_name': gpu_name.decode("utf-8"),
                  'gpu_mem_total': gpu_mem_total,
                  'gpu_mem_used': gpu_mem_used,
                  'gpu_mem_percent': gpu_mem_percent
@@ -57,7 +59,6 @@ def get_system_info():
         pynvml.nvmlShutdown()
 
     return system_info
-
 
 
 def shuffle(data_lists):

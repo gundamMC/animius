@@ -1806,6 +1806,11 @@ i
         Get System Info such as CPU usage, Memory usage, etc.
         """
 
+        # {'cpu_percent': 25.5, 'cpu_count': 6, 'mem_total': 16307, 'mem_available': 11110, 'mem_percent': 31.9,
+        # 'disk_total': 339338, 'disk_used': 237581, 'disk_percent': 70.0, 'boot_time': 1556635120.0,
+        # 'gpu_driver_version': '430.39', 'gpu_device_list': [
+        # {'gpu_name': 'GeForce GTX 1060 6GB', 'gpu_mem_total': 6144, 'gpu_mem_used': 449, 'gpu_mem_percent': 0}]}
+
         system_info = am.Utils.get_system_info()
 
         for key in system_info:
