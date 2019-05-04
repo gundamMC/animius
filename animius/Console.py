@@ -1801,6 +1801,18 @@ i
         else:
             raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name']))
 
+    def get_system_info(self):
+        """
+        Get System Info such as CPU usage, Memory usage, etc.
+        """
+
+        system_info = am.Utils.get_system_info()
+
+        for key in system_info:
+            print(key, ':', system_info[key])
+
+        return system_info
+
     def start_server(self, **kwargs):
         """
         Start server

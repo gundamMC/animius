@@ -2,9 +2,62 @@ import json
 from os.path import join
 
 import numpy as np
+import psutil
+import pynvml
 import tensorflow as tf
 from tensorflow.python.tools import freeze_graph as tf_freeze_graph
 from tensorflow.python.tools import optimize_for_inference_lib
+
+
+def get_system_info():
+    system_info = {}
+
+    # cpu info
+    system_info['cpu_percent'] = psutil.cpu_percent(interval=None, percpu=False)
+    system_info['cpu_count'] = psutil.cpu_count(logical=True)
+
+    # memory info
+    mem = psutil.virtual_memory()
+    system_info['mem_total'] = int(mem.total / 1024 / 1024)
+    system_info['mem_available'] = int(mem.available / 1024 / 1024)
+    system_info['mem_percent'] = mem.percent
+
+    # disk info
+    disk = psutil.disk_usage('/')
+    system_info['disk_total'] = int(disk.total / 1024 / 1024)
+    system_info['disk_used'] = int(disk.used / 1024 / 1024)
+    system_info['disk_percent'] = disk.percent
+
+    # other info
+    system_info['boot_time'] = psutil.boot_time()
+
+    # gpu info
+    if tf.test.is_gpu_available():
+        pynvml.nvmlInit()
+        system_info['gpu_driver_version'] = pynvml.nvmlSystemGetDriverVersion()
+        gpu_device_count = pynvml.nvmlDeviceGetCount()
+
+        system_info['gpu_device_list'] = []
+        for i in range(gpu_device_count):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+            gpu_name = pynvml.nvmlDeviceGetName(handle)
+            gpu_mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
+            gpu_mem_total = int(gpu_mem.total / 1024 / 1024)
+            gpu_mem_used = int(gpu_mem.used / 1024 / 1024)
+            gpu_mem_percent = int(gpu_mem_used / gpu_mem_total)
+
+            system_info['gpu_device_list'].append(
+                {'gpu_name': gpu_name,
+                 'gpu_mem_total': gpu_mem_total,
+                 'gpu_mem_used': gpu_mem_used,
+                 'gpu_mem_percent': gpu_mem_percent
+                 }
+            )
+
+        pynvml.nvmlShutdown()
+
+    return system_info
+
 
 
 def shuffle(data_lists):
@@ -87,7 +140,6 @@ def set_sequence_length(sequence, pad, max_seq=20, force_eos=False):
 
 # pass model_dir and model_name if model is not loaded
 def freeze_graph(model, output_node_names, model_dir=None, model_name=None):
-
     stored = None
 
     if model is not None:
