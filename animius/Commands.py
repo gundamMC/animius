@@ -604,7 +604,7 @@ class Commands:
 
                      },
                      'Save the console. (This does not save individual items such as models and waifus.)',
-                     'save '
+                     'save'
                      ],
 
             's': [console.save,
@@ -612,6 +612,14 @@ class Commands:
 
                   },
                   'Save the console. (This does not save individual items such as models and waifus.)',
-                  'save '
-                  ]
+                  'save'
+                  ],
+
+            'getSystemInfo': [console.get_system_info,
+                              {
+
+                              },
+                              'Get System Info such as CPU usage, Memory usage, etc.',
+                              'get System Info'
+                              ]
         }
