@@ -1867,18 +1867,18 @@ i
         self.commands = am.Commands(self)
 
     def handle_network(self, request):
-        print(request.id, request.command)
-        # initialize commands first
-        if self.commands is None:
-            self.init_commands()
-
-        # command must be pre-defined
-        if request.command not in self.commands:
-            return
-
-        method_to_call = self.commands[request.command][0]
-
         try:
+            print(request.id, request.command)
+            # initialize commands first
+            if self.commands is None:
+                self.init_commands()
+
+            # command must be pre-defined
+            if request.command not in self.commands:
+                raise Exception('Invalid command')
+
+            method_to_call = self.commands[request.command][0]
+
             if request.arguments == '':
                 result = method_to_call.__call__()
             else:
