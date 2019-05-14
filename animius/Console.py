@@ -1961,7 +1961,9 @@ i
         TaskQueue = queue.Queue(0)
         ResultQueue = queue.Queue(0)
         console = am.Console()
+
         thread = _ClientThread(console, TaskQueue, ResultQueue)
+        thread.daemon = True
         thread.start()
 
         def completer(user_input, state):
