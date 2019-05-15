@@ -775,6 +775,7 @@ i
         * *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
         * *embedding* (``str``) -- Name of embedding
         * *description* (``str``) -- Description of waifu. Optional
+        * *image* (``str``) -- Image of waifu. (base64 string) Optional
         """
 
         Console.check_arguments(kwargs,
@@ -800,8 +801,9 @@ i
             model_name = os.path.splitext(os.path.basename(norm_path))[0]
 
         desc = '' if 'description' not in kwargs else kwargs['description']
+        image = '' if 'image' not in kwargs else kwargs['image']
 
-        waifu = am.Waifu(kwargs['name'], description=desc)
+        waifu = am.Waifu(kwargs['name'], description=desc, image=image)
         waifu.add_combined_prediction_model(model_directory, model_name)
         waifu.build_input(self.embeddings[kwargs['embedding']].item)
 
@@ -810,6 +812,39 @@ i
         console_item.save()
 
         self.waifu[kwargs['name']] = console_item
+
+    def edit_waifu(self, **kwargs):
+        """
+        Edit details of waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *new_name* (``str``) -- Change the name of waifu Optional
+        * *image* (``str``) -- Set image of waifu (base64 string) Optional
+        * *description* (``str``) -- Change Description of waifu. Optional
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'combined_chatbot_model', 'embedding'])
+
+        if kwargs['name'] in self.waifu:
+            raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
+
+        waifu = self.waifu[kwargs['name']]
+
+        if 'image' in kwargs['waifu']:
+            waifu.config['image'] = kwargs['image']
+
+        if 'description' in kwargs['waifu']:
+            waifu.config['description'] = kwargs['description']
+
+        if 'new_name' in kwargs['waifu']:
+            waifu.config['name'] = kwargs['new_name']
+            self.waifu.pop(kwargs['name'])
+            self.waifu['new_name'] = waifu
+            waifu.save()
 
     def delete_waifu(self, **kwargs):
         """
