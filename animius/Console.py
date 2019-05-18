@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import queue
@@ -591,6 +592,7 @@ i
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
+        * *base64* (``boolean``) -- Convert image to base64 (Optional)
         """
 
         Console.check_arguments(kwargs,
@@ -600,6 +602,11 @@ i
             raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
 
         tmp = dict(self.waifu[kwargs['name']].item.config)
+
+        if 'base64' in kwargs and kwargs['base64'] and os.path.isfile(tmp['image']):
+            with open(tmp['image'], "rb") as imageFile:
+                tmp['image'] = base64.b64encode(imageFile.read())
+                tmp['image'].decode()
 
         tmp['saved_directory'] = self.waifu[kwargs['name']].saved_directory
         tmp['saved_name'] = self.waifu[kwargs['name']].saved_name
@@ -775,7 +782,7 @@ i
         * *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
         * *embedding* (``str``) -- Name of embedding
         * *description* (``str``) -- Description of waifu. Optional
-        * *image* (``str``) -- Image of waifu. (base64 string) Optional
+        * *image* (``str``) -- Image of waifu. (path or base64 string) Optional
         """
 
         Console.check_arguments(kwargs,
@@ -801,6 +808,8 @@ i
             model_name = os.path.splitext(os.path.basename(norm_path))[0]
 
         desc = '' if 'description' not in kwargs else kwargs['description']
+
+        # [file_type, base64 string] or 'file_path'
         image = '' if 'image' not in kwargs else kwargs['image']
 
         waifu = am.Waifu(kwargs['name'], description=desc, image=image)
@@ -822,7 +831,7 @@ i
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
         * *new_name* (``str``) -- Change the name of waifu Optional
-        * *image* (``str``) -- Set image of waifu (base64 string) Optional
+        * *image* (``str``) -- Set image of waifu (path or base64 string) Optional
         * *description* (``str``) -- Change Description of waifu. Optional
         """
 

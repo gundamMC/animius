@@ -1,7 +1,8 @@
 import errno
 import json
+import shutil
 from os import mkdir
-from os.path import join
+from os.path import join, isfile, splitext
 
 import animius as am
 
@@ -83,6 +84,23 @@ class Waifu:
         with open(join(directory, name + '.json'), 'w') as f:
             json.dump(self.config, f, indent=4)
 
+        image = self.config['image']
+        file_name = ''
+
+        if isinstance(image, list):
+            file_type = image[0]
+            b64 = image[1]
+            file_name = join(directory, name + '.' + file_type)
+            with open(file_name, 'w') as f:
+                f.write(b64.decode('base64'))
+
+        elif isinstance(image, str):
+            if isfile(image):
+                file_name = join(directory, name + splitext(image)[1])
+                shutil.copy(image, file_name)
+
+        self.config['image'] = join(directory, file_name)
+
         self.saved_directory = directory
         self.saved_name = name
 
@@ -93,7 +111,7 @@ class Waifu:
         with open(join(directory, name + '.json'), 'r') as f:
             config = json.load(f)
 
-        waifu = cls(config['name'], config['models'], config['description'])
+        waifu = cls(config['name'], config['models'], config['description'], config['image'])
 
         # load models
         if 'CombinedPredictionDirectory' in config['models']:
