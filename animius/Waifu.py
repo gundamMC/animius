@@ -1,5 +1,6 @@
 import errno
 import json
+import re
 import shutil
 from os import mkdir
 from os.path import join, isfile, splitext
@@ -55,9 +56,34 @@ class Waifu:
 
     def predict(self, sentence):
 
-        self.input_data.set_parse_input(sentence)
+        regex_rule = {"how's the weather in (.+)": 'getWeather',
+                      "search (.+)": 'search',
+                      "": ''}  # regex:intent
 
-        return self.combined_prediction.predict(self.input_data)
+        for rule in regex_rule.keys():
+            placeholder = re.findall(rule, sentence)
+
+            if len(placeholder) != 0:
+                count = 0
+                intent = regex_rule[rule]
+                ner = []
+                word_list = sentence.split(' ')
+                ner_sentence = []
+                for word in word_list:
+                    if word in placeholder:
+                        ner.append('placeholder_' + str(count))
+                        count += 1
+                    else:
+                        ner.append('')
+
+                    ner_sentence.append(word)
+
+                return {'intent': intent, 'ner': [ner, ner_sentence]}
+
+        self.input_data.set_parse_input(sentence)
+        result = self.combined_prediction.predict(self.input_data)
+
+        return result
 
     def save(self, directory, name='waifu'):
 
