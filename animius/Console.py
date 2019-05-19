@@ -891,6 +891,25 @@ i
 
         self.waifu[kwargs['name']].save()
 
+    def add_regex(self, **kwargs):
+        """
+        Add regex rule to a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *regex* (``str``) -- Regex rule
+        * *intent* (``str``) -- Intent
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'regex', 'intent'])
+        if kwargs['name'] not in self.waifu:
+            raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
+
+        self.waifu[kwargs['name']].item.config['regex_rule'][kwargs['regex']] = kwargs['intent']
+
     def load_waifu(self, **kwargs):
         """
         Load a waifu

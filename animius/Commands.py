@@ -119,7 +119,8 @@ class Commands:
                                 '-c': ['combined_chatbot_model', 'str',
                                        'Name or directory of combined chatbot model to use'],
                                 '-e': ['embedding', 'str', 'Name of word embedding to use'],
-                                '-d': ['description', 'str', 'Description of waifu (Optional)']
+                                '-d': ['description', 'str', 'Description of waifu (Optional)'],
+                                '-i': ['image', 'str', 'Image of waifu. (path or base64 string) (Optional)']
                             },
                             'Create a waifu.',
                             'createWaifu -n \'waifu name\' -c \'name of model\' -e \'name of embedding\''
@@ -156,6 +157,17 @@ class Commands:
                                'Get the detail information of a waifu.',
                                'getWaifuDetail -n \'waifu name\''
                                ],
+
+            'editWaifu': [console.edit_waifu,
+                          {
+                              '-n': ['name', 'str', 'Name of waifu'],
+                              '-d': ['description', 'str', 'Description of waifu (Optional)'],
+                              '-i': ['image', 'str', 'Image of waifu. (path or base64 string) (Optional)'],
+                              '-nn': ['new_name', 'str', 'Change the name of waifu (Optional)']
+                          },
+                          'Get the detail information of a waifu.',
+                          'getWaifuDetail -n \'waifu name\''
+                          ],
 
             'waifuPredict': [console.waifu_predict,
                              {
@@ -557,8 +569,9 @@ class Commands:
 
             'startServer': [console.start_server,
                             {
-                                '-p': ['port', 'int', 'Port to listen on'], '-l': ['local', 'bool',
-                                                                                   'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
+                                '-p': ['port', 'int', 'Port to listen on'],
+                                '-l': ['local', 'bool',
+                                       'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
                                 '-pwd': ['password', 'str', 'Password of server (Optional)'],
                                 '-c': ['max_clients', 'int', 'Maximum number of clients (Optional)']
                             },
@@ -621,5 +634,16 @@ class Commands:
                               },
                               'Get System Info such as CPU usage, Memory usage, etc.',
                               'get System Info'
-                              ]
+                              ],
+
+            'addRegex': [console.add_regex,
+                         {
+                             '-n': ['name', 'str', 'Name of waifu'],
+                             '-r': ['regex', 'str', 'Regex rule'],
+                             '-i': ['intent', 'str', 'Intent']
+                         },
+                         'Add regex rule to a waifu',
+                         "addRegex -n 'waifu name' -r 'how's the weather in (.+)' -i 'getWeather'"
+                         ],
+
         }
