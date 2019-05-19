@@ -18,7 +18,8 @@ class Waifu:
         if models is None:
             models = {}
 
-        self.config = {'name': name, 'description': description, 'image': image, 'data': None, 'models': models}
+        self.config = {'name': name, 'description': description, 'image': image,
+                       'data': None, 'models': models, 'regex_rule': {}}
 
         self.saved_directory = None
         self.saved_name = None
@@ -56,9 +57,8 @@ class Waifu:
 
     def predict(self, sentence):
 
-        regex_rule = {"how's the weather in (.+)": 'getWeather',
-                      "search (.+)": 'search',
-                      "": ''}  # regex:intent
+        regex_rule = self.config['regex_rule']
+        # {"how's the weather in (.+)": 'getWeather', "search (.+)": 'search'}
 
         for rule in regex_rule.keys():
             placeholder = re.findall(rule, sentence)
