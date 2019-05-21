@@ -58,27 +58,32 @@ class Waifu:
     def predict(self, sentence):
 
         regex_rule = self.config['regex_rule']
-        # {"how's the weather in (.+)": 'getWeather', "search (.+)": 'search'}
+        # {"how's the weather in (.+)": [True, 'getWeather'], "good morning": [False, 'Good morning!']}
 
         for rule in regex_rule.keys():
             placeholder = re.findall(rule, sentence)
 
             if len(placeholder) != 0:
-                count = 0
-                intent = regex_rule[rule]
-                ner = []
-                word_list = sentence.split(' ')
-                ner_sentence = []
-                for word in word_list:
-                    if word in placeholder:
-                        ner.append('placeholder_' + str(count))
-                        count += 1
-                    else:
-                        ner.append('')
+                if regex_rule[rule][0]:  # return intent and ner
+                    count = 0
 
-                    ner_sentence.append(word)
+                    intent = regex_rule[rule]
+                    ner = []
+                    word_list = sentence.split(' ')
+                    ner_sentence = []
+                    for word in word_list:
+                        if word in placeholder:
+                            ner.append('placeholder_' + str(count))
+                            count += 1
+                        else:
+                            ner.append('')
 
-                return {'intent': intent, 'ner': [ner, ner_sentence]}
+                        ner_sentence.append(word)
+
+                    return {'intent': intent, 'ner': [ner, ner_sentence]}
+
+                else:  # return chat
+                    return {'message': regex_rule[rule][1]}
 
         self.input_data.set_parse_input(sentence)
         result = self.combined_prediction.predict(self.input_data)

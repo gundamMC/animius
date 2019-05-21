@@ -900,15 +900,20 @@ i
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
         * *regex* (``str``) -- Regex rule
-        * *intent* (``str``) -- Intent
+        * *intent* (``str``) -- Intent (Optional)
+        * *chat* (``str``) -- Chat message(Optional)
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'regex', 'intent'])
+                                hard_requirements=['name', 'regex'])
         if kwargs['name'] not in self.waifu:
             raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
 
-        self.waifu[kwargs['name']].item.config['regex_rule'][kwargs['regex']] = kwargs['intent']
+        if 'chat' in kwargs:
+            self.waifu[kwargs['name']].item.config['regex_rule'][kwargs['regex']] = [False, kwargs['chat']]
+
+        elif 'intent' in kwargs:
+            self.waifu[kwargs['name']].item.config['regex_rule'][kwargs['regex']] = [True, kwargs['intent']]
 
     def load_waifu(self, **kwargs):
         """

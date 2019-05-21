@@ -640,7 +640,8 @@ class Commands:
                          {
                              '-n': ['name', 'str', 'Name of waifu'],
                              '-r': ['regex', 'str', 'Regex rule'],
-                             '-i': ['intent', 'str', 'Intent']
+                             '-i': ['intent', 'str', 'Intent'],
+                             '-c': ['chat', 'str', 'Chat message']
                          },
                          'Add regex rule to a waifu',
                          "addRegex -n 'waifu name' -r 'how's the weather in (.+)' -i 'getWeather'"
