@@ -399,8 +399,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#start_server" title="start_server" class="md-nav__link">
-    start_server
+  <a href="#amstart_server" title="am.start_server" class="md-nav__link">
+    am.start_server
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsget_system_info" title="am.Utils.get_system_info" class="md-nav__link">
+    am.Utils.get_system_info
   </a>
   
 </li>
@@ -670,8 +677,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#start_server" title="start_server" class="md-nav__link">
-    start_server
+  <a href="#amstart_server" title="am.start_server" class="md-nav__link">
+    am.start_server
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsget_system_info" title="am.Utils.get_system_info" class="md-nav__link">
+    am.Utils.get_system_info
   </a>
   
 </li>
@@ -696,9 +710,10 @@
                 
                 
                 <h1 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h1>
-<h2 id="start_server">start_server<a class="headerlink" href="#start_server" title="Permanent link">&para;</a></h2>
+<h2 id="amstart_server">am.start_server<a class="headerlink" href="#amstart_server" title="Permanent link">&para;</a></h2>
 <p><code class="codehilite">am.start_server(console, port, local=True, password=&#39;&#39;, max_clients=10)</code></p>
 <p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/SocketServer.py">animius/SocketServer.py</a>.</p>
+<p>Start socket server on specific port.</p>
 <p>Args:</p>
 <ul>
 <li>
@@ -719,6 +734,25 @@
 </ul>
 <p>Returns:</p>
 <p>The reference to a thread object which socket server is running on.</p>
+<h2 id="amutilsget_system_info">am.Utils.get_system_info<a class="headerlink" href="#amutilsget_system_info" title="Permanent link">&para;</a></h2>
+<p><code class="codehilite">am.Utils.get_system_info()</code></p>
+<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
+<p>Returns basic hardware and runtime information.</p>
+<p>This function use Python libraries <code class="codehilite">psutil</code> and <code class="codehilite">pynvml</code> to obtain system information.</p>
+<p>For example:</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>{&#39;cpu_percent&#39;: 25.5, &#39;cpu_count&#39;: 6, &#39;mem_total&#39;: 16307, &#39;mem_available&#39;: 11110, &#39;mem_percent&#39;: 31.9,
+&#39;disk_total&#39;: 339338, &#39;disk_used&#39;: 237581, &#39;disk_percent&#39;: 70.0, &#39;boot_time&#39;: 1556635120.0,&#39;gpu_driver_version&#39;: &#39;430.39&#39;, &#39;gpu_device_list&#39;: [
+{&#39;gpu_name&#39;: &#39;GeForce GTX 1060 6GB&#39;, &#39;gpu_mem_total&#39;: 6144, &#39;gpu_mem_used&#39;: 449, &#39;gpu_mem_percent&#39;: 0}]}
+</pre></div>
+</td></tr></table>
+
+<p>GPU information won't be shown if your system does not contain any GPU.</p>
+<p>Args: None </p>
+<p>Returns:</p>
+<p>A dict contains basic hardware and system information.</p>
+<h2 id="_1"><a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
                 
                   
                 
