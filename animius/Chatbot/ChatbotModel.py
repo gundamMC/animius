@@ -1,8 +1,6 @@
 import tensorflow as tf
 
 import animius as am
-from animius.Utils import get_mini_batches, shuffle
-from tensorflow.contrib.seq2seq.python.ops import beam_search_ops
 
 
 # force load beam_search_ops, see https://github.com/tensorflow/tensorflow/issues/12927
@@ -48,6 +46,35 @@ class ChatbotModel(am.Model):
         self.word_embedding = None
         self.init_word_embedding = False
 
+        self.iterator = None
+        self.data_count = None
+
+    def init_dataset(self, data=None):
+
+        super().init_dataset(data)
+
+        self.data_count = tf.placeholder(tf.int64, shape=(), name='ds_data_count')
+
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data.steps_per_epoch))
+
+        def _py_func(x):
+            # result_x, result_y, lengths_x, lengths_y, result_y_target
+            return tf.py_func(self.data.parse, [x], [tf.int32, tf.int32, tf.int32, tf.int32, tf.int32])
+
+        ds = ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        ds = ds.apply(tf.data.experimental.unbatch())  # testing needed
+
+        ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
+
+        ds = ds.apply(tf.data.experimental.prefetch_to_device('/gpu:0', buffer_size=tf.data.experimental.AUTOTUNE))
+
+        self.dataset = ds
+
+        return ds
+
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
 
         # make copies of the dictionaries since we will be editing it
@@ -71,7 +98,12 @@ class ChatbotModel(am.Model):
 
         # build map
         with graph.as_default():
-            
+
+            with graph.device('/cpu:0'):
+                if self.dataset is None:
+                    self.init_dataset(data)
+                self.iterator = self.dataset.make_initializable_iterator()
+
             if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
                 self.config['device'] = '/cpu:0'
                 # override to CPU since no GPU is available
@@ -94,11 +126,12 @@ class ChatbotModel(am.Model):
                 max_sequence = self.model_structure['max_sequence']
 
                 # Tensorflow placeholders
-                self.x = tf.placeholder(tf.int32, [None, max_sequence], name='input_x')
-                self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
-                self.y = tf.placeholder(tf.int32, [None, max_sequence], name='train_y')
-                self.y_length = tf.placeholder(tf.int32, [None], name='train_y_length')
-                self.y_target = tf.placeholder(tf.int32, [None, max_sequence], name='train_y_target')
+                # self.x = tf.placeholder(tf.int32, [None, max_sequence], name='input_x')
+                # self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
+                # self.y = tf.placeholder(tf.int32, [None, max_sequence], name='train_y')
+                # self.y_length = tf.placeholder(tf.int32, [None], name='train_y_length')
+                # self.y_target = tf.placeholder(tf.int32, [None, max_sequence], name='train_y_target')
+                self.x, self.y, self.x_length, self.y_length, self.y_target = self.iterator.get_next()
 
                 # this is w/o <GO>
 
@@ -106,8 +139,10 @@ class ChatbotModel(am.Model):
                 def get_gru_cell():
                     return tf.contrib.rnn.GRUCell(self.model_structure['n_hidden'])
 
-                cell_encode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
-                cell_decode = tf.contrib.rnn.MultiRNNCell([get_gru_cell() for _ in range(self.model_structure['layer'])])
+                cell_encode = tf.contrib.rnn.MultiRNNCell(
+                    [get_gru_cell() for _ in range(self.model_structure['layer'])])
+                cell_decode = tf.contrib.rnn.MultiRNNCell(
+                    [get_gru_cell() for _ in range(self.model_structure['layer'])])
                 projection_layer = tf.layers.Dense(word_count)
 
                 # Setup model network
@@ -248,68 +283,41 @@ class ChatbotModel(am.Model):
         if self.init_word_embedding:
             super().init_embedding(self.word_embedding)
 
-    def train(self, epochs=10, CancellationToken=None):
-        for epoch in range(epochs):
+    def train(self, epochs=10, cancellation_token=None):
+        print('starting training')
+        self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_y'])})
 
-            if CancellationToken is not None and CancellationToken.is_cancalled:
+        print('initialized iterator')
+
+        epoch = 0
+        while epoch < epochs:
+            print('training epoch', epoch, '|', self.data.steps_per_epoch)
+
+            if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
+            batch_num = 0
+            try:
+                while batch_num < self.data.steps_per_epoch:
 
-            mini_batches_x, mini_batches_x_length, mini_batches_y, mini_batches_y_length, mini_batches_y_target \
-                = get_mini_batches(
-                shuffle([
-                    self.data['x'],
-                    self.data['x_length'],
-                    self.data['y'],
-                    self.data['y_length'],
-                    self.data['y_target']]),
-                self.hyperparameters['batch_size'])
+                    if (self.config['display_step'] == 0 or
+                        self.config['epoch'] % self.config['display_step'] == 0 or
+                        epoch == epochs) and \
+                            (batch_num % 100 == 0 or batch_num == 0):
+                        _, cost_value = self.sess.run([self.train_op, self.cost])
 
-            for batch in range(len(mini_batches_x)):
-                batch_x = mini_batches_x[batch]
-                batch_x_length = mini_batches_x_length[batch]
-                batch_y = mini_batches_y[batch]
-                batch_y_length = mini_batches_y_length[batch]
-                batch_y_target = mini_batches_y_target[batch]
+                        self.config['cost'] = cost_value.item()
 
-                if (self.config['display_step'] == 0 or
-                    self.config['epoch'] % self.config['display_step'] == 0 or
-                    epoch == epochs) and \
-                        (batch % 100 == 0 or batch == 0):
-                    _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
-                        self.x: batch_x,
-                        self.x_length: batch_x_length,
-                        self.y: batch_y,
-                        self.y_length: batch_y_length,
-                        self.y_target: batch_y_target
-                    })
+                        if self.config['hyperdash'] is not None:
+                            self.hyperdash.metric("cost", cost_value)
 
-                    print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
+            except tf.errors.OutOfRangeError:
+                print(batch_num)
 
-                    self.config['cost'] = cost_value.item()
+            batch_num += 1
 
-                    if self.config['hyperdash'] is not None:
-                        self.hyperdash.metric("cost", cost_value)
+        epoch += 1
 
-                else:
-                    self.sess.run([self.train_op], feed_dict={
-                        self.x: batch_x,
-                        self.x_length: batch_x_length,
-                        self.y: batch_y,
-                        self.y_length: batch_y_length,
-                        self.y_target: batch_y_target
-                    })
-
-            if self.config['tensorboard'] is not None:
-                summary = self.sess.run(self.tb_merged, feed_dict={
-                    self.x: mini_batches_x[0],
-                    self.x_length: mini_batches_x_length[0],
-                    self.y: mini_batches_y[0],
-                    self.y_length: mini_batches_y_length[0],
-                    self.y_target: mini_batches_y_target[0]
-                })
-                self.tensorboard_writer.add_summary(summary, self.config['epoch'])
-
-            self.config['epoch'] += 1
+        self.config['epoch'] += 1
 
     @classmethod
     def load(cls, directory, name='model', data=None):
