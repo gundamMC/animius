@@ -16,6 +16,9 @@ nav:
         - Commands: 'quick start/commands.md'
     - Python API:
         - Overview: 'python/overview.md'
+        - Modules: 'python/modules.md'
+        - Classes: 'python/classes.md'
+        - Functions: 'python/functions.md'
     - Commands:
         - Overview: 'commands/overview.md'
         - Waifu: 'commands/waifu.md'
