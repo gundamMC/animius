@@ -1,37 +1,37 @@
 # Module: am
 
-## [Modules](https://gundammc.github.io/animius/python/modules/)
+## Modules
 
-Chatbot
+[Chatbot](https://gundammc.github.io/animius/python/modules/#am.Chatbot)
 
 IntentNER
 
 SpeakerVerification
 
-SubtitleParser
-
 Utils
 
-## [Classes](https://gundammc.github.io/animius/python/classes/)
+## Classes
 
-ChatbotData
+class ChatbotData
 
-CombinedPredictionData
+class CombinedPredictionData
 
-Commands
+[class Commands](https://gundammc.github.io/animius/python/classes#am.Commands)
 
-Console
+class Console
 
-IntentNERData
+class IntentNERData
 
-Model
+class Model
 
-ModelConfig
+class ModelConfig
 
-SpeakerVerificationData
+class SpeakerVerificationData
 
-Waifu
+class SubtitleParser
 
-## [Functions](https://gundammc.github.io/animius/python/functions/)
+class Waifu
 
-[start_server](https://gundammc.github.io/animius/python/functions/#start_server)
+## Functions
+
+[start_server(...)](https://gundammc.github.io/animius/python/functions/#start_server)
