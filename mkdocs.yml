@@ -15,10 +15,11 @@ nav:
         - Python Library: 'quick start/python.md'
         - Commands: 'quick start/commands.md'
     - Python API:
-        - Overview: 'python/overview.md'
-        - Modules: 'python/modules.md'
-        - Classes: 'python/classes.md'
-        - Functions: 'python/functions.md'
+        - am: 'python/am.md'
+        - am.Chatbot: 'python/am.Chatbot.md'
+        - am.IntentNER: 'python/am.IntentNER.md'
+        - am.SpeakerVerification: 'python/am.SpeakerVerification.md'
+        - am.Util: 'python/am.Util.md'
     - Commands:
         - Overview: 'commands/overview.md'
         - Waifu: 'commands/waifu.md'

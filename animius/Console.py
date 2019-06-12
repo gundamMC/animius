@@ -1915,7 +1915,14 @@ i
             kwargs['local'] = True
 
         self.socket_server = \
-            am.start_server(self, kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
+            self.server(self, kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
+
+    def server(self, console, port, local=True, password='', max_clients=10):
+        from .SocketServer import _ServerThread
+        thread = _ServerThread(console, port, local, password, max_clients)
+        thread.daemon = True
+        thread.start()
+        return thread
 
     def stop_server(self, **kwargs):
         """
