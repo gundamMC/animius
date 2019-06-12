@@ -48,11 +48,11 @@ def send_queue(client, queue):
             queue.task_done()
 
 
-def start_server(console, port, local=True, password='', max_clients=10):
-    thread = _ServerThread(console, port, local, password, max_clients)
-    thread.daemon = True
-    thread.start()
-    return thread
+# def start_server(console, port, local=True, password='', max_clients=10):
+#     thread = _ServerThread(console, port, local, password, max_clients)
+#     thread.daemon = True
+#     thread.start()
+#     return thread
 
 
 class _ServerThread(threading.Thread):
