@@ -1,29 +1,24 @@
-# Functions
+# Module: am.Utils
 
-## am.start_server
+## Overview
 
-``` am.start_server(console, port, local=True, password='', max_clients=10) ```
+### Functions
 
-Defined in [animius/SocketServer.py](https://github.com/gundamMC/animius/blob/master/animius/SocketServer.py).
+[get_system_info(...)](https://gundammc.github.io/animius/python/am.Utils#amutilsget_system_info)
 
-Start socket server on specific port.
+shuffle(...)
 
-Args:
+get_mini_batches(...)
 
-* *console* (`am.Console`) -- reference to an am.Console object.
+get_length(...)
 
+sentence_to_index(...)
 
-* *port* (`int`) -- specific port which the socket server listening on.
+set_sequence_length(...)
 
-* *local* (`boolean`) -- whether or not the server runs on local address. (as known as '127.0.0.1' or 'localhost')
+freeze_graph(...)
 
-* *password* (`str`) -- password which requires when clients creating a connection with the socket server. (optional)
-
-* *max_clients* (`int`) -- specific number of clients the server can communicate with. (optional)
-
-Returns:
-
-The reference to a thread object which socket server is running on.
+optimize(...)
 
 ## am.Utils.get_system_info
 
@@ -50,5 +45,3 @@ Args: None
 Returns:
 
 A dict contains basic hardware and system information.
-
-## 
