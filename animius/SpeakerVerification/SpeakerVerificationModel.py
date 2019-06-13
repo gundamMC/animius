@@ -195,9 +195,9 @@ class SpeakerVerificationModel(am.Model):
             if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
 
-            try:
+            batch_num = 0
 
-                batch_num = 0
+            try:
 
                 while batch_num < self.data.steps_per_epoch:
 
