@@ -204,7 +204,7 @@ class IntentNERModel(am.Model):
 
     def train(self, epochs=400, CancellationToken=None):
 
-        self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_x'])})
+        self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train'])})
 
         epoch = 0
 

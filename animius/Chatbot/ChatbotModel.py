@@ -63,13 +63,12 @@ class ChatbotModel(am.Model):
             # result_x, result_y, lengths_x, lengths_y, result_y_target
             return tf.py_func(self.data.parse, [x], [tf.int32, tf.int32, tf.int32, tf.int32, tf.int32])
 
-        ds = ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        ds = ds.apply(tf.data.experimental.map_and_batch(_py_func,
+                                                         self.hyperparameters['batch_size'],
+                                                         num_parallel_calls=tf.data.experimental.AUTOTUNE))
 
-        ds = ds.apply(tf.data.experimental.unbatch())  # testing needed
-
-        ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
-
-        ds = ds.apply(tf.data.experimental.prefetch_to_device('/gpu:0', buffer_size=tf.data.experimental.AUTOTUNE))
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],  # preload to training device
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
 
         self.dataset = ds
 
@@ -99,14 +98,14 @@ class ChatbotModel(am.Model):
         # build map
         with graph.as_default():
 
+            if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
+                self.config['device'] = '/cpu:0'
+                # override to CPU since no GPU is available
+
             with graph.device('/cpu:0'):
                 if self.dataset is None:
                     self.init_dataset(data)
                 self.iterator = self.dataset.make_initializable_iterator()
-
-            if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
-                self.config['device'] = '/cpu:0'
-                # override to CPU since no GPU is available
 
             with graph.device(self.config['device']):
 
@@ -126,11 +125,6 @@ class ChatbotModel(am.Model):
                 max_sequence = self.model_structure['max_sequence']
 
                 # Tensorflow placeholders
-                # self.x = tf.placeholder(tf.int32, [None, max_sequence], name='input_x')
-                # self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
-                # self.y = tf.placeholder(tf.int32, [None, max_sequence], name='train_y')
-                # self.y_length = tf.placeholder(tf.int32, [None], name='train_y_length')
-                # self.y_target = tf.placeholder(tf.int32, [None, max_sequence], name='train_y_target')
                 self.x, self.y, self.x_length, self.y_length, self.y_target = self.iterator.get_next()
 
                 # this is w/o <GO>
@@ -275,6 +269,7 @@ class ChatbotModel(am.Model):
                     self.tb_merged = tf.summary.merge_all(name='tensorboard_merged')
 
         self.graph = graph
+
         return graph
 
     def init_tensorflow(self, graph=None, init_param=True, init_sess=True):
