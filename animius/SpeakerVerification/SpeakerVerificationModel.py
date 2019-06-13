@@ -61,7 +61,7 @@ class SpeakerVerificationModel(am.Model):
 
         ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
 
-        ds = ds.apply(tf.data.experimental.prefetch_to_device('/gpu:0', buffer_size=tf.data.experimental.AUTOTUNE))
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'], buffer_size=tf.data.experimental.AUTOTUNE))
 
         self.dataset = ds
 
@@ -81,14 +81,14 @@ class SpeakerVerificationModel(am.Model):
 
         with graph.as_default():
 
+            if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
+                self.config['device'] = '/cpu:0'
+                # override to CPU since no GPU is available
+
             with graph.device('/cpu:0'):
                 if self.dataset is None:
                     self.init_dataset(data)
                 self.iterator = self.dataset.make_initializable_iterator()
-
-            if 'GPU' in self.config['device'] and not tf.test.is_gpu_available():
-                self.config['device'] = '/cpu:0'
-                # override to CPU since no GPU is available
 
             with graph.device(self.config['device']):
 
