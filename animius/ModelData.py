@@ -1,5 +1,6 @@
 import errno
 import json
+import math
 from abc import ABC, abstractmethod
 from os import mkdir
 from os.path import join
@@ -211,6 +212,10 @@ class ChatData(Data):
         return am.Chatbot.Parse.data_to_index(item_x, item_y, self.values['embedding'].words_to_index,
                                               max_seq=self.model_config.model_structure['max_sequence'])
 
+    @property
+    def steps_per_epoch(self):
+        return math.ceil(len(self.values['train_x']) / self.model_config.hyperparameters['batch_size'])
+
 
 class IntentNERData(Data):
 
@@ -265,7 +270,7 @@ class IntentNERData(Data):
 
     @property
     def steps_per_epoch(self):
-        return len(self.values['train'])
+        return math.ceil(len(self.values['train']) / self.model_config.hyperparameters['batch_size'])
 
 
 class SpeakerVerificationData(Data):
@@ -341,6 +346,5 @@ class SpeakerVerificationData(Data):
 
                 total_length += elements
 
-            import math
             self.steps_per_epoch_cache = math.ceil(total_length / self.model_config.hyperparameters['batch_size'])
             return self.steps_per_epoch_cache
