@@ -39,6 +39,33 @@ class IntentNERModel(am.Model):
         self.tb_merged = None
         self.word_embedding = None
 
+        self.data_count = None
+        self.iterator = None
+
+    def init_dataset(self, data=None):
+
+        super().init_dataset(data)
+
+        self.data_count = tf.placeholder(tf.int64, shape=(), name='ds_data_count')
+
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data.steps_per_epoch))
+
+        def _py_func(x):
+            return tf.py_func(self.data.parse, [x], [tf.float32, tf.float32])
+
+        ds = ds.apply(tf.data.experimental.map_and_batch(_py_func,
+                                                         self.hyperparameters['batch_size'],
+                                                         num_parallel_calls=tf.data.experimental.AUTOTUNE))
+
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],  # preload to training device
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
+
+        self.dataset = ds
+
+        return ds
+
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None):
 
         # make copies of the dictionaries since we will be editing it
@@ -66,6 +93,11 @@ class IntentNERModel(am.Model):
                 self.config['device'] = '/cpu:0'
                 # override to CPU since no GPU is available
 
+            with graph.device('/cpu:0'):  # load dataset on cpu
+                if self.dataset is None:
+                    self.init_dataset(data)
+                self.iterator = self.dataset.make_initializable_iterator()
+
             with graph.device(self.config['device']):
 
                 if embedding_tensor is None:
@@ -77,13 +109,7 @@ class IntentNERModel(am.Model):
                     self.word_embedding = embedding_tensor
 
                 # Tensorflow placeholders
-                self.x = tf.placeholder(tf.int32, [None, self.model_structure['max_sequence']],
-                                        name='input_x')  # [batch size, sequence length]
-                self.x_length = tf.placeholder(tf.int32, [None], name='input_x_length')
-                self.y_intent = tf.placeholder("float", [None, self.model_structure['n_intent_output']],
-                                               name='train_y_intent')  # [batch size, intent]
-                self.y_ner = tf.placeholder("float", [None, self.model_structure['max_sequence'],
-                                                      self.model_structure['n_ner_output']], name='train_y_ner')
+                self.x, self.x_length, self.y_intent, self.y_ner = self.iterator.get_next()
 
                 # Network parameters
                 weights = {  # LSTM weights are created automatically by tensorflow
@@ -178,61 +204,49 @@ class IntentNERModel(am.Model):
 
     def train(self, epochs=400, CancellationToken=None):
 
-        for epoch in range(epochs):
+        self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_x'])})
+
+        epoch = 0
+
+        while epoch < epochs:
 
             if CancellationToken is not None and CancellationToken.is_cancalled:
                 return  # early stopping
 
-            mini_batches_x, mini_batches_x_length, mini_batches_y_intent, mini_batches_y_ner \
-                = am.Utils.get_mini_batches(
-                am.Utils.shuffle([
-                    self.data['x'],
-                    self.data['x_length'],
-                    self.data['y_intent'],
-                    self.data['y_ner']
-                ]),
-                self.hyperparameters['batch_size'])
+            batch_num = 0
 
-            for batch in range(len(mini_batches_x)):
+            try:
+                while batch_num < self.data.steps_per_epoch:
 
-                batch_x = mini_batches_x[batch]
-                batch_x_length = mini_batches_x_length[batch]
-                batch_y_intent = mini_batches_y_intent[batch]
-                batch_y_ner = mini_batches_y_ner[batch]
+                    if (self.config['display_step'] <= 1 or
+                        self.config['epoch'] % self.config['display_step'] == 0 or
+                        epoch == epochs) and \
+                            (batch_num % 100 == 0 or batch_num == 0):
 
-                if (self.config['display_step'] == 0 or
-                    self.config['epoch'] % self.config['display_step'] == 0 or
-                    epoch == epochs) and \
-                        (batch % 100 == 0 or batch == 0):
-                    _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
-                        self.x: batch_x,
-                        self.x_length: batch_x_length,
-                        self.y_intent: batch_y_intent,
-                        self.y_ner: batch_y_ner
-                    })
+                        # record cost too
 
-                    print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
+                        _, cost_value = self.sess.run([self.train_op, self.cost])
 
-                    self.config['cost'] = cost_value.item()
+                        print("epoch:", self.config['epoch'], "- (", batch_num, ") -", cost_value)
 
-                    if self.config['hyperdash'] is not None:
-                        self.hyperdash.metric("cost", cost_value)
+                        self.config['cost'] = cost_value.item()
 
-                else:
-                    self.sess.run([self.train_op], feed_dict={
-                        self.x: batch_x,
-                        self.x_length: batch_x_length,
-                        self.y_intent: batch_y_intent,
-                        self.y_ner: batch_y_ner
-                    })
+                        if self.config['hyperdash'] is not None:
+                            self.hyperdash.metric("cost", cost_value)
+
+                    else:
+                        self.sess.run([self.train_op])
+
+                    batch_num += 1
+
+            except tf.errors.OutOfRangeError:
+                # this should never happen
+                print(batch_num)
+
+            epoch += 1
 
             if self.config['tensorboard'] is not None:
-                summary = self.sess.run(self.tb_merged, feed_dict={
-                    self.x: mini_batches_x[0],
-                    self.x_length: mini_batches_x_length[0],
-                    self.y_intent: mini_batches_y_intent[0],
-                    self.y_ner: mini_batches_y_ner[0]
-                })
+                summary = self.sess.run(self.tb_merged)
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
             self.config['epoch'] += 1
