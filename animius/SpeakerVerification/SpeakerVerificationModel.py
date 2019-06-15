@@ -9,7 +9,7 @@ class SpeakerVerificationModel(am.Model):
     @staticmethod
     def DEFAULT_HYPERPARAMETERS():
         return {
-            'learning_rate': 0.005,
+            'learning_rate': 0.001,
             'batch_size': 512,
             'optimizer': 'adam'
         }
@@ -182,7 +182,8 @@ class SpeakerVerificationModel(am.Model):
 
         print('starting training')
 
-        self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_y'])})
+        with self.graph.device('/cpu:0'):
+            self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_y'])})
 
         print('initialized iterator')
 
@@ -238,28 +239,35 @@ class SpeakerVerificationModel(am.Model):
         model.restore_config(directory, name)
         if data is not None:
             model.data = data
+        else:
+            model.data = am.SpeakerVerificationData()
 
-        graph = tf.Graph()
+        model.build_graph(model.model_config(), model.data)
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        model.sess = tf.Session(config=config, graph=graph)
+        # model.sess = tf.Session(config=config, graph=graph)
+        model.init_tensorflow(init_param=False, init_sess=True)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
-        with graph.as_default():
-            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+        with model.graph.as_default():
+            # model.init_dataset()
+            # model.iterator = model.dataset.make_initializable_iterator()
+            # model.iter_init_op = model.iterator.make_initializer(model.dataset, name='iterator_init')
+            #
+            # model.sess.run(model.iterator.initializer, feed_dict={model.data_count: len(model.data['train_y'])})
+
+            # model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta',
+            #                                          input_map={'IteratorGetNext': tf.convert_to_tensor(model.iterator.get_next())})
             model.saver.restore(model.sess, input_checkpoint)
 
         # set up self attributes used by other methods
-        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
-        model.y = model.sess.graph.get_tensor_by_name('train_y:0')
-        model.train_op = model.sess.graph.get_operation_by_name('train_op')
-        model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
-        model.prediction = model.sess.graph.get_tensor_by_name('output_predict:0')
+        # model.data_count = model.sess.graph.get_tensor_by_name('ds_data_count:0')
+        # model.train_op = model.sess.graph.get_operation_by_name('train_op')
+        # model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
+        # model.prediction = model.sess.graph.get_tensor_by_name('output_predict:0')
 
-        model.init_tensorflow(graph, init_param=False, init_sess=False)
+        # model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
