@@ -13,7 +13,7 @@
         <meta name="description" content="A Documentation of Animius">
       
       
-        <link rel="canonical" href="https://gundammc.github.io/animius/python/functions/">
+        <link rel="canonical" href="https://gundammc.github.io/animius/python/am.Utils/">
       
       
         <meta name="author" content="gundamMC">
@@ -42,7 +42,7 @@
     
     
       
-        <title>Functions - Animius Documentation</title>
+        <title>am.Utils - Animius Documentation</title>
       
     
     
@@ -108,7 +108,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#functions" tabindex="1" class="md-skip">
+      <a href="#module-amutils" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -133,7 +133,7 @@
               Animius Documentation
             </span>
             <span class="md-header-nav__topic">
-              Functions
+              am.Utils
             </span>
           
         </div>
@@ -336,8 +336,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../overview/" title="Overview" class="md-nav__link">
-      Overview
+    <a href="../am/" title="am" class="md-nav__link">
+      am
     </a>
   </li>
 
@@ -348,8 +348,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modules/" title="Modules" class="md-nav__link">
-      Modules
+    <a href="../am.Chatbot/" title="am.Chatbot" class="md-nav__link">
+      am.Chatbot
     </a>
   </li>
 
@@ -360,8 +360,20 @@
 
 
   <li class="md-nav__item">
-    <a href="../classes/" title="Classes" class="md-nav__link">
-      Classes
+    <a href="../am.IntentNER/" title="am.IntentNER" class="md-nav__link">
+      am.IntentNER
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../am.SpeakerVerification/" title="am.SpeakerVerification" class="md-nav__link">
+      am.SpeakerVerification
     </a>
   </li>
 
@@ -381,11 +393,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        Functions
+        am.Utils
       </label>
     
-    <a href="./" title="Functions" class="md-nav__link md-nav__link--active">
-      Functions
+    <a href="./" title="am.Utils" class="md-nav__link md-nav__link--active">
+      am.Utils
     </a>
     
       
@@ -399,9 +411,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#amstart_server" title="am.start_server" class="md-nav__link">
-    am.start_server
+  <a href="#overview" title="Overview" class="md-nav__link">
+    Overview
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions" title="Functions" class="md-nav__link">
+    Functions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -677,9 +702,22 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#amstart_server" title="am.start_server" class="md-nav__link">
-    am.start_server
+  <a href="#overview" title="Overview" class="md-nav__link">
+    Overview
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions" title="Functions" class="md-nav__link">
+    Functions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -706,34 +744,20 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/gundamMC/animius/edit/master/docs/python/functions.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/gundamMC/animius/edit/master/docs/python/am.Utils.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h1>
-<h2 id="amstart_server">am.start_server<a class="headerlink" href="#amstart_server" title="Permanent link">&para;</a></h2>
-<p><code class="codehilite">am.start_server(console, port, local=True, password=&#39;&#39;, max_clients=10)</code></p>
-<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/SocketServer.py">animius/SocketServer.py</a>.</p>
-<p>Start socket server on specific port.</p>
-<p>Args:</p>
-<ul>
-<li>
-<p><em>console</em> (<code class="codehilite">am.Console</code>) -- reference to an am.Console object.</p>
-</li>
-<li>
-<p><em>port</em> (<code class="codehilite">int</code>) -- specific port which the socket server listening on.</p>
-</li>
-<li>
-<p><em>local</em> (<code class="codehilite">boolean</code>) -- whether or not the server runs on local address. (as known as '127.0.0.1' or 'localhost')</p>
-</li>
-<li>
-<p><em>password</em> (<code class="codehilite">str</code>) -- password which requires when clients creating a connection with the socket server. (optional)</p>
-</li>
-<li>
-<p><em>max_clients</em> (<code class="codehilite">int</code>) -- specific number of clients the server can communicate with. (optional)</p>
-</li>
-</ul>
-<p>Returns:</p>
-<p>The reference to a thread object which socket server is running on.</p>
+                <h1 id="module-amutils">Module: am.Utils<a class="headerlink" href="#module-amutils" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<p><a href="https://gundammc.github.io/animius/python/am.Utils#amutilsget_system_info">get_system_info(...)</a></p>
+<p>shuffle(...)</p>
+<p>get_mini_batches(...)</p>
+<p>get_length(...)</p>
+<p>sentence_to_index(...)</p>
+<p>set_sequence_length(...)</p>
+<p>freeze_graph(...)</p>
+<p>optimize(...)</p>
 <h2 id="amutilsget_system_info">am.Utils.get_system_info<a class="headerlink" href="#amutilsget_system_info" title="Permanent link">&para;</a></h2>
 <p><code class="codehilite">am.Utils.get_system_info()</code></p>
 <p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
@@ -772,7 +796,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../classes/" title="Classes" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../am.SpeakerVerification/" title="am.SpeakerVerification" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -781,7 +805,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Classes
+                am.SpeakerVerification
               </span>
             </div>
           </a>
