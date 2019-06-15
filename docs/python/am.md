@@ -28,7 +28,7 @@ class IntentNERData
 
 class Model
 
-class ModelConfig
+[class ModelConfig](https://gundammc.github.io/animius/python/am#ammodelconfig)
 
 class SpeakerVerificationData
 
@@ -95,19 +95,21 @@ Returns: A dict similar to the example above.
 
 Defined in [animius/Console.py](https://github.com/gundamMC/animius/blob/master/animius/Console.py).
 
-Class am.Console contains all of the console commands.
+Class am.Console includes the method corresponding to each command, a queue which controls the workflow, and a command handler.
 
 ### \_\_init\_\_
+
+Args:
+
+* *init_directory* (```str```) -- the path to the directory in which animius saves resources. (Optional)
 
 ### Properties
 
 ### Methods
 
-## am.Console.server
+#### am.Console.server
 
 ``` am.Console.server(console, port, local=True, password='', max_clients=10) ```
-
-Defined in [animius/Console.py](https://github.com/gundamMC/animius/blob/master/animius/Console.py).
 
 Start socket server on specific port.
 
@@ -126,3 +128,78 @@ Args:
 Returns:
 
 The reference to a thread object which socket server is running on.
+
+## am.ModelConfig
+
+Defined in [animius/ModelConfig.py](https://github.com/gundamMC/animius/blob/master/animius/ModelConfig.py).
+
+
+### \_\_init\_\_
+
+Args:
+
+* *cls* (```str```) -- type of model config, must be included in ['SpeakerVerification', 'Chatbot', 'IntentNER', 'CombinedChatbot'].
+
+* *config* (```dict```) -- dict of config. (Optional)
+
+* *hyperparameters* (```dict```) -- dict of hyperparameters. (Optional)
+
+* *model_structure* (```dict```) -- dict of model structures. (Optional)
+
+
+### Properties
+
+config
+
+hyperparameters
+
+model_structure
+
+### Methods
+
+#### apply_defaults
+
+```apply_defaults()```
+
+Apply default model config.
+
+For example:
+
+```
+config = am.ModelConfig(cls="Chatbot")
+config.apply_defaults()
+```
+
+Args: None
+
+Returns: None
+
+#### save
+
+```save(directory, name='model_config')```
+
+Save model config to local file.
+
+Args:
+
+* *directory* (```str```) -- directory where you want to save config file.
+
+* *name** (```str```) -- name of model config file. (Optional)
+
+Returns: directory where config file saves.
+
+#### load (Class method)
+
+```load(cls, directory, name='model_config')```
+
+Load model config from local file.
+
+Args:
+
+* *cls* (```str```) -- type of model config, must be included in ['SpeakerVerification', 'Chatbot', 'IntentNER', 'CombinedChatbot'].
+
+* *directory* (```str```) -- directory where you want to save config file.
+
+* *name** (```str```) -- name of model config file. (Optional)
+
+Returns: The reference to the am.ModelConfig object.
