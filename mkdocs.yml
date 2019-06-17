@@ -19,7 +19,7 @@ nav:
         - am.Chatbot: 'python/am.Chatbot.md'
         - am.IntentNER: 'python/am.IntentNER.md'
         - am.SpeakerVerification: 'python/am.SpeakerVerification.md'
-        - am.Util: 'python/am.Util.md'
+        - am.Utils: 'python/am.Utils.md'
     - Commands:
         - Overview: 'commands/overview.md'
         - Waifu: 'commands/waifu.md'

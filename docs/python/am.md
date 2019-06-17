@@ -26,7 +26,7 @@ class CombinedPredictionData
 
 class IntentNERData
 
-class Model
+[class Model](https://gundammc.github.io/animius/python/am#ammodel)
 
 [class ModelConfig](https://gundammc.github.io/animius/python/am#ammodelconfig)
 
@@ -128,6 +128,71 @@ Args:
 Returns:
 
 The reference to a thread object which socket server is running on.
+
+## am.Model
+
+am.Model is an abstract class which is the template of other models.
+
+Defined in [animius/Model.py](https://github.com/gundamMC/animius/blob/master/animius/Model.py).
+
+### \_\_init\_\_
+
+Args: None
+
+### Properties
+
+### Methods
+
+#### DEFAULT_CONFIG
+
+```am.Model.DEFAULT_CONFIG()```
+
+Get defaul model config.
+
+Args: None
+
+Returns: A dict of model config.
+
+#### DEFAULT_MODEL_STRUCTURE
+
+```am.Model.DEFAULT_MODEL_STRUCTURE()```
+
+Get defaul model structure of specific model.
+
+Args: None
+
+Returns: A dict of model structure.
+
+#### DEFAULT_HYPERPARAMETERS
+
+```am.Model.DEFAULT_HYPERPARAMETERS()```
+
+Get defaul hyperparameters.
+
+Args: None
+
+Returns: A dict of hyperparameters.
+
+#### build_graph
+
+'build_graph' is a abstract method.
+
+#### init_tensorflow
+
+```init_tensorflow(graph=None, init_param=True, init_sess=True)```
+
+Initialize TensorFlow.
+
+Args:
+
+* *graph* (```tf.Graph```) -- reference to a tf.Graph object. (Optional)
+
+* *init_param** (```bool```) --  whether or not to initialize parameters. (Optional)
+
+* *init_sess** (```bool```) --  whether or not to initialize tf.Session. (Optional)
+
+Returns: None.
+
 
 ## am.ModelConfig
 
