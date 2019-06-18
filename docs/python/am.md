@@ -193,11 +193,55 @@ Args:
 
 Returns: None.
 
+#### model_config
+
+```model_config()```
+
+Get Model Config of specific model.
+
+Args: None
+
+Returns: The reference to a am.ModelConfig object.
+
+#### save
+
+```save(directory=None, name='model', meta=True, graph=False)```
+
+Save model to local file.
+
+Args:
+
+* *directory* (```str```) -- directory where you want to save file. (Optional)
+
+* *name** (```str```) -- name of model file. (Optional)
+
+* *meta** (```boolean```) --  whether or not to save meta file. (Optional)
+
+* *graph** (```boolean```) --  whether or not to save graph. (Optional)
+
+Returns: directory where model file saves.
+
+#### load (Class method)
+
+```load(cls, directory, name='model',  data=None)```
+
+Load model from local file.
+
+Args:
+
+* *cls* (```str```) -- type of model, must be included in ['SpeakerVerification', 'Chatbot', 'IntentNER', 'CombinedChatbot'].
+
+* *directory* (```str```) -- directory where you want to save model file.
+
+* *name** (```str```) -- name of model file. (Optional)
+
+* *data** (```str```) -- name of data to load. (Optional)
+
+Returns: The reference to the am.Model object.
 
 ## am.ModelConfig
 
 Defined in [animius/ModelConfig.py](https://github.com/gundamMC/animius/blob/master/animius/ModelConfig.py).
-
 
 ### \_\_init\_\_
 
