@@ -2,8 +2,7 @@ import errno
 import json
 import math
 from abc import ABC, abstractmethod
-from os import mkdir
-from os.path import join
+import os
 
 import animius as am
 import numpy as np
@@ -60,7 +59,7 @@ class Data(ABC):
 
         try:
             # create directory if it does not already exist
-            mkdir(directory)
+            os.mkdir(directory)
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise exc
@@ -70,7 +69,7 @@ class Data(ABC):
         if 'embedding' in self.values:
             # Save it if embedding is not saved or if the user wants to save a separate copy
             if self.values['embedding'].saved_directory is None or save_embedding:
-                saved_embedding_directory = join(directory, 'embedding')
+                saved_embedding_directory = os.path.join(directory, 'embedding')
                 self.values['embedding'].save(saved_embedding_directory, name=name)
 
             # add embedding values to json
@@ -87,7 +86,7 @@ class Data(ABC):
         self.saved_directory = directory
         self.saved_name = name
 
-        with open(join(directory, name + '.json'), 'w') as f:
+        with open(os.path.join(directory, name + '.json'), 'w') as f:
             json.dump(save_dict, f, indent=4)
 
         return directory
@@ -102,7 +101,7 @@ class Data(ABC):
         :param console: console object used to check if embeddings and configs have already been loaded in the console
         :return: a model data object
         """
-        with open(join(directory, name + '.json'), 'r') as f:
+        with open(os.path.join(directory, name + '.json'), 'r') as f:
             stored = json.load(f)
 
         if stored['cls'] == 'ChatData':
@@ -284,18 +283,37 @@ class SpeakerVerificationData(Data):
         self.values['input'] = []
 
         self.steps_per_epoch_cache = None
+        self.predict_steps_cache = None
+        self.predict_step_nums = dict()
 
         # brut-force cache to prevent io bottleneck
+        self.enable_cache = True
         self.cache = dict()
+        self.predict_cache = dict()
 
     def add_data(self, input_path, is_speaker=True):
+
+        if is_speaker is None:
+            self.values['input'].append(input_path)
+            self.predict_steps_cache = None
+            return
+
         self.values['train_x'].append(input_path)
         self.values['train_y'].append(is_speaker)
+
+        self.steps_per_epoch_cache = None  # refresh cache every time the data is modified
 
     add_wav_file = add_data
     # a simple alias
 
     def add_text_file(self, input_path, is_speaker=True):
+
+        if is_speaker is None:
+            for line in open(input_path, 'r', encoding='utf8'):
+                self.values['input'].append(line.strip())
+            self.predict_steps_cache = None
+            return
+
         count = len(self.values['train_x'])
         for line in open(input_path, 'r', encoding='utf8'):
             self.values['train_x'].append(line.strip())
@@ -304,11 +322,45 @@ class SpeakerVerificationData(Data):
 
         self.values['train_y'].extend([is_speaker] * count)
 
-    def parse(self, item, cache=True):
+        self.steps_per_epoch_cache = None
+
+    def add_folder(self, folder_path, is_speaker=True):
+        if is_speaker is None:
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    self.values['input'].append(item.path)
+            self.predict_steps_cache = None
+        else:
+            count = len(self.values['train_x'])
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    self.values['train_x'].append(item.path)
+
+            count = len(self.values['train_x']) - count
+            self.values['train_y'].extend([is_speaker] * count)
+
+            self.steps_per_epoch_cache = None
+
+    def parse(self, item, from_input=False):
         if isinstance(item, np.ndarray):
             item = int(item[0])
 
-        if cache and item in self.cache:
+        if from_input:
+            if self.enable_cache and item in self.predict_cache:
+                return self.predict_cache[item]
+
+            item_path = self.values['input'][item]
+            data = am.SpeakerVerification.MFCC.get_MFCC(item_path,
+                                                        window=self.model_config.model_structure['input_window'],
+                                                        num_cepstral=self.model_config.model_structure[
+                                                            'input_cepstral'],
+                                                        flatten=False)
+
+            if self.enable_cache:
+                self.cache[item] = data
+            return data
+
+        if self.enable_cache and item in self.cache:
             return self.cache[item]
 
         # not in cache or cache not enabled, proceed to process
@@ -324,7 +376,7 @@ class SpeakerVerificationData(Data):
                                                     num_cepstral=self.model_config.model_structure['input_cepstral'],
                                                     flatten=False)
 
-        if cache:
+        if self.enable_cache:
             self.cache[item] = data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
             return self.cache[item]
         else:
@@ -336,15 +388,49 @@ class SpeakerVerificationData(Data):
             return self.steps_per_epoch_cache
         else:
             total_length = 0
-            for item_path in self.values['train_x']:
+            for index in range(len(self.values['train_x'])):
                 # simulate one epoch to obtain steps per epoch
-                elements = \
-                    am.SpeakerVerification.MFCC.get_MFCC(item_path,
+                data = \
+                    am.SpeakerVerification.MFCC.get_MFCC(self.values['train_x'][index],
                                                          window=self.model_config.model_structure['input_window'],
                                                          num_cepstral=self.model_config.model_structure['input_cepstral'],
-                                                         flatten=False).shape[0]
+                                                         flatten=False)
 
+                elements = data.shape[0]
+
+                # count elements
                 total_length += elements
+
+                if self.enable_cache:
+                    self.cache[index] = data, np.repeat(
+                        np.array([self.values['train_y'][index]], dtype='float32'), elements
+                    )
 
             self.steps_per_epoch_cache = math.ceil(total_length / self.model_config.hyperparameters['batch_size'])
             return self.steps_per_epoch_cache
+
+    @property
+    def predict_steps(self):
+        if self.predict_steps_cache is not None:
+            return self.predict_steps_cache
+        else:
+            total_length = 0
+            for index in range(len(self.values['input'])):
+                # simulate one epoch to obtain steps per epoch
+                data = \
+                    am.SpeakerVerification.MFCC.get_MFCC(self.values['input'][index],
+                                                         window=self.model_config.model_structure['input_window'],
+                                                         num_cepstral=self.model_config.model_structure[
+                                                             'input_cepstral'],
+                                                         flatten=False)
+
+                # count elements
+                elements = data.shape[0]
+                total_length += elements
+                self.predict_step_nums[index] = elements
+
+                if self.enable_cache:
+                    self.predict_cache[index] = data
+
+            self.predict_steps_cache = math.ceil(total_length / self.model_config.hyperparameters['batch_size'])
+            return self.predict_steps_cache

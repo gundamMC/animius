@@ -41,6 +41,8 @@ class SpeakerVerificationModel(am.Model):
 
         self.data_count = None
         self.iterator = None
+        self.predict_dataset = None
+        self.predict_iterator = None
 
     def init_dataset(self, data=None):
 
@@ -53,7 +55,7 @@ class SpeakerVerificationModel(am.Model):
         ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data.steps_per_epoch))
 
         def _py_func(x):
-            return tf.py_func(self.data.parse, [x], [tf.float32, tf.float32])
+            return tf.py_func(self.data.parse, [x, False], [tf.float32, tf.float32])
 
         ds = ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
@@ -61,11 +63,29 @@ class SpeakerVerificationModel(am.Model):
 
         ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
 
-        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'], buffer_size=tf.data.experimental.AUTOTUNE))
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
 
         self.dataset = ds
 
         return ds
+
+    def init_predict_dataset(self):
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        def _py_func(x):
+            return tf.py_func(self.data.parse, [x, True], tf.float32)
+
+        ds = index_ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        ds = ds.apply(tf.data.experimental.unbatch())
+
+        ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
+
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
+
+        self.predict_dataset = ds
 
     def build_graph(self, model_config, data, graph=None):
 
@@ -89,6 +109,10 @@ class SpeakerVerificationModel(am.Model):
                 if self.dataset is None:
                     self.init_dataset(data)
                 self.iterator = self.dataset.make_initializable_iterator()
+
+                if self.predict_dataset is None:
+                    self.init_predict_dataset()
+                self.predict_iterator = self.predict_dataset.make_initializable_iterator()
 
             with graph.device(self.config['device']):
 
@@ -126,9 +150,9 @@ class SpeakerVerificationModel(am.Model):
                 }
 
                 # define neural network
-                def network():
+                def network(x):
 
-                    conv_x = tf.expand_dims(self.x, -1)
+                    conv_x = tf.expand_dims(x, -1)
 
                     conv1 = tf.nn.conv2d(conv_x, weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
 
@@ -154,7 +178,7 @@ class SpeakerVerificationModel(am.Model):
 
                     conv2 = tf.nn.conv2d(conv1_pooled, weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
 
-                    conv2 = tf.reshape(conv2, [tf.shape(self.x)[0], -1])  # maintain batch size
+                    conv2 = tf.reshape(conv2, [tf.shape(x)[0], -1])  # maintain batch size
                     fc1 = tf.add(tf.matmul(conv2, weights["wd1"]), biases["bd1"])
                     fc1 = tf.nn.relu(fc1)
 
@@ -163,8 +187,9 @@ class SpeakerVerificationModel(am.Model):
                     return out
 
                 # Optimization
-                self.prediction = network()
-                self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(), labels=self.y),
+                self.prediction = network(self.predict_iterator.get_next())
+                self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(self.x),
+                                                                                   labels=self.y),
                                            name='train_cost')
                 self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(
                     self.cost, name='train_op')
@@ -275,40 +300,41 @@ class SpeakerVerificationModel(am.Model):
         return model
 
     def predict(self, input_data, save_path=None, raw=False):
-        result = self.sess.run(self.prediction,
-                               feed_dict={
-                                   self.x: input_data.values['x'],
-                               })
 
-        result = result.squeeze().mean()
+        with self.graph.device('/cpu:0'):
+            self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(self.data['input'])})
 
-        if save_path is not None:
-            with open(save_path, "w") as file:
-                if raw:
-                    for i in range(len(result)):
-                        file.write(str(result[i].item()) + '\n')
-                else:
-                    for i in range(len(result)):
-                        file.write(str(result[i].item() > 0.5) + '\n')
+        outputs = []
+        batch_num = 0
+        try:
+            while batch_num < self.data.predict_steps:
+                outputs.append(self.sess.run(self.prediction))
+                batch_num += 1
+        except tf.errors.OutOfRangeError:
+            print(batch_num)
 
-        return result if raw else result > 0.5
-
-    def predict_folder(self, input_data, folder_directory, save_path=None, raw=False):
-
-        from os import path, listdir
-
-        file_paths = [path.join(folder_directory, f) for f in listdir(folder_directory) if
-                      path.isfile(path.join(folder_directory, f))]
+        import numpy as np
+        outputs = np.concatenate(outputs)
 
         results = []
+        end_index = 0
 
-        for path in file_paths:
-            input_data.set_parse_input_path(path)
-            results.append(self.predict(input_data, save_path=None, raw=raw).item())
+        print(outputs.shape)
+
+        if raw:
+            for index in range(len(self.data.values['input'])):
+                windows = outputs[end_index:end_index + self.data.predict_step_nums[index]]
+                end_index += self.data.predict_step_nums[index]
+                results.append(windows.mean())
+        else:
+            for index in range(len(self.data.values['input'])):
+                windows = outputs[end_index:end_index + self.data.predict_step_nums[index]]
+                end_index += self.data.predict_step_nums[index]
+                results.append(windows.mean() > 0.5)
 
         if save_path is not None:
             with open(save_path, "w") as file:
-                for i in range(len(results)):
-                    file.write(str(results[i]) + '\n')
+                for i in results:
+                    file.write(str(i) + '\n')
 
         return results
