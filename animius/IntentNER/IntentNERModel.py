@@ -258,31 +258,17 @@ class IntentNERModel(am.Model):
         model.restore_config(directory, name)
         if data is not None:
             model.data = data
+        else:
+            model.data = am.IntentNERData()
 
-        graph = tf.Graph()
-
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        model.sess = tf.Session(config=config, graph=graph)
+        model.build_graph(model.model_config(), model.data)
+        model.init_tensorflow(init_param=False, init_sess=True)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
-        with graph.as_default():
-            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+        with model.graph.as_default():
             model.saver.restore(model.sess, input_checkpoint)
-
-        # set up self attributes used by other methods
-        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
-        model.x_length = model.sess.graph.get_tensor_by_name('input_x_length:0')
-        model.y_intent = model.sess.graph.get_tensor_by_name('train_y_intent:0')
-        model.y_ner = model.sess.graph.get_tensor_by_name('train_y_ner:0')
-        model.train_op = model.sess.graph.get_operation_by_name('train_op')
-        model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
-        model.prediction = model.sess.graph.get_tensor_by_name('output_intent:0'), \
-                           model.sess.graph.get_tensor_by_name('output_ner:0')
-
-        model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
