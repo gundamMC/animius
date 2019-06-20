@@ -225,6 +225,8 @@ class IntentNERData(Data):
         self.values['train'] = []
         self.values['input'] = []
 
+        self.folder_tmp = None
+
     def add_data(self, x_input):
         self.values['train'].append(x_input)
 
@@ -232,6 +234,11 @@ class IntentNERData(Data):
 
         if 'embedding' not in self.values:
             raise ValueError('Word embedding not found')
+
+        if self.model_config is None:
+            # no model config yet, wait for a model config to be added
+            self.folder_tmp = x_path
+            return
 
         data = am.IntentNER.Parse.get_data(x_path)
 
@@ -249,19 +256,50 @@ class IntentNERData(Data):
                                                                              'max_sequence'],
                                                                          go=True, eos=False)
 
-            results.append((np.array(input_sentence, np.int32), input_length, out_intent, out_ner))
+            out_ner.extend([0] * (self.model_config.model_structure['max_sequence'] - len(out_ner)))
+
+            results.append((np.array(input_sentence, np.int32), input_length, out_intent, np.array(out_ner, np.int32)))
+
+        self.values['train'] = results
+
+    def set_model_config(self, model_config):
+        super().set_model_config(model_config)
+
+        if self.folder_tmp is not None:
+            # should be called when building graph
+            self.set_intent_folder(self.folder_tmp)
+            self.folder_tmp = None
 
     def set_input(self, x_input):
-        self.values['input'] = x_input
+        self.values['input'] = [x_input]
 
     def add_input(self, x_input):
         self.values['input'].append(x_input)
 
-    def parse(self, item):
-
+    def parse(self, item, from_input=False):
         if isinstance(item, np.ndarray):
+            if from_input:
+                # prediction data
+                if isinstance(self.values['input'][item[0]], tuple):
+                    return self.values['input'][item[0]]
+                else:
+
+                    sentence = str.split(str.lower(self.values['input'][item[0]]))
+
+                    input_sentence, input_length, _ = am.Utils.sentence_to_index(sentence,
+                                                                                 word_to_index=self.values[
+                                                                                     'embedding'].words_to_index,
+                                                                                 max_seq=self.model_config.model_structure[
+                                                                                     'max_sequence'],
+                                                                                 go=True, eos=False)
+                    self.values['input'][item[0]] = np.array(input_sentence, np.int32), input_length
+                    return self.values['input'][item[0]]
+
+            # training data
             return self.values['train'][item[0]]
         elif isinstance(item, int):
+            if from_input:
+                return self.values['input'][item]
             return self.values['train'][item]
         else:
             raise NotImplementedError('Animius currently pre-processes intent NER data for better performance,'
@@ -270,6 +308,10 @@ class IntentNERData(Data):
     @property
     def steps_per_epoch(self):
         return math.ceil(len(self.values['train']) / self.model_config.hyperparameters['batch_size'])
+
+    @property
+    def predict_steps(self):
+        return math.ceil(len(self.values['input']) / self.model_config.hyperparameters['batch_size'])
 
 
 class SpeakerVerificationData(Data):
