@@ -90,7 +90,7 @@ class Model(ABC):
                 if self.config['device'] == '/cpu:0':
                     config = tf.ConfigProto(device_count={'CPU': 1, 'GPU': 0}, allow_soft_placement=True)
                 else:  # gpu allow growth
-                    config = tf.ConfigProto()
+                    config = tf.ConfigProto(allow_soft_placement=True)
                     config.gpu_options.allow_growth = True
                 self.sess = tf.Session(config=config, graph=graph)
 
