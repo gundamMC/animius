@@ -32,9 +32,11 @@ class IntentNERData
 
 class SpeakerVerificationData
 
-class SubtitleParser
+[class SubtitleParser](https://gundammc.github.io/animius/python/am#amsubtitleparser)
 
 class Waifu
+
+[class WordEmbedding](https://gundammc.github.io/animius/python/am#amwordembedding)
 
 ## am.Commands
 
@@ -193,6 +195,28 @@ Args:
 
 Returns: None.
 
+#### init_hyperdash
+
+```init_hyperdash(name)```
+
+Initialize Hyperdash.
+
+Args:
+
+* *name* (```str```) -- name of hyperdash.
+
+Returns: None
+
+#### init_embedding
+
+```init_embedding(word_embedding_placeholder)```
+
+Initialize embedding.
+
+Args:
+
+* *word_embedding_placeholder* (```str```) -- name of hyperdash.
+
 #### model_config
 
 ```model_config()```
@@ -312,3 +336,109 @@ Args:
 * *name** (```str```) -- name of model config file. (Optional)
 
 Returns: The reference to the am.ModelConfig object.
+
+## am.SubtitleParser
+
+Defined in [animius/ParseSubtitle.py](https://github.com/gundamMC/animius/blob/master/animius/ParseSubtitle.py).
+
+### \_\_init\_\_
+
+Args: None
+
+### Methods
+
+#### load
+
+```load(subtitle_path)```
+
+Load subtitle (SSA file) from local file.
+
+Args:
+
+* *subtitle_path** (```str```) -- path to subtitle file.
+
+Returns: None
+
+#### parse_audio_sentences
+
+```parse_audio_sentences()```
+
+Add audio sentences from subtitle file.
+
+Args: None
+
+Returns: None
+
+#### slice_audio
+
+```slice_audio(audio_path, save_path)```
+
+Slice audio and save results into specific path.
+
+Args:
+
+* *audio_path** (```str```) -- path to audio file.
+
+* *save_path** (```str```) -- path to save results.
+
+#### detect_conversation
+
+```detect_conversation(speaking, time_gap=5000)```
+
+Args:
+
+Returns:
+
+## am.WordEmbedding
+
+Defined in [animius/WordEmbedding.py](https://github.com/gundamMC/animius/blob/master/animius/WordEmbedding.py).
+
+### \_\_init\_\_
+
+Args: None
+
+### Methods
+
+#### create_embedding
+
+```create_embedding(glove_path, vocab_size=100000)```
+
+Create word embeddings from pre-trained word embeddings file.
+
+Since Animius natively does not support word embedding training, you have to download pre-trained word embeddings such as [GloVe](https://nlp.stanford.edu/projects/glove/).
+
+Args:
+
+* *glove_path** (```str```) -- path to pre-trained word embeddings.
+
+* *vocab_size** (```int```) -- amount of vocabularies which will be contained in the word embedding. (Optional)
+
+Returns: None
+
+#### save
+
+```save(directory, name='embedding')```
+
+Save word embeddings to local file.
+
+Args:
+
+* *directory* (```str```) -- directory where you want to save word embeddings file.
+
+* *name** (```str```) -- name of word embeddings file. (Optional)
+
+Returns: directory where word embedding file saves.
+
+#### load (Class method)
+
+```load(directory, name='embedding')```
+
+Load embedding from local file.
+
+Args:
+
+* *directory* (```str```) -- directory where you want to save word embeddings file.
+
+* *name** (```str```) -- name of word embeddings file. (Optional)
+
+Returns: The reference to the am.WordEmbeddings object.
