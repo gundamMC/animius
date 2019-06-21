@@ -55,9 +55,13 @@ class Waifu:
         self.input_data = am.ModelData.CombinedPredictionData(self.combined_prediction.model_config)
         self.input_data.add_embedding_class(embedding)
 
+    def add_regex(self, regex_rule, isIntentNER, result):
+        self.config['regex_rule'][regex_rule] = [isIntentNER, result]
+
     def predict(self, sentence):
 
         regex_rule = self.config['regex_rule']
+
         # {"how's the weather in (.+)": [True, 'getWeather'], "good morning": [False, 'Good morning!']}
 
         for rule in regex_rule.keys():

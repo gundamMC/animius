@@ -34,7 +34,7 @@ class SpeakerVerificationData
 
 [class SubtitleParser](https://gundammc.github.io/animius/python/am#amsubtitleparser)
 
-class Waifu
+[class Waifu](https://gundammc.github.io/animius/python/am#amwaifu)
 
 [class WordEmbedding](https://gundammc.github.io/animius/python/am#amwordembedding)
 
@@ -389,6 +389,119 @@ Args:
 
 Returns:
 
+
+## am.Waifu
+
+Defined in [animius/Waifu.py](https://github.com/gundamMC/animius/blob/master/animius/Waifu.py).
+
+### \_\_init\_\_
+
+```am.Waifu(name, models=None, description='', image='')```
+
+Args:
+
+* *name** (```str```) -- name of waifu.
+
+* *models** (```dict```) -- dict of models. (Optional)
+
+* *description** (```str```) -- description of waifu. (Optional)
+
+* *image** (```str```) -- image of waifu. (Optional)
+
+### Methods
+
+#### add_combined_prediction_model
+
+```add_combined_prediction_model(directory, name)```
+
+Add combined prediction model to specific waifu.
+
+Args:
+
+* *directory** (```str```) -- path to the combined prediction model.
+
+* *name** (```str```) -- name of combined prediction model.
+
+Returns: None
+
+#### load_combined_prediction_model
+
+```load_combined_prediction_model()```
+
+Load combined prediction model to specific waifu.
+
+Args: None
+
+Returns: None
+
+#### build_input
+
+#### add_regex
+
+```add_regex(regex_rule, isIntentNER, result)```
+
+Add regex rule.
+
+For example: 
+
+```testWaifu.add_regex('how's the weather in (.+)', True, 'getWeather')```
+
+```testWaifu.add_regex('good morning', False, 'Good morning!')```
+
+Args:
+
+* *regex_rule** (```str```) -- regex rule.
+
+* *isIntentNER** (```boolean```) -- whether or not the regex rule will return Intent and NER.
+
+* *result** (```str```) -- string which the regex rule will return.
+
+Returns: None
+
+#### predict
+
+```predict(sentence)```
+
+Predict results using regex rules and model.
+
+Args:
+
+* *sentence** (```str```) -- sentence which will be predicted by waifu.
+
+Returns: 
+
+For general messages, the format of returned value will be: ```{'message': string}```.
+
+For commands, the format of returned value will be: ``` {'intent': intent, 'ner': [ner, ner_sentence]}```.
+
+#### save
+
+```save(directory, name='waifu')```
+
+Save waifu to local files.
+
+Args: 
+
+* *directory** (```str```) -- path to save files.
+
+* *name** (```str```) -- name of waifu to save.
+
+Returns: Directory to saved file.
+
+#### load (Class method)
+
+```am.Waifu.load(directory, name='waifu')```
+
+Load Waifu from local files.
+
+Args:
+
+* *directory** (```str```) -- path to save files.
+
+* *name** (```str```) -- name of waifu to load.
+
+Returns: a reference to am.Waifu object.
+
 ## am.WordEmbedding
 
 Defined in [animius/WordEmbedding.py](https://github.com/gundamMC/animius/blob/master/animius/WordEmbedding.py).
@@ -431,7 +544,7 @@ Returns: directory where word embedding file saves.
 
 #### load (Class method)
 
-```load(directory, name='embedding')```
+```am.WordEmbedding.load(directory, name='embedding')```
 
 Load embedding from local file.
 
