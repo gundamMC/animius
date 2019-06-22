@@ -20,7 +20,7 @@ class ChatbotData
 
 class CombinedPredictionData
 
-[class Commands](https://gundammc.github.io/animius/python/am/#amcommands)
+[class Commands](https://gundammc.github.io/animius/python/am)
 
 [class Console](https://gundammc.github.io/animius/python/am#amconsole)
 
