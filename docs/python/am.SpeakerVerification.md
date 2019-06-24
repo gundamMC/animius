@@ -4,9 +4,37 @@
 
 ### Classes
 
-class MFCC
+[class MFCC](https://gundammc.github.io/animius/python/am.SpeakerVerification/#amspeakerverificationmodelmfcc)
 
-[class SpeakerVerificationModel](https://gundammc.github.io/animius/python/am.SpeakerVerification/#amspeakerverificationmodel)
+[class SpeakerVerificationModel](https://gundammc.github.io/animius/python/am.SpeakerVerification/#amspeakerVerificationspeakerVerificationModel)
+
+## am.SpeakerVerification.MFCC
+
+Defined in [animius/SpeakerVerification/MFCC.py](https://github.com/gundamMC/animius/blob/master/animius/SpeakerVerification/MFCC.py)
+
+### Methods
+
+#### get_MFCC
+
+```get_MFCC(path, window=10, step=3, num_cepstral=39, flatten=False)```
+
+Get MFCC data.
+
+Args:
+
+* *path* (`str`) -- path to wav files.
+
+* *window* (`int`) -- amount of window. (Optional)
+
+* *step* (`int`) -- amount of step. (Optional)
+
+* *num_cepstral* (`int`) -- amount of cepstral. (Optional)
+
+* *flatten* (`boolean`) -- whether or not to output flatten data. (Optional)
+
+Returns:
+
+A numpy array of MFCC data.
 
 ## am.SpeakerVerification.SpeakerVerificationModel
 
@@ -22,6 +50,7 @@ Args: None
 
 ```am.SpeakerVerification.SpeakerVerificationModel.DEFAULT_HYPERPARAMETERS()```
 
+Get default hyperparameters of SpeakerVerification model.
 
 Args: None
 
@@ -41,6 +70,7 @@ Returns:
 
 ```am.SpeakerVerification.SpeakerVerificationModel.DEFAULT_MODEL_STRUCTURE()```
 
+Get default model structure of SpeakerVerification model.
 
 Args: None
 
@@ -64,14 +94,86 @@ Returns:
 
 ```build_graph(model_config, data, graph=None)```
 
+Build the graph for SpeakerVerification model.
+
+Args:
+
+* *model_config* (`am.ModelConfig`) -- reference to an am.ModelConfig object.
+
+* *data* (`am.SpeakerVerificationData`) -- reference to an am.SpeakerVerificationData object.
+
+* *graph* (`tf.Graph`) -- reference to a tf.Graph object.
+
+Returns: None
+
 #### train
 
-```train(self, epochs=800, CancellationToken=None)```
+```train(epochs=800, CancellationToken=None)```
 
-#### load
+Train model with specific epochs.
+
+Args:
+
+* *epochs* (`int`) -- amount of epochs which the model will train with. (Optional)
+
+* *data* (`am.SpeakerVerificationData`) -- reference to an am.SpeakerVerificationData object.
+
+* *CancellationToken* (`NoneType`) -- CancellationToken. (Optional)
+
+Returns: None
+
+#### load (Class method)
 
 ```load(directory, name='model', data=None)```
+
+Load SpeakerVerification model from local files.
+
+Args:
+
+* *directory* (`str`) -- directory of files.
+
+* *name* (`str`) -- name of SpeakerVerification model.
+
+* *data* (`am.SpeakerVerificationData`) -- reference to an am.SpeakerVerificationData object.
+
+Returns: 
+
+The reference to an am.SpeakerVerification.SpeakerVerificationModel object.
 
 #### predict
 
 ```predict(input_data, save_path=None, raw=False)```
+
+Predict input data and save predicted values to local files.
+
+Args:
+
+* *input_data* (`str`) -- input data.
+
+* *save_path* (`str`) -- path to save results. (Optional)
+
+* *raw* (`boolean`) -- whether or not to return raw data. (Optional)
+
+Returns:
+
+Predicted data.
+
+#### predict_folder
+
+```predict_folder(input_data, folder_directory, save_path=None, raw=False)```
+
+Read data in the folder and predict results.
+
+Args:
+
+* *input_data* (`str`) -- input data.
+
+* *folder_directory* (`str`) -- path to save results. (Optional)
+
+* *save_path* (`str`) -- path to save results. (Optional)
+
+* *raw* (`boolean`) -- whether or not to return raw data. (Optional)
+
+Returns:
+
+Predicted data.
