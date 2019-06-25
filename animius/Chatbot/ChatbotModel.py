@@ -46,8 +46,10 @@ class ChatbotModel(am.Model):
         self.word_embedding = None
         self.init_word_embedding = False
 
-        self.iterator = None
         self.data_count = None
+        self.iterator = None
+        self.predict_dataset = None
+        self.predict_iterator = None
 
     def init_dataset(self, data=None):
 
@@ -61,7 +63,7 @@ class ChatbotModel(am.Model):
 
         def _py_func(x):
             # result_x, result_y, lengths_x, lengths_y, result_y_target
-            return tf.py_func(self.data.parse, [x], [tf.int32, tf.int32, tf.int32, tf.int32, tf.int32])
+            return tf.py_func(self.data.parse, [x, False], [tf.int32, tf.int32, tf.int32, tf.int32, tf.int32])
 
         ds = ds.apply(tf.data.experimental.map_and_batch(_py_func,
                                                          self.hyperparameters['batch_size'],
@@ -71,6 +73,23 @@ class ChatbotModel(am.Model):
                                                               buffer_size=tf.data.experimental.AUTOTUNE))
 
         self.dataset = ds
+
+        return ds
+
+    def init_predict_dataset(self):
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        def _py_func(x):
+            return tf.py_func(self.data.parse, [x, True], [tf.int32, tf.int32])
+
+        ds = index_ds.apply(tf.data.experimental.map_and_batch(_py_func,
+                                                               self.hyperparameters['batch_size'],
+                                                               num_parallel_calls=tf.data.experimental.AUTOTUNE))
+
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
+
+        self.predict_dataset = ds
 
         return ds
 
@@ -107,6 +126,10 @@ class ChatbotModel(am.Model):
                     self.init_dataset(data)
                 self.iterator = self.dataset.make_initializable_iterator()
 
+                if self.predict_dataset is None:
+                    self.init_predict_dataset()
+                self.predict_iterator = self.predict_dataset.make_initializable_iterator()
+
             with graph.device(self.config['device']):
 
                 if embedding_tensor is None:
@@ -126,6 +149,8 @@ class ChatbotModel(am.Model):
 
                 # Tensorflow placeholders
                 self.x, self.y, self.x_length, self.y_length, self.y_target = self.iterator.get_next()
+                self.y_target.set_shape([None, max_sequence])
+                self.y_length.set_shape((None,))
 
                 # this is w/o <GO>
 
@@ -141,33 +166,36 @@ class ChatbotModel(am.Model):
 
                 # Setup model network
 
-                def network(mode="train"):
+                def network(x, x_length, mode="train"):
 
-                    embedded_x = tf.nn.embedding_lookup(self.word_embedding, self.x)
+                    x_length.set_shape((None,))
+
+                    embedded_x = tf.nn.embedding_lookup(self.word_embedding, x)
+                    embedded_x.set_shape([None, self.model_structure['max_sequence'], n_vector])
 
                     encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
                         cell_encode,
                         inputs=embedded_x,
                         dtype=tf.float32,
-                        sequence_length=self.x_length)
+                        sequence_length=x_length)
 
                     if mode == "train":
 
                         with tf.variable_scope('decode'):
-
                             # attention
                             attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
                                 num_units=self.model_structure['n_hidden'], memory=encoder_outputs,
-                                memory_sequence_length=self.x_length)
+                                memory_sequence_length=x_length)
 
                             attn_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
                                 cell_decode, attention_mechanism,
                                 attention_layer_size=self.model_structure['n_hidden'])
                             decoder_initial_state = attn_decoder_cell.zero_state(dtype=tf.float32,
-                                                                                 batch_size=tf.shape(self.x)[0]
+                                                                                 batch_size=tf.shape(x)[0]
                                                                                  ).clone(cell_state=encoder_state)
 
                             embedded_y = tf.nn.embedding_lookup(self.word_embedding, self.y)
+                            embedded_y.set_shape([None, self.model_structure['max_sequence'], n_vector])
 
                             train_helper = tf.contrib.seq2seq.TrainingHelper(
                                 inputs=embedded_y,
@@ -193,7 +221,7 @@ class ChatbotModel(am.Model):
                             # attention
                             encoder_outputs_beam = tf.contrib.seq2seq.tile_batch(encoder_outputs, multiplier=beam_width)
                             encoder_state_beam = tf.contrib.seq2seq.tile_batch(encoder_state, multiplier=beam_width)
-                            x_length_beam = tf.contrib.seq2seq.tile_batch(self.x_length, multiplier=beam_width)
+                            x_length_beam = tf.contrib.seq2seq.tile_batch(x_length, multiplier=beam_width)
 
                             attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
                                 num_units=self.model_structure['n_hidden'], memory=encoder_outputs_beam,
@@ -205,14 +233,14 @@ class ChatbotModel(am.Model):
 
                             decoder_initial_state = attn_decoder_cell.zero_state(
                                 dtype=tf.float32,
-                                batch_size=tf.shape(self.x)[0] * beam_width
+                                batch_size=tf.shape(x)[0] * beam_width
                             ).clone(cell_state=encoder_state_beam)
 
                             decoder = tf.contrib.seq2seq.BeamSearchDecoder(
                                 cell=attn_decoder_cell,
                                 embedding=self.word_embedding,
                                 start_tokens=tf.tile(tf.constant([am.WordEmbedding.GO], dtype=tf.int32),
-                                                     [tf.shape(self.x)[0]]),
+                                                     [tf.shape(x)[0]]),
                                 end_token=am.WordEmbedding.EOS,
                                 initial_state=decoder_initial_state,
                                 beam_width=beam_width,
@@ -235,7 +263,7 @@ class ChatbotModel(am.Model):
                 # self.cost = tf.reduce_sum(crossent * mask) / tf.cast(tf.shape(self.y)[0], tf.float32)
 
                 # Built-in cost
-                self.cost = tf.contrib.seq2seq.sequence_loss(network(),
+                self.cost = tf.contrib.seq2seq.sequence_loss(network(self.x, self.x_length),
                                                              self.y_target[:, :dynamic_max_sequence],
                                                              weights=mask,
                                                              name='train_cost')
@@ -245,7 +273,8 @@ class ChatbotModel(am.Model):
                 gradients, _ = tf.clip_by_global_norm(gradients, self.model_structure['gradient_clip'])
                 self.train_op = optimizer.apply_gradients(zip(gradients, variables), name='train_op')
 
-                self.infer = network(mode="infer")
+                pred_x, pred_x_length = self.predict_iterator.get_next()
+                self.infer = network(pred_x, pred_x_length, mode="infer")
 
                 # Beam
                 pred_infer = tf.cond(tf.less(tf.shape(self.infer)[2], max_sequence),
@@ -279,18 +308,18 @@ class ChatbotModel(am.Model):
             super().init_embedding(self.word_embedding)
 
     def train(self, epochs=10, cancellation_token=None):
-        print('starting training')
+
         self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_y'])})
 
-        print('initialized iterator')
-
         epoch = 0
+
         while epoch < epochs:
-            print('training epoch', epoch, '|', self.data.steps_per_epoch)
 
             if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
+
             batch_num = 0
+
             try:
                 while batch_num < self.data.steps_per_epoch:
 
@@ -298,21 +327,30 @@ class ChatbotModel(am.Model):
                         self.config['epoch'] % self.config['display_step'] == 0 or
                         epoch == epochs) and \
                             (batch_num % 100 == 0 or batch_num == 0):
+
                         _, cost_value = self.sess.run([self.train_op, self.cost])
+
+                        print("epoch:", self.config['epoch'], "- (", batch_num, ") -", cost_value)
 
                         self.config['cost'] = cost_value.item()
 
                         if self.config['hyperdash'] is not None:
                             self.hyperdash.metric("cost", cost_value)
 
+                    else:
+                        self.sess.run([self.train_op])
+
+                    batch_num += 1
+
             except tf.errors.OutOfRangeError:
                 print(batch_num)
 
-            batch_num += 1
+            if self.config['tensorboard'] is not None:
+                summary = self.sess.run(self.tb_merged)
+                self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
-        epoch += 1
-
-        self.config['epoch'] += 1
+            self.config['epoch'] += 1
+            epoch += 1
 
     @classmethod
     def load(cls, directory, name='model', data=None):
@@ -321,31 +359,17 @@ class ChatbotModel(am.Model):
         model.restore_config(directory, name)
         if data is not None:
             model.data = data
+        else:
+            model.data = am.ChatData()
 
-        graph = tf.Graph()
-
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        model.sess = tf.Session(config=config, graph=graph)
+        model.build_graph(model.model_config(), model.data)
+        model.init_tensorflow(init_param=False, init_sess=True)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
-        with graph.as_default():
-            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+        with model.graph.as_default():
             model.saver.restore(model.sess, input_checkpoint)
-
-        # set up self attributes used by other methods
-        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
-        model.x_length = model.sess.graph.get_tensor_by_name('input_x_length:0')
-        model.y = model.sess.graph.get_tensor_by_name('train_y:0')
-        model.y_length = model.sess.graph.get_tensor_by_name('train_y_length:0')
-        model.y_target = model.sess.graph.get_tensor_by_name('train_y_target:0')
-        model.train_op = model.sess.graph.get_operation_by_name('train_op')
-        model.cost = model.sess.graph.get_tensor_by_name('train_cost/truediv:0')
-        model.infer = model.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
-
-        model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
@@ -354,23 +378,25 @@ class ChatbotModel(am.Model):
 
     def predict(self, input_data, save_path=None):
 
-        test_output = self.sess.run(self.infer,
-                                    feed_dict={
-                                        self.x: input_data.values['x'],
-                                        self.x_length: input_data.values['x_length']
-                                    })
+        with self.graph.device('/cpu:0'):
+            self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(self.data['input'])})
+
+        outputs = []
+        batch_num = 0
+        try:
+            while batch_num < self.data.predict_steps:
+                outputs.append(self.sess.run(self.infer))
+                batch_num += 1
+        except tf.errors.OutOfRangeError:
+            print(batch_num)
+
+        import numpy as np
+        outputs = np.concatenate(outputs)
+
         # Beam
-        list_res = []
-        for batch in test_output:
-            result = []
-            for beam in batch:  # three branches
-                beam_res = ''
-                for index in beam:
-                    # if test_output is a numpy array, use np.take
-                    # append the words into a sentence
-                    beam_res = beam_res + input_data['embedding'].words[int(index)] + " "
-                result.append(beam_res)
-            list_res.append(result)
+        sentences = [[input_data['embedding'].words[index] for index in i] for i in outputs]
+
+        return sentences, outputs
 
         if save_path is not None:
             with open(save_path, "w") as file:

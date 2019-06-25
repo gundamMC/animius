@@ -154,6 +154,10 @@ class ChatData(Data):
 
         self.iter_count = 0
 
+        self.enable_cache = True
+        self.cache = dict()
+        self.predict_cache = dict()
+
     def __iter__(self):
         return self
 
@@ -177,7 +181,7 @@ class ChatData(Data):
 
     def set_input(self, input_x):
         assert isinstance(input_x, str)
-        self.values['input'] = input_x
+        self.values['input'] = [input_x]
 
     def add_files(self, path_x, path_y):
 
@@ -197,23 +201,56 @@ class ChatData(Data):
         self.values['train_x'].extend(x[lower_bound:upper_bound])
         self.values['train_y'].extend(y[lower_bound:upper_bound])
 
-    def parse(self, item):
+    def parse(self, item, from_input=False):
 
         if 'embedding' not in self.values:
             raise ValueError('Word embedding not found')
 
+        if isinstance(item, np.ndarray):
+            item = int(item[0])
+
+        if from_input:
+            if self.enable_cache and item in self.predict_cache:
+                return self.predict_cache[item]
+
+            x, x_length = am.Utils.sentence_to_index(self.values['input'][item],
+                                                     self.values['embedding'].words_to_index,
+                                                     max_seq=self.model_config.model_structure['max_sequence'],
+                                                     go=True,
+                                                     eos=True)
+            if self.enable_cache:
+                self.cache[item] = x, x_length
+            return x, x_length
+
+        if self.enable_cache and item in self.cache:
+            return self.cache[item]
+
         if isinstance(item, int):
-            item = self.values['train_x'][item], self.values['train_y'][item]
+            item_x = self.values['train_x'][item]
+            item_y = self.values['train_y'][item]
             # if item is an index
+        else:
+            item_x, item_y = item  # try to unpack
 
-        item_x, item_y = item  # unpack first
+        result_x, result_y, lengths_x, lengths_y, result_y_target =\
+            am.Chatbot.Parse.data_to_index(item_x,
+                                           item_y,
+                                           self.values['embedding'].words_to_index,
+                                           max_seq=self.model_config.model_structure['max_sequence'])
 
-        return am.Chatbot.Parse.data_to_index(item_x, item_y, self.values['embedding'].words_to_index,
-                                              max_seq=self.model_config.model_structure['max_sequence'])
+        if self.enable_cache:
+            self.cache[item] = result_x, result_y, lengths_x, lengths_y, result_y_target
+            return self.cache[item]
+        else:
+            return result_x, result_y, lengths_x, lengths_y, result_y_target
 
     @property
     def steps_per_epoch(self):
         return math.ceil(len(self.values['train_x']) / self.model_config.hyperparameters['batch_size'])
+
+    @property
+    def predict_steps(self):
+        return math.ceil(len(self.values['input']) / self.model_config.hyperparameters['batch_size'])
 
 
 class IntentNERData(Data):
