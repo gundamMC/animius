@@ -363,6 +363,7 @@ class ChatbotModel(am.Model):
             model.data = am.ChatData()
 
         model.build_graph(model.model_config(), model.data)
+        model.init_word_embedding = False  # prevent initializing the word embedding again
         model.init_tensorflow(init_param=False, init_sess=True)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
@@ -376,7 +377,7 @@ class ChatbotModel(am.Model):
 
         return model
 
-    def predict(self, input_data, save_path=None):
+    def predict(self, input_data, save_path=None, raw=False):
 
         with self.graph.device('/cpu:0'):
             self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(self.data['input'])})
@@ -392,15 +393,24 @@ class ChatbotModel(am.Model):
 
         import numpy as np
         outputs = np.concatenate(outputs)
+        # [batch, beam (default 3), sequence]
 
         # Beam
-        sentences = [[input_data['embedding'].words[index] for index in i] for i in outputs]
-
-        return sentences, outputs
+        sentences = [
+            ' '.join(
+                [input_data['embedding'].words[index] for index in instance[0]  # only read the first beam
+                 if index != input_data['embedding'].EOS and index != input_data['embedding'].GO]  # skip EOS & GO
+            )
+            for instance in outputs]
+        # grab the corresponding words based on indexes from output
+        # sentences var is list with shape [batch], each item is a string
 
         if save_path is not None:
             with open(save_path, "w") as file:
-                for i in range(len(list_res)):
-                    file.write(str(list_res[i][0]) + '\n')
+                for sentence in sentences:
+                    file.write(sentence + '\n')
 
-        return list_res
+        if raw:
+            return sentences, outputs
+        else:
+            return sentences
