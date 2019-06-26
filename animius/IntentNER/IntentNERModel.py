@@ -235,7 +235,7 @@ class IntentNERModel(am.Model):
             # only init embedding when initializing other variables
             super().init_embedding(self.word_embedding)
 
-    def train(self, epochs=400, CancellationToken=None):
+    def train(self, epochs=400, cancellation_token=None):
 
         self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train'])})
 
@@ -243,7 +243,7 @@ class IntentNERModel(am.Model):
 
         while epoch < epochs:
 
-            if CancellationToken is not None and CancellationToken.is_cancalled:
+            if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
 
             batch_num = 0
