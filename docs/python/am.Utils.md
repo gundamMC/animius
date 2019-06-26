@@ -1,22 +1,24 @@
 # Module: am.Utils
 
+Defined in [animius/Utils.py](https://github.com/gundamMC/animius/blob/master/animius/Utils.py).
+
 ## Overview
 
 ### Functions
 
 [get_system_info(...)](https://gundammc.github.io/animius/python/am.Utils#amutilsget_system_info)
 
-shuffle(...)
+[shuffle(...)](https://gundammc.github.io/animius/python/am.Utils#amutilsshuffle)
 
-get_mini_batches(...)
+[get_mini_batches(...)](https://gundammc.github.io/animius/python/am.Utils#amutilsgetminibatches)
 
-get_length(...)
+[get_length(...)](https://gundammc.github.io/animius/python/am.Utils#amutilsgetlength)
 
 sentence_to_index(...)
 
 set_sequence_length(...)
 
-freeze_graph(...)
+[freeze_graph(...)](https://gundammc.github.io/animius/python/am.Utils#amutilsfreezegraph)
 
 optimize(...)
 
@@ -45,3 +47,77 @@ Args: None
 Returns:
 
 A dict contains basic hardware and system information.
+
+## am.Utils.shuffle
+
+```am.Utils.shuffle(data_lists)```
+
+Defined in [animius/Utils.py](https://github.com/gundamMC/animius/blob/master/animius/Utils.py).
+
+Randomly shuffle a numpy array.
+
+Args:
+
+* *data_lists* (`list`) -- a list of data.
+
+Returns:
+
+Shuffled list object.
+
+## am.Utils.get_mini_batches
+
+```am.Utils.get_mini_batches(data_lists, mini_batch_size)```
+
+Defined in [animius/Utils.py](https://github.com/gundamMC/animius/blob/master/animius/Utils.py).
+
+Get a batch of data.
+
+Args:
+
+* *data_lists* (`list`) -- a list of data.
+
+* *mini_batch_size* (`int`) -- size of mini batch.
+
+Returns:
+
+A batch of data which represents as a list object.
+
+## am.Utils.get_length
+
+```am.Utils.get_length(sequence)```
+
+Defined in [animius/Utils.py](https://github.com/gundamMC/animius/blob/master/animius/Utils.py).
+
+Get length of a tensor.
+
+Args:
+
+* *sequence* (`tf.Tensor`) -- a tensor of data.
+
+Returns:
+
+Length of the input tensor.
+
+## am.Utils.freeze_graph
+
+```am.Utils.freeze_graph(model, output_node_names, model_dir=None, model_name=None)```
+
+Defined in [animius/Utils.py](https://github.com/gundamMC/animius/blob/master/animius/Utils.py).
+
+Freeze graph of specific model and save it to local files.
+
+Pass model_dir and model_name if model is not loaded.
+
+Args:
+
+* *model* (`str`) -- name of model.
+
+* *output_node_names* (`str`) -- name of output nodes.
+
+* *model_dir* (`str`) -- path to save model. (Optional)
+
+* *model_name* (`str`) -- name of model to save. (Optional)
+
+Returns: 
+
+Path to the output graph.
