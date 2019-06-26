@@ -213,11 +213,11 @@ class ChatData(Data):
             if self.enable_cache and item in self.predict_cache:
                 return self.predict_cache[item]
 
-            x, x_length = am.Utils.sentence_to_index(self.values['input'][item],
-                                                     self.values['embedding'].words_to_index,
-                                                     max_seq=self.model_config.model_structure['max_sequence'],
-                                                     go=True,
-                                                     eos=True)
+            x, x_length, _ = am.Utils.sentence_to_index(self.values['input'][item],
+                                                        self.values['embedding'].words_to_index,
+                                                        max_seq=self.model_config.model_structure['max_sequence'],
+                                                        go=True,
+                                                        eos=True)
             if self.enable_cache:
                 self.cache[item] = x, x_length
             return x, x_length
