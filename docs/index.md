@@ -2,7 +2,7 @@
 
 Animius is a deep-learning-powered engine for creating virtual assistants.
 
-For experienced programmers, please refer to the [Python API](python/overview.md) section. For using the console, please refer to the [commands](commands/overview.md) section.
+For experienced programmers, please refer to the [Python API](python/am.md) section. For using the console, please refer to the [commands](commands/overview.md) section.
 
 Some useful links:
 

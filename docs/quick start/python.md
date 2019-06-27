@@ -79,7 +79,7 @@ After creating the model config and data, we can create Intent NER model called 
 myModel = am.IntentNER.IntentNERModel()
 ```
 
-### Build graph and initialize TensorFlow
+## Build graph and initialize TensorFlow
 
 TensorFlow uses a dataflow graph to represent your computation in terms of the dependencies between individual operations. 
 In order to train our model, let's build its graph and initialize TensorFlow sessions and datasets.
@@ -125,3 +125,28 @@ Congrats! Our model performs as well as we imagined before. Now, it's time to sa
 ```
 myModel.save(directory='Animius', name='myIntentNER')
 ```
+
+## Creating your Waifu
+
+We will assume that we have already created a CombinedChatbot model called 'myCombinedChatbot' and a word embedding named 'myEmbedding'.
+
+```
+myWaifu = am.Waifu('myWaifu', models=None, description='', image='')
+
+myWaifu.add_combined_prediction_model('resource\\models', 'myCombinedChatbot')
+
+myWaifu.build_input(myEmbedding)
+```
+
+### Prediction
+
+To make a prediction (also referred to as inference) using our waifu, simply use the following code.
+
+```
+myWaifu.predict('Hey bro. What's up.')
+```
+
+## Other methods and classes
+
+We've covered the basics of using Animius Python API to create our own virtual assistants. 
+However, if you are interested in other features and awesome functions, you may refer to the whole [Python API guide](https://gundammc.github.io/animius/python/am/).
