@@ -13,7 +13,7 @@
         <meta name="description" content="A Documentation of Animius">
       
       
-        <link rel="canonical" href="https://gundammc.github.io/animius/python/am.IntentNER/">
+        <link rel="canonical" href="https://gundammc.github.io/animius/quick start/python/">
       
       
         <meta name="author" content="gundamMC">
@@ -42,7 +42,7 @@
     
     
       
-        <title>am.IntentNER - Animius Documentation</title>
+        <title>Python Library - Animius Documentation</title>
       
     
     
@@ -108,7 +108,7 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
     
-      <a href="#module-amintentner" tabindex="1" class="md-skip">
+      <a href="#python-library-quick-start" tabindex="1" class="md-skip">
         Skip to content
       </a>
     
@@ -133,7 +133,7 @@
               Animius Documentation
             </span>
             <span class="md-header-nav__topic">
-              am.IntentNER
+              Python Library
             </span>
           
         </div>
@@ -253,10 +253,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-2" type="checkbox" id="nav-2" checked>
     
     <label class="md-nav__link" for="nav-2">
       Quick Start
@@ -274,82 +276,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../quick start/overview/" title="Overview" class="md-nav__link">
+    <a href="../overview/" title="Overview" class="md-nav__link">
       Overview
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../quick start/python/" title="Python Library" class="md-nav__link">
-      Python Library
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../quick start/commands/" title="Commands" class="md-nav__link">
-      Commands
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-    
-      
-      
-      
-
-  
-
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-    
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3" checked>
-    
-    <label class="md-nav__link" for="nav-3">
-      Python API
-    </label>
-    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-3">
-        Python API
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../am/" title="am" class="md-nav__link">
-      am
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../am.Chatbot/" title="am.Chatbot" class="md-nav__link">
-      am.Chatbot
     </a>
   </li>
 
@@ -369,11 +297,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="__toc">
-        am.IntentNER
+        Python Library
       </label>
     
-    <a href="./" title="am.IntentNER" class="md-nav__link md-nav__link--active">
-      am.IntentNER
+    <a href="./" title="Python Library" class="md-nav__link md-nav__link--active">
+      Python Library
     </a>
     
       
@@ -387,22 +315,98 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" title="Overview" class="md-nav__link">
-    Overview
+  <a href="#install-and-get-started" title="Install and get started" class="md-nav__link">
+    Install and get started
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set-up-a-model-config" title="Set up a model config" class="md-nav__link">
+    Set up a model config
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-the-word-embedding" title="Setting up the word embedding" class="md-nav__link">
+    Setting up the word embedding
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-the-data-and-import-word-embedding" title="Prepare the data and import word embedding" class="md-nav__link">
+    Prepare the data and import word embedding
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-intentner-model" title="Setup IntentNER Model" class="md-nav__link">
+    Setup IntentNER Model
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-graph-and-initialize-tensorflow" title="Build graph and initialize TensorFlow" class="md-nav__link">
+    Build graph and initialize TensorFlow
   </a>
   
     <nav class="md-nav">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#classes" title="Classes" class="md-nav__link">
-    Classes
+  <a href="#train-model" title="Train model" class="md-nav__link">
+    Train model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predict-sentence" title="Predict sentence" class="md-nav__link">
+    Predict sentence
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-model" title="Save model" class="md-nav__link">
+    Save model
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-your-waifu" title="Creating your Waifu" class="md-nav__link">
+    Creating your Waifu
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prediction" title="Prediction" class="md-nav__link">
+    Prediction
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-methods-and-classes" title="Other methods and classes" class="md-nav__link">
+    Other methods and classes
+  </a>
   
 </li>
       
@@ -423,7 +427,79 @@
 
 
   <li class="md-nav__item">
-    <a href="../am.SpeakerVerification/" title="am.SpeakerVerification" class="md-nav__link">
+    <a href="../commands/" title="Commands" class="md-nav__link">
+      Commands
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-3" type="checkbox" id="nav-3">
+    
+    <label class="md-nav__link" for="nav-3">
+      Python API
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-3">
+        Python API
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../python/am/" title="am" class="md-nav__link">
+      am
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../python/am.Chatbot/" title="am.Chatbot" class="md-nav__link">
+      am.Chatbot
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../python/am.IntentNER/" title="am.IntentNER" class="md-nav__link">
+      am.IntentNER
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../python/am.SpeakerVerification/" title="am.SpeakerVerification" class="md-nav__link">
       am.SpeakerVerification
     </a>
   </li>
@@ -435,7 +511,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../am.Utils/" title="am.Utils" class="md-nav__link">
+    <a href="../../python/am.Utils/" title="am.Utils" class="md-nav__link">
       am.Utils
     </a>
   </li>
@@ -695,22 +771,98 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" title="Overview" class="md-nav__link">
-    Overview
+  <a href="#install-and-get-started" title="Install and get started" class="md-nav__link">
+    Install and get started
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set-up-a-model-config" title="Set up a model config" class="md-nav__link">
+    Set up a model config
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-the-word-embedding" title="Setting up the word embedding" class="md-nav__link">
+    Setting up the word embedding
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare-the-data-and-import-word-embedding" title="Prepare the data and import word embedding" class="md-nav__link">
+    Prepare the data and import word embedding
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-intentner-model" title="Setup IntentNER Model" class="md-nav__link">
+    Setup IntentNER Model
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#build-graph-and-initialize-tensorflow" title="Build graph and initialize TensorFlow" class="md-nav__link">
+    Build graph and initialize TensorFlow
   </a>
   
     <nav class="md-nav">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#classes" title="Classes" class="md-nav__link">
-    Classes
+  <a href="#train-model" title="Train model" class="md-nav__link">
+    Train model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predict-sentence" title="Predict sentence" class="md-nav__link">
+    Predict sentence
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save-model" title="Save model" class="md-nav__link">
+    Save model
   </a>
   
 </li>
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-your-waifu" title="Creating your Waifu" class="md-nav__link">
+    Creating your Waifu
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prediction" title="Prediction" class="md-nav__link">
+    Prediction
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-methods-and-classes" title="Other methods and classes" class="md-nav__link">
+    Other methods and classes
+  </a>
   
 </li>
       
@@ -730,14 +882,149 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/gundamMC/animius/edit/master/docs/python/am.IntentNER.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/gundamMC/animius/edit/master/docs/quick start/python.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="module-amintentner">Module: am.IntentNER<a class="headerlink" href="#module-amintentner" title="Permanent link">&para;</a></h1>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<h3 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h3>
-<p>class IntentNERModel</p>
-<p>class Parse</p>
+                <h1 id="python-library-quick-start">Python Library Quick Start<a class="headerlink" href="#python-library-quick-start" title="Permanent link">&para;</a></h1>
+<p>Animius makes it easy for developers to learn and use our python API to create their own virtual assistants.</p>
+<p>This is a step-by-step guide which assumes that you have already read the <a href="https://gundammc.github.io/animius/quick%20start/overview/">Quick Start Overview</a> and is familiar with Animius's models. </p>
+<p>However, if you are interested in other features and functions, you may refer to the whole <a href="https://gundammc.github.io/animius/python/am/">Python API documentation</a>.</p>
+<h2 id="install-and-get-started">Install and get started<a class="headerlink" href="#install-and-get-started" title="Permanent link">&para;</a></h2>
+<p>Animius can be installed as a Pypi package.</p>
+<p><code class="codehilite">pip install animius</code></p>
+<p>See detail <a href="https://www.animius.org/install/">install tutorial</a> on our official website.</p>
+<p>After installing all packages and dependencies, import animius module to begin.</p>
+<p><code class="codehilite"><span class="kn">import</span> <span class="nn">animius</span> <span class="kn">as</span> <span class="nn">am</span></code></p>
+<h2 id="set-up-a-model-config">Set up a model config<a class="headerlink" href="#set-up-a-model-config" title="Permanent link">&para;</a></h2>
+<p>In order to create a model and ultimately a waifu, we will have to create a model config first. </p>
+<p>In this example, we will be creating an Intent NER model. (You can read more about Intent NER here)</p>
+<p>To begin, let's create an Intent NER model config called <code class="codehilite">myModelConfig</code> which will be initialized with default configs, hyperparameters, and model structures of Intent NER model.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myModelConfig = am.ModelConfig(cls=&#39;IntentNER&#39;)
+
+myModelConfig.apply_defaults()
+</pre></div>
+</td></tr></table>
+
+<p>Moreover, it's really convenient to retrieve or change this model config.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>print(myModelConfig.model_structure)
+
+myModelConfig.hyperparameters[&#39;learning_rate&#39;] = 0.01
+</pre></div>
+</td></tr></table>
+
+<p>We will be coming back to the model config after creating the data.</p>
+<h2 id="setting-up-the-word-embedding">Setting up the word embedding<a class="headerlink" href="#setting-up-the-word-embedding" title="Permanent link">&para;</a></h2>
+<p>Download a word embedding (we recommend glove) and the Intent NER Data from our <a href="https://www.animius.org/datasets/">dataset</a> page. 
+Extract zip files and place the folder in a convenient place.</p>
+<p>To enable the parsing of English text, we will have to use a word embedding called <code class="codehilite">myGloveEmbedding</code>.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myGloveEmbedding = am.WordEmbedding()
+
+myGloveEmbedding.create_embedding(&#39;\\resources\\glove.twitter.27B.50d.txt&#39;, vocab_size=40000)
+</pre></div>
+</td></tr></table>
+
+<p>The vocab size parameter is optional but recommended to prevent loading enormous embeddings that take up too much resource.</p>
+<h2 id="prepare-the-data-and-import-word-embedding">Prepare the data and import word embedding<a class="headerlink" href="#prepare-the-data-and-import-word-embedding" title="Permanent link">&para;</a></h2>
+<p>Data is essential when training models. 
+For Intent NER, which takes in English sentences as input, the data object requires a word embedding to both parse data and to create a model. 
+So, let's create an Intent NER data object named <code class="codehilite">myData</code>, import our glove embedding which created in the previous section, and then set intent folder.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myData = am.IntentNERData()
+
+myData.add_embedding_class(myGloveEmbedding)
+
+myData.set_intent_folder(&#39;resources\\IntentNER Data&#39;)
+</pre></div>
+</td></tr></table>
+
+<h2 id="setup-intentner-model">Setup IntentNER Model<a class="headerlink" href="#setup-intentner-model" title="Permanent link">&para;</a></h2>
+<p>After creating the model config and data, we can create Intent NER model called <code class="codehilite">myModel</code>.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myModel = am.IntentNER.IntentNERModel()
+</pre></div>
+</td></tr></table>
+
+<h2 id="build-graph-and-initialize-tensorflow">Build graph and initialize TensorFlow<a class="headerlink" href="#build-graph-and-initialize-tensorflow" title="Permanent link">&para;</a></h2>
+<p>TensorFlow uses a dataflow graph to represent your computation in terms of the dependencies between individual operations. 
+In order to train our model, let's build its graph and initialize TensorFlow sessions and datasets.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myModel.build_graph(myModelConfig, myData)
+
+myModel.init_tensorflow()
+</pre></div>
+</td></tr></table>
+
+<h3 id="train-model">Train model<a class="headerlink" href="#train-model" title="Permanent link">&para;</a></h3>
+<p>Now we need to train our model, which means making the model learn from the data we prepared. 
+Let's test it out by training 10 epochs. 
+An epoch is just a cycle during which the model trains over the entire training set.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>intentNER_model.build_graph(intentNER_mc, intentNER_data)
+intentNER_model.init_tensorflow()
+
+myModel.train(epochs=10)
+</pre></div>
+</td></tr></table>
+
+<h3 id="predict-sentence">Predict sentence<a class="headerlink" href="#predict-sentence" title="Permanent link">&para;</a></h3>
+<p>As we mentioned before, Intent NER will analyze English sentence and extract its Intents and NERs.
+After training our model, let's generate our input sentence and test its performance.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>input_data = myModel.data
+
+input_data.add_embedding_class(myGloveEmbedding)
+
+input_data.set_input(&#39;How&#39;s the weather in Vancouver.&#39;)
+
+myModel.predict(input_data)
+</pre></div>
+</td></tr></table>
+
+<h3 id="save-model">Save model<a class="headerlink" href="#save-model" title="Permanent link">&para;</a></h3>
+<p>Congrats! Our model performs as well as we imagined before. Now, it's time to save it into your disk so that you can retrieve it whenever you want.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myModel.save(directory=&#39;Animius&#39;, name=&#39;myIntentNER&#39;)
+</pre></div>
+</td></tr></table>
+
+<h2 id="creating-your-waifu">Creating your Waifu<a class="headerlink" href="#creating-your-waifu" title="Permanent link">&para;</a></h2>
+<p>We will assume that we have already created a CombinedChatbot model called 'myCombinedChatbot' and a word embedding named 'myEmbedding'.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myWaifu = am.Waifu(&#39;myWaifu&#39;, models=None, description=&#39;&#39;, image=&#39;&#39;)
+
+myWaifu.add_combined_prediction_model(&#39;resource\\models&#39;, &#39;myCombinedChatbot&#39;)
+
+myWaifu.build_input(myEmbedding)
+</pre></div>
+</td></tr></table>
+
+<h3 id="prediction">Prediction<a class="headerlink" href="#prediction" title="Permanent link">&para;</a></h3>
+<p>To make a prediction (also referred to as inference) using our waifu, simply use the following code.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>myWaifu.predict(&#39;Hey bro. What&#39;s up.&#39;)
+</pre></div>
+</td></tr></table>
+
+<h2 id="other-methods-and-classes">Other methods and classes<a class="headerlink" href="#other-methods-and-classes" title="Permanent link">&para;</a></h2>
+<p>We've covered the basics of using Animius Python API to create our own virtual assistants. 
+However, if you are interested in other features and awesome functions, you may refer to the whole <a href="https://gundammc.github.io/animius/python/am/">Python API guide</a>.</p>
                 
                   
                 
@@ -758,7 +1045,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../am.Chatbot/" title="am.Chatbot" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../overview/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -767,19 +1054,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                am.Chatbot
+                Overview
               </span>
             </div>
           </a>
         
         
-          <a href="../am.SpeakerVerification/" title="am.SpeakerVerification" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../commands/" title="Commands" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                am.SpeakerVerification
+                Commands
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

@@ -286,7 +286,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../quick start/python.md" title="Python Library" class="md-nav__link">
+    <a href="../../quick start/python/" title="Python Library" class="md-nav__link">
       Python Library
     </a>
   </li>
@@ -433,6 +433,34 @@
         <li class="md-nav__item">
   <a href="#amutilsget_system_info" title="am.Utils.get_system_info" class="md-nav__link">
     am.Utils.get_system_info
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsshuffle" title="am.Utils.shuffle" class="md-nav__link">
+    am.Utils.shuffle
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsget_mini_batches" title="am.Utils.get_mini_batches" class="md-nav__link">
+    am.Utils.get_mini_batches
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsget_length" title="am.Utils.get_length" class="md-nav__link">
+    am.Utils.get_length
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsfreeze_graph" title="am.Utils.freeze_graph" class="md-nav__link">
+    am.Utils.freeze_graph
   </a>
   
 </li>
@@ -728,6 +756,34 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#amutilsshuffle" title="am.Utils.shuffle" class="md-nav__link">
+    am.Utils.shuffle
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsget_mini_batches" title="am.Utils.get_mini_batches" class="md-nav__link">
+    am.Utils.get_mini_batches
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsget_length" title="am.Utils.get_length" class="md-nav__link">
+    am.Utils.get_length
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#amutilsfreeze_graph" title="am.Utils.freeze_graph" class="md-nav__link">
+    am.Utils.freeze_graph
+  </a>
+  
+</li>
+      
       
       
       
@@ -748,15 +804,16 @@
                 
                 
                 <h1 id="module-amutils">Module: am.Utils<a class="headerlink" href="#module-amutils" title="Permanent link">&para;</a></h1>
+<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
 <p><a href="https://gundammc.github.io/animius/python/am.Utils#amutilsget_system_info">get_system_info(...)</a></p>
-<p>shuffle(...)</p>
-<p>get_mini_batches(...)</p>
-<p>get_length(...)</p>
+<p><a href="https://gundammc.github.io/animius/python/am.Utils#amutilsshuffle">shuffle(...)</a></p>
+<p><a href="https://gundammc.github.io/animius/python/am.Utils#amutilsgetminibatches">get_mini_batches(...)</a></p>
+<p><a href="https://gundammc.github.io/animius/python/am.Utils#amutilsgetlength">get_length(...)</a></p>
 <p>sentence_to_index(...)</p>
 <p>set_sequence_length(...)</p>
-<p>freeze_graph(...)</p>
+<p><a href="https://gundammc.github.io/animius/python/am.Utils#amutilsfreezegraph">freeze_graph(...)</a></p>
 <p>optimize(...)</p>
 <h2 id="amutilsget_system_info">am.Utils.get_system_info<a class="headerlink" href="#amutilsget_system_info" title="Permanent link">&para;</a></h2>
 <p><code class="codehilite">am.Utils.get_system_info()</code></p>
@@ -776,6 +833,63 @@
 <p>Args: None </p>
 <p>Returns:</p>
 <p>A dict contains basic hardware and system information.</p>
+<h2 id="amutilsshuffle">am.Utils.shuffle<a class="headerlink" href="#amutilsshuffle" title="Permanent link">&para;</a></h2>
+<p><code class="codehilite">am.Utils.shuffle(data_lists)</code></p>
+<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
+<p>Randomly shuffle a numpy array.</p>
+<p>Args:</p>
+<ul>
+<li><em>data_lists</em> (<code class="codehilite">list</code>) -- a list of data.</li>
+</ul>
+<p>Returns:</p>
+<p>Shuffled list object.</p>
+<h2 id="amutilsget_mini_batches">am.Utils.get_mini_batches<a class="headerlink" href="#amutilsget_mini_batches" title="Permanent link">&para;</a></h2>
+<p><code class="codehilite">am.Utils.get_mini_batches(data_lists, mini_batch_size)</code></p>
+<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
+<p>Get a batch of data.</p>
+<p>Args:</p>
+<ul>
+<li>
+<p><em>data_lists</em> (<code class="codehilite">list</code>) -- a list of data.</p>
+</li>
+<li>
+<p><em>mini_batch_size</em> (<code class="codehilite">int</code>) -- size of mini batch.</p>
+</li>
+</ul>
+<p>Returns:</p>
+<p>A batch of data which represents as a list object.</p>
+<h2 id="amutilsget_length">am.Utils.get_length<a class="headerlink" href="#amutilsget_length" title="Permanent link">&para;</a></h2>
+<p><code class="codehilite">am.Utils.get_length(sequence)</code></p>
+<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
+<p>Get length of a tensor.</p>
+<p>Args:</p>
+<ul>
+<li><em>sequence</em> (<code class="codehilite">tf.Tensor</code>) -- a tensor of data.</li>
+</ul>
+<p>Returns:</p>
+<p>Length of the input tensor.</p>
+<h2 id="amutilsfreeze_graph">am.Utils.freeze_graph<a class="headerlink" href="#amutilsfreeze_graph" title="Permanent link">&para;</a></h2>
+<p><code class="codehilite">am.Utils.freeze_graph(model, output_node_names, model_dir=None, model_name=None)</code></p>
+<p>Defined in <a href="https://github.com/gundamMC/animius/blob/master/animius/Utils.py">animius/Utils.py</a>.</p>
+<p>Freeze graph of specific model and save it to local files.</p>
+<p>Pass model_dir and model_name if model is not loaded.</p>
+<p>Args:</p>
+<ul>
+<li>
+<p><em>model</em> (<code class="codehilite">str</code>) -- name of model.</p>
+</li>
+<li>
+<p><em>output_node_names</em> (<code class="codehilite">str</code>) -- name of output nodes.</p>
+</li>
+<li>
+<p><em>model_dir</em> (<code class="codehilite">str</code>) -- path to save model. (Optional)</p>
+</li>
+<li>
+<p><em>model_name</em> (<code class="codehilite">str</code>) -- name of model to save. (Optional)</p>
+</li>
+</ul>
+<p>Returns: </p>
+<p>Path to the output graph.</p>
                 
                   
                 
