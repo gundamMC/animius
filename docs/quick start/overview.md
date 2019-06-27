@@ -1,6 +1,6 @@
 # Get Started with Animius
 
-Animius is an open-source deep-learning library for creating AI virtual assistants. Animius offers both a user-friendly console for begginers and a Python API for developers to add their own functionalities into their AIs. See the sections below to get started.
+Animius is an open-source deep-learning library for creating AI virtual assistants. Animius offers both a user-friendly console for beginners and a Python API for developers to add their own functionalities into their AIs. See the sections below to get started.
 
 ## Dissecting your Waifu
 
@@ -16,11 +16,11 @@ There are, of course, a variety of models in Animius, and they are separated by 
 
 Models are *Machine Learning* models (Deep Learning is just a branch of Machine Learning). Essentially, they are mathematical algorithms that train on existing data and will make predictions based on such data. For instance, you can train a chatbot model on speech data from Jon Snow in Game of Thrones. Then, when you ask the model to make a response to your sentence, let's say "How's it going," the model will respond accordingly. *Winter is coming.*
 
-To learn more about machine learning fundamentals and concepts, consider taking the [Stanford University Machine Learninig MOOC by Andrew Ng](https://www.coursera.org/learn/machine-learning) and his [Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning).
+To learn more about machine learning fundamentals and concepts, consider taking the [Stanford University Machine Learning MOOC by Andrew Ng](https://www.coursera.org/learn/machine-learning) and his [Deep Learning Specialization](https://www.coursera.org/specializations/deep-learning).
 
 ### Model config
 
-A model config has three parts: config, model structure, and hyperparameters. The config section includes basic information that applies to all models, such as the device it is running on, the type of model, the epoch (See training), and tensorboard location.
+A model config has three parts: config, model structure, and hyperparameters. The config section includes the basic information that applies to all models, such as the device it is running on, the type of model, the epoch (See training), and tensorboard location.
 The model structure section, meanwhile, defines the mathematical structure of the deep learning algorithms and thus varies across different types of models. For instance, you can change the number of nodes and layers a model will have, thus effectively increasing or decreasing the performance and resource usage of a model. Nevertheless, we do not recommend changing the default values unless you know what you are doing.
 Lastly, the hyperparameters define the training aspect of the model, including values such as learning rate, batch size, and optimizer. Like the model structures, we do not recommend changing the default values.
 
