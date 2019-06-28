@@ -157,7 +157,7 @@ class Model(ABC):
             else:
                 directory = self.saved_directory
 
-        if self.saved_name is not None:
+        if name == 'model' and self.saved_name is not None:
             name = self.saved_name
 
         try:
