@@ -233,7 +233,7 @@ class IntentNERModel(am.Model):
 
         if init_param:
             # only init embedding when initializing other variables
-            super().init_embedding(self.word_embedding)
+            self.init_embedding(self.word_embedding)
 
     def train(self, epochs=400, cancellation_token=None):
 
