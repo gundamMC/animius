@@ -22,22 +22,25 @@ class CombinedChatbotModel(ChatbotModel):
     def build_graph(self, model_config, data, graph=None, embedding_tensor=None, intent_ner=None):
         # graph and embedding_tensor arguments doesn't really do anything
 
-        if data is None or 'embedding' not in data.values:
-            raise ValueError('When creating a new model, data must contain a word embedding')
+        # if data is None or 'embedding' not in data.values:
+        #     raise ValueError('When creating a new model, data must contain a word embedding')
 
         def copy_embedding(new_data):
-            if new_data is None or 'embedding' not in new_data.values:
+            if (new_data is None or 'embedding' not in new_data.values) and 'embedding' in data.values:
                 new_data.add_embedding_class(data.values['embedding'])
 
         # intent_ner arg can be IntentNERModel, model config for intent ner, string, tuple of string
         # tuple of model config and data and/or model, or none for a new intent ner model
         if intent_ner is None:
-            self.intent_ner_model = am.IntentNER.IntentNERModel()
-            intent_ner_data = am.IntentNERData()
-            intent_ner_data.add_embedding_class(data.values['embedding'])  # copy embedding over
-            self.intent_ner_model.build_graph(am.ModelConfig(cls='IntentNER'), intent_ner_data)
 
-        elif isinstance(intent_ner, am.ModelConfig):
+            if 'intent_ner' in model_config.config:
+                # storing intent ner in model config, most liekly used for saving / restoring
+                intent_ner = model_config.config['intent_ner']
+            else:
+                # create a new intent ner model
+                self.intent_ner_model = am.IntentNER.IntentNERModel()
+
+        if isinstance(intent_ner, am.ModelConfig):
             self.intent_ner_model = am.IntentNER.IntentNERModel()
             intent_ner_data = am.IntentNERData()
             intent_ner_data.add_embedding_class(data.values['embedding'])
@@ -58,7 +61,7 @@ class CombinedChatbotModel(ChatbotModel):
             copy_embedding(self.intent_ner_model.data)
             self.intent_ner_initialized = True
 
-        elif isinstance(intent_ner, tuple):
+        elif isinstance(intent_ner, tuple) or isinstance(intent_ner, list):
             if len(intent_ner) == 3:
                 self.intent_ner_model, mc, new_data = intent_ner
                 copy_embedding(new_data)
@@ -130,34 +133,37 @@ class CombinedChatbotModel(ChatbotModel):
         model.restore_config(directory, name)
         if data is not None:
             model.data = data
+        else:
+            model.data = am.ChatData()
 
-        graph = tf.Graph()
-
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        model.sess = tf.Session(config=config, graph=graph)
+        model.build_graph(model.model_config(), model.data)  # automatically builds intent ner in model config
+        model.init_word_embedding = False  # prevent initializing the word embedding again
+        model.init_tensorflow(init_param=False, init_sess=True)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
-        with graph.as_default():
-            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+        with model.graph.as_default():
             model.saver.restore(model.sess, input_checkpoint)
-
-        # set up self vars and ops for predict/training
-        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
-        model.x_length = model.sess.graph.get_tensor_by_name('input_x_length:0')
-        model.y = model.sess.graph.get_tensor_by_name('train_y:0')
-        model.y_length = model.sess.graph.get_tensor_by_name('train_y_length:0')
-        model.y_target = model.sess.graph.get_tensor_by_name('train_y_target:0')
-        model.train_op = model.sess.graph.get_operation_by_name('train_op')
-        model.cost = model.sess.graph.get_tensor_by_name('train_cost/truediv:0')
-        model.infer = model.sess.graph.get_tensor_by_name('decode_1/output_infer:0')
-
-        # initialize tensorboard and hyperdash
-        model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
 
         return model
+
+    def save(self, directory=None, name='model', meta=True, graph=False):
+
+        if self.intent_ner_model.saved_directory is None and self.intent_ner_model.saved_name is None:
+            # new model
+            self.intent_ner_model.save(directory=directory, name=name + '_intent_ner')
+            self.config['intent_ner'] = (directory, name + '_intent_ner')
+        else:
+            self.intent_ner_model.save()  # default to model save
+            self.config['intent_ner'] = (self.intent_ner_model.saved_directory, self.intent_ner_model.saved_name)
+
+        super().save(directory, name, meta, graph)
+
+    def add_embedding(self, embedding):
+        # shortcut for adding embedding
+        self.data.add_embedding_class(embedding)
+        self.intent_ner_model.data.add_embedding_class(embedding)
