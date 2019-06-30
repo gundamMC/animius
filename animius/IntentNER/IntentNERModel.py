@@ -308,7 +308,15 @@ class IntentNERModel(am.Model):
 
         return model
 
-    def predict(self, input_data, save_path=None, raw=False):
+    def predict(self, input_data=None, save_path=None, raw=False):
+
+        if input_data is None:
+            input_data = self.data
+        elif isinstance(input_data, am.IntentNERData):
+            self.data = input_data
+        else:
+            self.data.set_input(input_data)  # try to match type
+            input_data = self.data
 
         with self.graph.device('/cpu:0'):
             self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(self.data['input'])})
@@ -329,7 +337,7 @@ class IntentNERModel(am.Model):
 
         import numpy as np
         outputs_intent = np.concatenate(outputs_intent)
-        outputs_ner = np.concatenate(outputs_ner)
+        outputs_ner = np.concatenate(outputs_ner)[:]
 
         if raw:
             results = list(zip(outputs_intent.tolist(), outputs_ner.tolist()))
@@ -339,7 +347,7 @@ class IntentNERModel(am.Model):
             max_ner = np.argmax(outputs_ner, axis=-1).tolist()
 
             for i in range(len(max_ner)):
-                max_ner[i] = max_ner[i][:input_data.values['input'][i][1]]
+                max_ner[i] = max_ner[i][1:input_data.values['input'][i][1]]  # [0] is <GO>
 
             results = list(zip(max_intent, max_ner))
 

@@ -176,12 +176,26 @@ class ChatData(Data):
         self.values['train_y'].append(data[1])
 
     def add_input(self, input_x):
-        assert isinstance(input_x, str)
-        self.values['input'].append(input_x)
+        if isinstance(input_x, str):
+            self.values['input'].append(input_x)
+        elif isinstance(input_x, list):
+            self.values['input'].extend(input_x)
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'].extend(input_x.tolist())
+        else:
+            # try to convert to a list
+            self.values['input'].extend(list(input_x))
 
     def set_input(self, input_x):
-        assert isinstance(input_x, str)
-        self.values['input'] = [input_x]
+        if isinstance(input_x, str):
+            self.values['input'] = [input_x]
+        elif isinstance(input_x, list):
+            self.values['input'] = input_x
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'] = input_x.tolist()
+        else:
+            # try to convert to a list
+            self.values['input'] = list(input_x)
 
     def add_files(self, path_x, path_y):
 
@@ -307,11 +321,27 @@ class IntentNERData(Data):
             self.set_intent_folder(self.folder_tmp)
             self.folder_tmp = None
 
-    def set_input(self, x_input):
-        self.values['input'] = [x_input]
+    def add_input(self, input_x):
+        if isinstance(input_x, str):
+            self.values['input'].append(input_x)
+        elif isinstance(input_x, list):
+            self.values['input'].extend(input_x)
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'].extend(input_x.tolist())
+        else:
+            # try to convert to a list
+            self.values['input'].extend(list(input_x))
 
-    def add_input(self, x_input):
-        self.values['input'].append(x_input)
+    def set_input(self, input_x):
+        if isinstance(input_x, str):
+            self.values['input'] = [input_x]
+        elif isinstance(input_x, list):
+            self.values['input'] = input_x
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'] = input_x.tolist()
+        else:
+            # try to convert to a list
+            self.values['input'] = list(input_x)
 
     def parse(self, item, from_input=False):
         if isinstance(item, np.ndarray):
@@ -370,20 +400,35 @@ class SpeakerVerificationData(Data):
         self.cache = dict()
         self.predict_cache = dict()
 
-    def add_data(self, input_path, is_speaker=True):
+    def add_wav_file(self, input_path, is_speaker=True):
+
+        if isinstance(input_path, str):
+            input_path = [input_path]
 
         if is_speaker is None:
-            self.values['input'].append(input_path)
+            self.values['input'].extend(input_path)
             self.predict_steps_cache = None
             return
 
-        self.values['train_x'].append(input_path)
-        self.values['train_y'].append(is_speaker)
+        self.values['train_x'].extend(input_path)
+        self.values['train_y'].extend(is_speaker)
 
         self.steps_per_epoch_cache = None  # refresh cache every time the data is modified
 
-    add_wav_file = add_data
-    # a simple alias
+    def set_wav_file(self, input_path, is_speaker=True):
+
+        if isinstance(input_path, str):
+            input_path = [input_path]
+
+        if is_speaker is None:
+            self.values['input'] = input_path
+            self.predict_steps_cache = None
+            return
+
+        self.values['train_x'] = input_path
+        self.values['train_y'] = is_speaker
+
+        self.steps_per_epoch_cache = None  # refresh cache every time the data is modified
 
     def add_text_file(self, input_path, is_speaker=True):
 
@@ -403,6 +448,26 @@ class SpeakerVerificationData(Data):
 
         self.steps_per_epoch_cache = None
 
+    def set_text_file(self, input_path, is_speaker=True):
+
+        if is_speaker is None:
+            res = []
+            for line in open(input_path, 'r', encoding='utf8'):
+                res.append(line.strip())
+            self.values['input'] = res
+            self.predict_steps_cache = None
+            return
+
+        res = []
+        for line in open(input_path, 'r', encoding='utf8'):
+            res.append(line.strip())
+
+        self.values['train_x'] = res
+        count = len(self.values['train_x'])
+        self.values['train_y'] = [is_speaker] * count
+
+        self.steps_per_epoch_cache = None
+
     def add_folder(self, folder_path, is_speaker=True):
         if is_speaker is None:
             for item in os.scandir(folder_path):
@@ -417,6 +482,27 @@ class SpeakerVerificationData(Data):
 
             count = len(self.values['train_x']) - count
             self.values['train_y'].extend([is_speaker] * count)
+
+            self.steps_per_epoch_cache = None
+
+    def set_folder(self, folder_path, is_speaker=True):
+        if is_speaker is None:
+            res = []
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    res.append(item.path)
+
+            self.values['input'] = res
+            self.predict_steps_cache = None
+        else:
+            res = []
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    res.append(item.path)
+
+            self.values['train_x'] = res
+            count = len(self.values['train_x'])
+            self.values['train_y'] = [is_speaker] * count
 
             self.steps_per_epoch_cache = None
 
