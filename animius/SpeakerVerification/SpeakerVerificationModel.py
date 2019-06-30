@@ -299,10 +299,18 @@ class SpeakerVerificationModel(am.Model):
 
         return model
 
-    def predict(self, input_data, save_path=None, raw=False):
+    def predict(self, input_data=None, save_path=None, raw=False):
+
+        if input_data is None:
+            input_data = self.data
+        elif isinstance(input_data, am.SpeakerVerificationData):
+            self.data = input_data  # is a new speaker verification data, override the current one
+        else:
+            self.data.set_wav_file(input_data, is_speaker=None)  # None = input
+            input_data = self.data
 
         with self.graph.device('/cpu:0'):
-            self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(self.data['input'])})
+            self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(input_data['input'])})
 
         outputs = []
         batch_num = 0

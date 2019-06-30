@@ -382,7 +382,15 @@ class ChatbotModel(am.Model):
 
         return model
 
-    def predict(self, input_data, save_path=None, raw=False):
+    def predict(self, input_data=None, save_path=None, raw=False):
+
+        if input_data is None:
+            input_data = self.data
+        elif isinstance(input_data, am.ChatData):
+            self.data = input_data
+        else:
+            self.data.set_input(input_data)  # try to match type
+            input_data = self.data
 
         with self.graph.device('/cpu:0'):
             self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(self.data['input'])})
