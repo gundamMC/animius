@@ -16,6 +16,8 @@ class CombinedChatbotModel(ChatbotModel):
         self.intent_ner_model = None
         self.intent_ner_initialized = False
         self.train_intent_ner = None
+        self.predict_intent_ner = None
+        self.predict_chatbot = super().predict
 
         self.init_vars = None
 
@@ -88,6 +90,7 @@ class CombinedChatbotModel(ChatbotModel):
 
         # at this point, self.intent_ner_model should be built
         self.train_intent_ner = self.intent_ner_model.train
+        self.predict_intent_ner = self.intent_ner_model.predict
 
         with self.intent_ner_model.graph.as_default():
             intent_vars = set(tf.all_variables())
@@ -167,3 +170,48 @@ class CombinedChatbotModel(ChatbotModel):
         # shortcut for adding embedding
         self.data.add_embedding_class(embedding)
         self.intent_ner_model.data.add_embedding_class(embedding)
+
+    def predict_combined(self, input_sentences=None, save_path=None):
+
+        if input_sentences is None:
+            input_sentences = self.data
+
+        if isinstance(input_sentences, am.IntentNERData) or isinstance(input_sentences, am.ChatData):
+            input_sentences = input_sentences.values['input']
+
+        intent_ner_results = self.predict_intent_ner(input_sentences, raw=False)
+
+        results = []
+        chat_indexes = []
+
+        for i in range(len(intent_ner_results)):
+            intent = intent_ner_results[i][0]
+            if intent > 0:  # not chat
+                results.append(intent_ner_results[i])
+            else:  # chat
+                chat_indexes.append(i)
+                results.append(None)  # add tmp placeholder
+
+        if len(chat_indexes) > 0:  # there are chat responses, proceed with chatbot prediction
+            chat_results = super().predict([input_sentences[i] for i in chat_indexes], raw=False)
+
+            for i in range(len(chat_results)):
+                results[chat_indexes[i]] = (0, chat_results[i])
+
+        # saving
+        if save_path is not None:
+            with open(save_path, "w") as file:
+                for instance in results:
+                    file.write('{0}, {1}\n'.format(*instance))
+
+        return results
+
+    def predict(self, input_data=None, save_path=None, raw=False, combined=True):
+        # automatically selects a prediction function
+        if combined:
+            # use combined
+            return self.predict_combined(input_data)
+        elif isinstance(input_data, am.IntentNERData):
+            return self.predict_intent_ner(input_data, save_path, raw)
+        else:
+            return self.predict_chatbot(input_data, save_path, raw)
