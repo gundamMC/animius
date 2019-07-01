@@ -1432,7 +1432,7 @@ i
 
         if kwargs['model_config'] in self.model_configs:
             if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
-                data = am.ChatbotData(self.model_configs[kwargs['model_config']].item)
+                data = am.ChatData(self.model_configs[kwargs['model_config']].item)
             elif kwargs['type'] == 'IntentNERD':
                 data = am.IntentNERData(self.model_configs[kwargs['model_config']].item)
             elif kwargs['type'] == 'SpeakerVerification':
