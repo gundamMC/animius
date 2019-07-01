@@ -111,29 +111,11 @@ class Parse:
 
     @staticmethod
     def data_to_index(data_x, data_y, word_to_index, max_seq=20):
-        result_x = []
-        result_y = []
-        lengths_x = []
-        lengths_y = []
-        result_y_target = []
-        index = 0
 
-        while index < len(data_x):
-            x, x_length, x_unk = sentence_to_index(data_x[index], word_to_index, max_seq=max_seq, go=True, eos=True)
-            y, y_length, y_unk = sentence_to_index(data_y[index], word_to_index, max_seq=max_seq, go=True, eos=True)
+        x, x_length, x_unk = sentence_to_index(data_x, word_to_index, max_seq=max_seq, go=True, eos=True)
+        y, y_length, y_unk = sentence_to_index(data_y, word_to_index, max_seq=max_seq, go=True, eos=True)
 
-            index += 1
+        y_target = y[1:]
+        y_target.append(word_to_index["<EOS>"])
 
-            if x_unk > 1 or y_unk > 0:
-                continue
-
-            result_x.append(x)
-            result_y.append(y)
-            lengths_x.append(x_length)
-            lengths_y.append(y_length)
-
-            y_target = y[1:]
-            y_target.append(word_to_index["<EOS>"])
-            result_y_target.append(y_target)
-
-        return result_x, result_y, lengths_x, lengths_y, result_y_target
+        return x, y, x_length, y_length, y_target

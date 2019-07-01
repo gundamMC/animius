@@ -53,6 +53,7 @@ class Model(ABC):
         self.hyperparameters = None
 
         self.data = None
+        self.dataset = None
 
         # prep for tensorflow
         self.graph = None
@@ -89,7 +90,7 @@ class Model(ABC):
                 if self.config['device'] == '/cpu:0':
                     config = tf.ConfigProto(device_count={'CPU': 1, 'GPU': 0}, allow_soft_placement=True)
                 else:  # gpu allow growth
-                    config = tf.ConfigProto()
+                    config = tf.ConfigProto(allow_soft_placement=True)
                     config.gpu_options.allow_growth = True
                 self.sess = tf.Session(config=config, graph=graph)
 
@@ -110,6 +111,18 @@ class Model(ABC):
                               feed_dict={embedding_placeholder: self.data['embedding'].embedding})
         else:
             raise ValueError('Embedding not found.')
+
+    # @abstractmethod
+    def init_dataset(self, data=None):
+        if data is not None:
+            self.data = data
+
+        if self.data is None:
+            raise ValueError('data not found')
+
+        self.data.set_model_config(self.model_config())
+
+        return None
 
     @abstractmethod
     def train(self, epochs, CancellationToken):
@@ -144,7 +157,7 @@ class Model(ABC):
             else:
                 directory = self.saved_directory
 
-        if self.saved_name is not None:
+        if name == 'model' and self.saved_name is not None:
             name = self.saved_name
 
         try:

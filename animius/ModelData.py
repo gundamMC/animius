@@ -1,21 +1,23 @@
-from abc import ABC, abstractmethod
-from os import mkdir, listdir
-from os.path import join, isfile
 import errno
-
-import numpy as np
 import json
+import math
+from abc import ABC, abstractmethod
+import os
 
 import animius as am
+import numpy as np
 
 
 class Data(ABC):
 
-    def __init__(self, model_config):
+    def __init__(self):
         self.values = {}
-        self.model_config = model_config
         self.saved_directory = None
         self.saved_name = None
+        self.model_config = None
+
+    def set_model_config(self, model_config):
+        self.model_config = model_config
 
     def __getitem__(self, item):
         return self.values[item]
@@ -30,18 +32,20 @@ class Data(ABC):
     def add_data(self, data):
         pass
 
-    def reset(self):
-        self.__init__(self.model_config)
+    @abstractmethod
+    def parse(self, item):
+        pass
 
-    def save(self, directory=None, name='model_data', compress=False, save_embedding=False, save_model_config=False):
+    def reset(self):
+        self.__init__()
+
+    def save(self, directory=None, name='model_data', save_embedding=False):
         """
         Save a model data object to a directory
 
         :param directory: directory to save the data
         :param name: string to name the saved files
-        :param compress: whether to compress the numpy arrays
         :param save_embedding: whether to save a separate copy of the word embedding
-        :param save_model_config: whether to save a separate copy of the model config
         :return: the directory in which the data is saved
         """
         if directory is None:
@@ -55,52 +59,35 @@ class Data(ABC):
 
         try:
             # create directory if it does not already exist
-            mkdir(directory)
+            os.mkdir(directory)
         except OSError as exc:
             if exc.errno != errno.EEXIST:
                 raise exc
 
-        tmp_embedding = None
+        shallow_copy = dict(self.values)
 
         if 'embedding' in self.values:
-            # temporarily remove embedding to prevent it from being saved with the rest of the values
-            tmp_embedding = self.values.pop('embedding')
-
-        if compress:
-            np.savez_compressed(join(directory, name + '_np_arrays.npz'), self.values)
-        else:
-            np.savez(join(directory, name + '_np_arrays.npz'), self.values)
-
-        # dictionary of configs to save as json
-        save_dict = {'cls': type(self).__name__}
-
-        # adds embedding back
-        if tmp_embedding is not None:
-            self.values['embedding'] = tmp_embedding
-
             # Save it if embedding is not saved or if the user wants to save a separate copy
             if self.values['embedding'].saved_directory is None or save_embedding:
-                saved_embedding_directory = join(directory, 'embedding')
+                saved_embedding_directory = os.path.join(directory, 'embedding')
                 self.values['embedding'].save(saved_embedding_directory, name=name)
 
             # add embedding values to json
-            save_dict['embedding_directory'] = self.values['embedding'].saved_directory
-            save_dict['embedding_name'] = self.values['embedding'].saved_name
+            shallow_copy.pop('embedding')
+            shallow_copy['embedding_directory'] = self.values['embedding'].saved_directory
+            shallow_copy['embedding_name'] = self.values['embedding'].saved_name
 
-        # save model config
-        if self.model_config.saved_directory is None or save_model_config:
-            saved_model_config_directory = join(directory, 'model_config')
-            self.model_config.save(saved_model_config_directory, name=name)
-
-        # add model config values to json
-        save_dict['model_config_directory'] = self.model_config.saved_directory
-        save_dict['model_config_name'] = self.model_config.saved_name
-
-        with open(join(directory, name + '.json'), 'w') as f:
-            json.dump(save_dict, f, indent=4)
+        # dictionary of configs to save as json
+        save_dict = {'cls': type(self).__name__,
+                     'saved_directory': directory,
+                     'save_name': name,
+                     'values': shallow_copy}
 
         self.saved_directory = directory
         self.saved_name = name
+
+        with open(os.path.join(directory, name + '.json'), 'w') as f:
+            json.dump(save_dict, f, indent=4)
 
         return directory
 
@@ -114,43 +101,20 @@ class Data(ABC):
         :param console: console object used to check if embeddings and configs have already been loaded in the console
         :return: a model data object
         """
-        with open(join(directory, name + '.json'), 'r') as f:
+        with open(os.path.join(directory, name + '.json'), 'r') as f:
             stored = json.load(f)
 
-        model_config = None
-
-        # find if model config is already loaded in the console
-        if console is not None:
-            for key, i in console.model_configs.items():
-                if i.saved_directory is not None and \
-                        i.saved_directory == stored['model_config_directory'] and \
-                        i.saved_name == stored['model_config_name']:
-
-                    if not i.loaded:
-                        console.load_model_config(key)
-                    model_config = i
-
-                    break
-
-        # No matching model config found
-        if model_config is None:
-            model_config = am.ModelConfig.load(directory=stored['model_config_directory'],
-                                               name=stored['model_config_name'])
-
-        if stored['cls'] == 'ChatbotData':
-            data = ChatbotData(model_config)
+        if stored['cls'] == 'ChatData':
+            data = ChatData()
         elif stored['cls'] == 'IntentNERData':
-            data = IntentNERData(model_config)
+            data = IntentNERData()
         elif stored['cls'] == 'SpeakerVerificationData':
-            data = SpeakerVerificationData(model_config)
-        elif stored['cls'] == 'CombinedPredictionData':
-            data = CombinedPredictionData(model_config)
+            data = SpeakerVerificationData()
         else:
             raise ValueError("Data class not found.")
 
         # Load data values
-        values = np.load(join(directory, name + '_np_arrays.npz'))
-        data.values = {key: values[key].item() for key in values}
+        data.values = stored['values']
 
         if 'embedding_directory' in stored:
 
@@ -178,305 +142,460 @@ class Data(ABC):
         return data
 
 
-class ChatbotData(Data):
+class ChatData(Data):
 
-    def __init__(self, model_config):
+    def __init__(self):
 
-        super().__init__(model_config)
+        super().__init__()
 
-        if isinstance(model_config, am.ModelConfig):
-            max_seq = model_config.model_structure['max_sequence']
-        elif isinstance(model_config, int):
-            max_seq = model_config
+        self.values['train_x'] = []
+        self.values['train_y'] = []
+        self.values['input'] = []
+
+        self.iter_count = 0
+
+        self.enable_cache = True
+        self.cache = dict()
+        self.predict_cache = dict()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.iter_count > len(self.values['train_x']):
+            raise StopIteration
         else:
-            raise TypeError('sequence_length must be either an integer or a ModelConfig object')
+            self.iter_count += 1
+            return self.values['train_x'][self.iter_count - 1], self.values['train_y'][self.iter_count - 1]
 
-        self.values['x'] = np.zeros((0, max_seq))
-        self.values['x_length'] = np.zeros((0,))
-        self.values['y'] = np.zeros((0, max_seq))
-        self.values['y_length'] = np.zeros((0,))
-        self.values['y_target'] = np.zeros((0, max_seq))
+        # iteration object = (train_x sentence, train_y sentence)
 
     def add_data(self, data):
-        self.add_input_data(data[0], data[1])
-        self.add_output_data(data[2], data[3], None if len(data) < 5 else data[4])
+        assert len(data) == 2
+        self.values['train_x'].append(data[0])
+        self.values['train_y'].append(data[1])
 
-    def add_input_data(self, input_data, input_length):
-        if not isinstance(input_data, np.ndarray):
-            input_data = np.array(input_data)
-        if not isinstance(input_length, np.ndarray):
-            input_length = np.array(input_length)
-
-        self.values['x'] = np.concatenate([self.values['x'], input_data])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
-
-    def add_output_data(self, output_data, output_length, output_target=None):
-        if not isinstance(output_data, np.ndarray):
-            output_data = np.array(output_data)
-        if not isinstance(output_length, np.ndarray):
-            output_length = np.array(output_length)
-        if output_target is not None and not isinstance(output_target, np.ndarray):
-            output_target = np.array(output_target)
-
-        self.values['y'] = np.concatenate([self.values['y'], output_data])
-        self.values['y_length'] = np.concatenate([self.values['y_length'], output_length])
-        if output_target is None:
-            self.values['y_target'] = np.concatenate([
-                self.values['y_target'],
-                np.concatenate([
-                    output_data[:, 1:],
-                    np.full([output_data.shape[0], 1], self.values['embedding'].EOS)], axis=1)
-            ])
+    def add_input(self, input_x):
+        if isinstance(input_x, str):
+            self.values['input'].append(input_x)
+        elif isinstance(input_x, list):
+            self.values['input'].extend(input_x)
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'].extend(input_x.tolist())
         else:
-            self.values['y_target'] = np.concatenate([self.values['y_target'], np.array(output_target)])
+            # try to convert to a list
+            self.values['input'].extend(list(input_x))
 
-    def add_parse_input(self, input_x):
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=True, eos=True)
+    def set_input(self, input_x):
+        if isinstance(input_x, str):
+            self.values['input'] = [input_x]
+        elif isinstance(input_x, list):
+            self.values['input'] = input_x
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'] = input_x.tolist()
+        else:
+            # try to convert to a list
+            self.values['input'] = list(input_x)
 
-        self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
+    def add_files(self, path_x, path_y):
 
-    def set_parse_input(self, input_x):
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=True, eos=True)
+        for line in open(path_x, 'r', encoding='utf8'):
+            self.values['train_x'].append(line.lower())
 
-        # directly set the values
-        self.values['x'] = np.array(x).reshape((1, len(x)))
-        self.values['x_length'] = np.array(x_length).reshape(1, )
-
-    def add_parse_file(self, path_x, path_y):
-        x = []
-        x_length = []
-
-        f = open(path_x, 'r', encoding='utf8')
-        for line in f:
-            x_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
-                                                              self.values['embedding'].words_to_index, go=True,
-                                                              eos=True)
-            x.append(x_tmp)
-            x_length.append(length_tmp)
-
-        self.add_input_data(np.array(x), np.array(x_length))
-
-        y = []
-        y_length = []
-
-        f = open(path_y, 'r', encoding='utf8')
-        for line in f:
-            y_tmp, length_tmp, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(line.lower()),
-                                                              self.values['embedding'].words_to_index, go=True,
-                                                              eos=True)
-            y.append(y_tmp)
-            y_length.append(length_tmp)
-
-        self.add_output_data(np.array(y), np.array(y_length))
-
-    def add_parse_sentences(self, x, y):
-        x = am.Chatbot.Parse.split_data(x)
-        y = am.Chatbot.Parse.split_data(y)
-
-        x, y, x_length, y_length, y_target = \
-            am.Chatbot.Parse.data_to_index(x, y, self.values['embedding'].words_to_index,
-                                           max_seq=self.values['x'].shape[-1])
-
-        self.add_data([x, x_length, y, y_length, y_target])
+        for line in open(path_y, 'r', encoding='utf8'):
+            self.values['train_y'].append(line.lower())
 
     def add_cornell(self, conversations_path, movie_lines_path, lower_bound=None, upper_bound=None):
         x, y = am.Chatbot.Parse.load_cornell(conversations_path, movie_lines_path)
-        self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+        self.values['train_x'].extend(x[lower_bound:upper_bound])
+        self.values['train_y'].extend(y[lower_bound:upper_bound])
 
     def add_twitter(self, chat_path, lower_bound=None, upper_bound=None):
         x, y = am.Chatbot.Parse.load_twitter(chat_path)
-        self.add_parse_sentences(x[lower_bound:upper_bound], y[lower_bound:upper_bound])
+        self.values['train_x'].extend(x[lower_bound:upper_bound])
+        self.values['train_y'].extend(y[lower_bound:upper_bound])
+
+    def parse(self, item, from_input=False):
+
+        if 'embedding' not in self.values:
+            raise ValueError('Word embedding not found')
+
+        if isinstance(item, np.ndarray):
+            item = int(item[0])
+
+        if from_input:
+            if self.enable_cache and item in self.predict_cache:
+                return self.predict_cache[item]
+
+            x, x_length, _ = am.Utils.sentence_to_index(self.values['input'][item],
+                                                        self.values['embedding'].words_to_index,
+                                                        max_seq=self.model_config.model_structure['max_sequence'],
+                                                        go=True,
+                                                        eos=True)
+            if self.enable_cache:
+                self.cache[item] = x, x_length
+            return x, x_length
+
+        if self.enable_cache and item in self.cache:
+            return self.cache[item]
+
+        if isinstance(item, int):
+            item_x = self.values['train_x'][item]
+            item_y = self.values['train_y'][item]
+            # if item is an index
+        else:
+            item_x, item_y = item  # try to unpack
+
+        result_x, result_y, lengths_x, lengths_y, result_y_target =\
+            am.Chatbot.Parse.data_to_index(item_x,
+                                           item_y,
+                                           self.values['embedding'].words_to_index,
+                                           max_seq=self.model_config.model_structure['max_sequence'])
+
+        if self.enable_cache:
+            self.cache[item] = result_x, result_y, lengths_x, lengths_y, result_y_target
+            return self.cache[item]
+        else:
+            return result_x, result_y, lengths_x, lengths_y, result_y_target
+
+    @property
+    def steps_per_epoch(self):
+        return math.ceil(len(self.values['train_x']) / self.model_config.hyperparameters['batch_size'])
+
+    @property
+    def predict_steps(self):
+        return math.ceil(len(self.values['input']) / self.model_config.hyperparameters['batch_size'])
 
 
 class IntentNERData(Data):
 
-    def __init__(self, model_config):
+    def __init__(self):
 
-        super().__init__(model_config)
+        super().__init__()
 
-        if isinstance(model_config, am.ModelConfig):
-            max_seq = model_config.model_structure['max_sequence']
+        self.values['train'] = []
+        self.values['input'] = []
+
+        self.folder_tmp = None
+
+    def add_data(self, x_input):
+        self.values['train'].append(x_input)
+
+    def set_intent_folder(self, x_path):
+
+        if 'embedding' not in self.values:
+            raise ValueError('Word embedding not found')
+
+        if self.model_config is None:
+            # no model config yet, wait for a model config to be added
+            self.folder_tmp = x_path
+            return
+
+        data = am.IntentNER.Parse.get_data(x_path)
+
+        results = []
+
+        for i in range(len(data[0])):
+            input_sentence = data[0][i]
+            out_intent = data[1][i]
+            out_ner = data[2][i]
+
+            input_sentence, input_length, _ = am.Utils.sentence_to_index(input_sentence,
+                                                                         word_to_index=self.values[
+                                                                             'embedding'].words_to_index,
+                                                                         max_seq=self.model_config.model_structure[
+                                                                             'max_sequence'],
+                                                                         go=True, eos=False)
+
+            out_ner.extend([0] * (self.model_config.model_structure['max_sequence'] - len(out_ner)))
+
+            results.append((np.array(input_sentence, np.int32), input_length, out_intent, np.array(out_ner, np.int32)))
+
+        self.values['train'] = results
+
+    def set_model_config(self, model_config):
+        super().set_model_config(model_config)
+
+        if self.folder_tmp is not None:
+            # should be called when building graph
+            self.set_intent_folder(self.folder_tmp)
+            self.folder_tmp = None
+
+    def add_input(self, input_x):
+        if isinstance(input_x, str):
+            self.values['input'].append(input_x)
+        elif isinstance(input_x, list):
+            self.values['input'].extend(input_x)
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'].extend(input_x.tolist())
         else:
-            raise TypeError('model_config must be a ModelConfig object')
+            # try to convert to a list
+            self.values['input'].extend(list(input_x))
 
-        self.values['x'] = np.zeros((0, max_seq))
-        self.values['x_length'] = np.zeros((0,))
-        self.values['y_intent'] = np.zeros((0, model_config.model_structure['n_intent_output']))
-        self.values['y_ner'] = np.zeros((0, max_seq, model_config.model_structure['n_ner_output']))
+    def set_input(self, input_x):
+        if isinstance(input_x, str):
+            self.values['input'] = [input_x]
+        elif isinstance(input_x, list):
+            self.values['input'] = input_x
+        elif isinstance(input_x, np.ndarray):
+            self.values['input'] = input_x.tolist()
+        else:
+            # try to convert to a list
+            self.values['input'] = list(input_x)
 
-    def add_data(self, data):
-        self.add_input_data(data[0], data[1])
-        self.add_output_data(data[2], data[3])
+    def parse(self, item, from_input=False):
+        if isinstance(item, np.ndarray):
+            if from_input:
+                # prediction data
+                if isinstance(self.values['input'][item[0]], tuple):
+                    return self.values['input'][item[0]]
+                else:
 
-    def add_input_data(self, input_data, input_length):
-        if not isinstance(input_data, np.ndarray):
-            input_data = np.array(input_data)
-        if not isinstance(input_length, np.ndarray):
-            input_length = np.array(input_length)
+                    sentence = str.split(str.lower(self.values['input'][item[0]]))
 
-        self.values['x'] = np.concatenate([self.values['x'], input_data])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+                    input_sentence, input_length, _ = am.Utils.sentence_to_index(sentence,
+                                                                                 word_to_index=self.values[
+                                                                                     'embedding'].words_to_index,
+                                                                                 max_seq=self.model_config.model_structure[
+                                                                                     'max_sequence'],
+                                                                                 go=True, eos=False)
+                    self.values['input'][item[0]] = np.array(input_sentence, np.int32), input_length
+                    return self.values['input'][item[0]]
 
-    def add_output_data(self, output_intent, output_ner):
-        if not isinstance(output_intent, np.ndarray):
-            output_intent = np.array(output_intent)
-        if not isinstance(output_ner, np.ndarray):
-            output_ner = np.array(output_ner)
+            # training data
+            return self.values['train'][item[0]]
+        elif isinstance(item, int):
+            if from_input:
+                return self.values['input'][item]
+            return self.values['train'][item]
+        else:
+            raise NotImplementedError('Animius currently pre-processes intent NER data for better performance,'
+                                      'please input an index instead')
 
-        self.values['y_intent'] = np.concatenate([self.values['y_intent'], output_intent])
-        self.values['y_ner'] = np.concatenate([self.values['y_ner'], output_ner])
+    @property
+    def steps_per_epoch(self):
+        return math.ceil(len(self.values['train']) / self.model_config.hyperparameters['batch_size'])
 
-    def add_parse_data_folder(self, folder_directory):
-
-        x, x_length, y_intent, y_ner = am.IntentNER.Parse.get_data(folder_directory,
-                                                                   self.values['embedding'],
-                                                                   self.model_config.model_structure['max_sequence'])
-
-        self.add_data([x, x_length, y_intent, y_ner])
-
-    def add_parse_input(self, input_x):
-
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=False, eos=False)
-
-        self.add_input_data(np.array(x).reshape((1, len(x))), np.array(x_length).reshape((1,)))
-
-    def set_parse_input(self, input_x):
-
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=False, eos=False)
-
-        self.values['x'] = np.array(x).reshape((1, len(x)))
-        self.values['x_length'] = np.array(x_length).reshape((1,))
+    @property
+    def predict_steps(self):
+        return math.ceil(len(self.values['input']) / self.model_config.hyperparameters['batch_size'])
 
 
 class SpeakerVerificationData(Data):
 
-    def __init__(self, model_config):
+    def __init__(self):
 
-        super().__init__(model_config)
+        super().__init__()
 
-        self.mfcc_window = model_config.model_structure['input_window']
-        self.mfcc_cepstral = model_config.model_structure['input_cepstral']
+        self.values['train_x'] = []
+        self.values['train_y'] = []
+        self.values['input'] = []
 
-        self.values['x'] = np.zeros((0,
-                                     self.mfcc_window,
-                                     self.mfcc_cepstral))
-        self.values['y'] = np.zeros((0, 1))
+        self.steps_per_epoch_cache = None
+        self.predict_steps_cache = None
+        self.predict_step_nums = dict()
 
-    def add_data(self, data):
-        self.add_input_data(data[0])
-        self.add_output_data(data[1])
+        # brut-force cache to prevent io bottleneck
+        self.enable_cache = True
+        self.cache = dict()
+        self.predict_cache = dict()
 
-    def add_input_data(self, input_mfcc):
-        assert (isinstance(input_mfcc, np.ndarray))  # get_MFCC() returns a numpy array
-        self.values['x'] = np.concatenate([self.values['x'], input_mfcc])
+    def add_wav_file(self, input_path, is_speaker=True):
 
-    def add_output_data(self, output_label):
-        assert (isinstance(output_label, np.ndarray))
-        self.values['y'] = np.concatenate([self.values['y'], output_label])
+        if isinstance(input_path, str):
+            input_path = [input_path]
 
-    def add_parse_input_path(self, path):
-        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
-                                                    flatten=False)
-        self.add_input_data(data)
-        return data.shape[0]
-        # return batch number
+        if is_speaker is None:
+            self.values['input'].extend(input_path)
+            self.predict_steps_cache = None
+            return
 
-    def set_parse_input_path(self, path):
-        data = am.SpeakerVerification.MFCC.get_MFCC(path, window=self.mfcc_window, num_cepstral=self.mfcc_cepstral,
-                                                    flatten=False)
-        self.values['x'] = data
-        return data.shape[0]
-        # return batch number
+        self.values['train_x'].extend(input_path)
+        self.values['train_y'].extend(is_speaker)
 
-    # Nervermind... Don't use since this will mix the MFCC data of all inputs
-    # only parse ONE audio file at a time when predicting. This is now moved
-    # to predict_folder() in speaker verification model
-    # def add_parse_input_folder(self, directory, encoding='utf-8'):
-    #     file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
-    #     for path in file_paths:
-    #         self.add_parse_input_path(path)
+        self.steps_per_epoch_cache = None  # refresh cache every time the data is modified
 
-    def add_parse_data_paths(self, paths, output=None):
+    def set_wav_file(self, input_path, is_speaker=True):
 
-        count = 0
+        if isinstance(input_path, str):
+            input_path = [input_path]
 
-        for path in paths:
-            count += self.add_parse_input_path(path)
+        if is_speaker is None:
+            self.values['input'] = input_path
+            self.predict_steps_cache = None
+            return
 
-        if output is not None:
-            if output is True:
-                self.add_output_data(np.expand_dims(np.tile([1], count), -1))
-            elif output is False:
-                self.add_output_data(np.expand_dims(np.tile([0], count), -1))
+        self.values['train_x'] = input_path
+        self.values['train_y'] = is_speaker
 
-    def add_parse_data_file(self, path, output=None, encoding='utf-8'):
-        self.add_parse_data_paths([line.strip() for line in open(path, encoding=encoding)], output=output)
+        self.steps_per_epoch_cache = None  # refresh cache every time the data is modified
 
-    def add_parse_data_folder(self, directory, output=None, encoding='utf-8'):
-        file_paths = [join(directory, f) for f in listdir(directory) if isfile(join(directory, f))]
-        for path in file_paths:
-            self.add_parse_data_file(path, output, encoding)
+    def add_text_file(self, input_path, is_speaker=True):
 
+        if is_speaker is None:
+            for line in open(input_path, 'r', encoding='utf8'):
+                self.values['input'].append(line.strip())
+            self.predict_steps_cache = None
+            return
 
-# Prediction data for CombinedPredictionModel (use ChatbotData for CombinedChatbotModel)
-# You are not supposed to manually create this. Use CombinedPredictionModel for prediction.
-class CombinedPredictionData(Data):
+        count = len(self.values['train_x'])
+        for line in open(input_path, 'r', encoding='utf8'):
+            self.values['train_x'].append(line.strip())
 
-    def __init__(self, model_config):
+        count = len(self.values['train_x']) - count
 
-        super().__init__(model_config)
+        self.values['train_y'].extend([is_speaker] * count)
 
-        if isinstance(model_config, am.ModelConfig):
-            self.max_seq = model_config.model_structure['max_sequence']
-        elif isinstance(model_config, int):
-            self.max_seq = model_config
+        self.steps_per_epoch_cache = None
+
+    def set_text_file(self, input_path, is_speaker=True):
+
+        if is_speaker is None:
+            res = []
+            for line in open(input_path, 'r', encoding='utf8'):
+                res.append(line.strip())
+            self.values['input'] = res
+            self.predict_steps_cache = None
+            return
+
+        res = []
+        for line in open(input_path, 'r', encoding='utf8'):
+            res.append(line.strip())
+
+        self.values['train_x'] = res
+        count = len(self.values['train_x'])
+        self.values['train_y'] = [is_speaker] * count
+
+        self.steps_per_epoch_cache = None
+
+    def add_folder(self, folder_path, is_speaker=True):
+        if is_speaker is None:
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    self.values['input'].append(item.path)
+            self.predict_steps_cache = None
         else:
-            raise TypeError('sequence_length must be either an integer or a ModelConfig object')
+            count = len(self.values['train_x'])
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    self.values['train_x'].append(item.path)
 
-        self.values['x'] = np.zeros((0, self.max_seq))
-        self.values['x_length'] = np.zeros((0,))
+            count = len(self.values['train_x']) - count
+            self.values['train_y'].extend([is_speaker] * count)
 
-    def add_data(self, data):
-        self.add_input_data(data[0], data[1])
+            self.steps_per_epoch_cache = None
 
-    def add_input_data(self, input_data, input_length):
-        if not isinstance(input_data, np.ndarray):
-            input_data = np.array(input_data)
-        if not isinstance(input_length, np.ndarray):
-            input_length = np.array(input_length)
+    def set_folder(self, folder_path, is_speaker=True):
+        if is_speaker is None:
+            res = []
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    res.append(item.path)
 
-        self.values['x'] = np.concatenate([self.values['x'], input_data])
-        self.values['x_length'] = np.concatenate([self.values['x_length'], input_length])
+            self.values['input'] = res
+            self.predict_steps_cache = None
+        else:
+            res = []
+            for item in os.scandir(folder_path):
+                if item.is_file():
+                    res.append(item.path)
 
-    def add_parse_input(self, input_x):
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=False, eos=True)
+            self.values['train_x'] = res
+            count = len(self.values['train_x'])
+            self.values['train_y'] = [is_speaker] * count
 
-        self.add_input_data(np.array(x).reshape(1, len(x)), np.array(x_length).reshape(1, ))
+            self.steps_per_epoch_cache = None
 
-    def set_parse_input(self, input_x):
-        x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(input_x.lower()),
-                                                    self.values['embedding'].words_to_index, go=False, eos=True)
+    def parse(self, item, from_input=False):
+        if isinstance(item, np.ndarray):
+            item = int(item[0])
 
-        # directly set the values
-        self.values['x'] = np.array(x).reshape((1, len(x)))
-        self.values['x_length'] = np.array(x_length).reshape(1, )
+        if from_input:
+            if self.enable_cache and item in self.predict_cache:
+                return self.predict_cache[item]
 
-    def chatbot_format(self, index):
-        return np.append([self.values['embedding'].GO], self.values['x'][index]), self.values['x_length'][None] + 1
+            item_path = self.values['input'][item]
+            data = am.SpeakerVerification.MFCC.get_MFCC(item_path,
+                                                        window=self.model_config.model_structure['input_window'],
+                                                        num_cepstral=self.model_config.model_structure[
+                                                            'input_cepstral'],
+                                                        flatten=False)
 
-    def get_chatbot_input(self, index):
-        if isinstance(index, int):
-            index = []
+            if self.enable_cache:
+                self.cache[item] = data
+            return data
 
-        new_data = CombinedPredictionData(self.max_seq)
-        new_data.add_embedding_class(self.values['embedding'])
+        if self.enable_cache and item in self.cache:
+            return self.cache[item]
 
-        for i in index:
-            new_data.add_data(self.chatbot_format(i))
+        # not in cache or cache not enabled, proceed to process
+        if isinstance(item, int):
+            item_path, item_label = self.values['train_x'][item], self.values['train_y'][item]
+            # if item is an index
 
-        return new_data
+        else:
+            item_path, item_label = item
+
+        data = am.SpeakerVerification.MFCC.get_MFCC(item_path,
+                                                    window=self.model_config.model_structure['input_window'],
+                                                    num_cepstral=self.model_config.model_structure['input_cepstral'],
+                                                    flatten=False)
+
+        if self.enable_cache:
+            self.cache[item] = data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
+            return self.cache[item]
+        else:
+            return data, np.repeat(np.array([item_label], dtype='float32'), data.shape[0])
+
+    @property
+    def steps_per_epoch(self):
+        if self.steps_per_epoch_cache is not None:
+            return self.steps_per_epoch_cache
+        else:
+            total_length = 0
+            for index in range(len(self.values['train_x'])):
+                # simulate one epoch to obtain steps per epoch
+                data = \
+                    am.SpeakerVerification.MFCC.get_MFCC(self.values['train_x'][index],
+                                                         window=self.model_config.model_structure['input_window'],
+                                                         num_cepstral=self.model_config.model_structure['input_cepstral'],
+                                                         flatten=False)
+
+                elements = data.shape[0]
+
+                # count elements
+                total_length += elements
+
+                if self.enable_cache:
+                    self.cache[index] = data, np.repeat(
+                        np.array([self.values['train_y'][index]], dtype='float32'), elements
+                    )
+
+            self.steps_per_epoch_cache = math.ceil(total_length / self.model_config.hyperparameters['batch_size'])
+            return self.steps_per_epoch_cache
+
+    @property
+    def predict_steps(self):
+        if self.predict_steps_cache is not None:
+            return self.predict_steps_cache
+        else:
+            total_length = 0
+            for index in range(len(self.values['input'])):
+                # simulate one epoch to obtain steps per epoch
+                data = \
+                    am.SpeakerVerification.MFCC.get_MFCC(self.values['input'][index],
+                                                         window=self.model_config.model_structure['input_window'],
+                                                         num_cepstral=self.model_config.model_structure[
+                                                             'input_cepstral'],
+                                                         flatten=False)
+
+                # count elements
+                elements = data.shape[0]
+                total_length += elements
+                self.predict_step_nums[index] = elements
+
+                if self.enable_cache:
+                    self.predict_cache[index] = data
+
+            self.predict_steps_cache = math.ceil(total_length / self.model_config.hyperparameters['batch_size'])
+            return self.predict_steps_cache
