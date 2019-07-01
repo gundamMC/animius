@@ -435,98 +435,110 @@ class Commands:
                                       "chatbotDataAddCornell -n 'data name' -mcp '\\some\\cornell\\movie_conversations.txt' -mlp '\\some\\cornell\\movie_lines.txt'"
                                       ],
 
-            'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences,
+            # 'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences,
+            #                                  {
+            #                                      '-n': ['name', 'str', 'Name of data to add on'],
+            #                                      '-x': ['x', 'list<str>',
+            #                                             'List of strings, each representing a sentence input'],
+            #                                      '-y': ['y', 'list<str>',
+            #                                             'List of strings, each representing a sentence output']
+            #                                  },
+            #                                  'Add Cornell dataset to a chatbot data',
+            #                                  "chatbotDataAddParseSentences -n 'data name' -x '['some input']' -y '['some output']'"
+            #                                  ],
+
+            'chatbotDataAddFiles': [console.chatbot_data_add_files,
+                                    {
+                                        '-n': ['name', 'str', 'Name of data to add on'],
+                                        '-x': ['x_path', 'str',
+                                               'Path to a UTF-8 file containing a raw sentence input on each line'],
+                                        '-y': ['y_path', 'str',
+                                               'Path to a UTF-8 file containing a raw sentence output on each line']
+                                    },
+                                    'Parse raw sentences from text files and add them to a chatbot data',
+                                    "chatbotDataAddFiles -n 'data name' -x '\\some\\path\\x.txt' -y '\\some\\path\\y.txt'"
+                                    ],
+
+            'chatbotDataAddInput': [console.chatbot_data_add_input,
+                                    {
+                                        '-n': ['name', 'str', 'Name of data to add on'],
+                                        '-x': ['x', 'str', 'Raw sentence input']
+                                    },
+                                    'Parse a raw sentence as input and add it to a chatbot data',
+                                    "chatbotDataAddInput -n 'data name' -x 'hey how are you'"
+                                    ],
+
+            'chatbotDataSetInput': [console.chatbot_data_set_input,
+                                    {
+                                        '-n': ['name', 'str', 'Name of data to set'],
+                                        '-x': ['x', 'str', 'Raw sentence input']
+                                    },
+                                    'Parse a raw sentence as input and set it as a chatbot data',
+                                    "chatbotDataSetInput -n 'data name' -x 'hey how are you'"
+                                    ],
+
+            'intentNERDataAddInput': [console.intentNER_data_add_input,
+                                      {
+                                          '-n': ['name', 'str', 'Name of data to add on'],
+                                          '-x': ['x', 'str', 'Raw sentence input']
+                                      },
+                                      'Parse a raw sentence as input and add it to an intent NER data',
+                                      "intentNERDataAddInput -n 'data name' -x 'hey how are you'"
+                                      ],
+
+            'intentNERDataSetInput': [console.intentNER_data_set_input,
+                                      {
+                                          '-n': ['name', 'str', 'Name of data to set'],
+                                          '-x': ['x', 'str', 'Raw sentence input']
+                                      },
+                                      'Parse a raw sentence as input and set it as an intent NER data',
+                                      "intentNERDataSetInput -n 'data name' -x 'hey how are you'"
+                                      ],
+
+            'intentNERDataSetIntentFolder': [console.intentNER_data_set_intent_folder,
                                              {
                                                  '-n': ['name', 'str', 'Name of data to add on'],
-                                                 '-x': ['x', 'list<str>',
-                                                        'List of strings, each representing a sentence input'],
-                                                 '-y': ['y', 'list<str>',
-                                                        'List of strings, each representing a sentence output']
+                                                 '-p': ['path', 'str', 'Path to a folder contains input files']
                                              },
-                                             'Add Cornell dataset to a chatbot data',
-                                             "chatbotDataAddParseSentences -n 'data name' -x '['some input']' -y '['some output']'"
+                                             'Set folder for IntentNER Data.',
+                                             "intentNERDataSetIntentFolder -n 'data name' -p '\\some\\path\\to\\intents'"
                                              ],
 
-            'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file,
-                                        {
-                                            '-n': ['name', 'str', 'Name of data to add on'],
-                                            '-x': ['x_path', 'str',
-                                                   'Path to a UTF-8 file containing a raw sentence input on each line'],
-                                            '-y': ['y_path', 'str',
-                                                   'Path to a UTF-8 file containing a raw sentence output on each line']
-                                        },
-                                        'Parse raw sentences from text files and add them to a chatbot data',
-                                        "chatbotDataAddParseFile -n 'data name' -x '\\some\\path\\x.txt' -y '\\some\\path\\y.txt'"
-                                        ],
-
-            'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input,
-                                         {
-                                             '-n': ['name', 'str', 'Name of data to add on'],
-                                             '-x': ['x', 'str', 'Raw sentence input']
-                                         },
-                                         'Parse a raw sentence as input and add it to a chatbot data',
-                                         "chatbotDataAddParseInput -n 'data name' -x 'hey how are you'"
-                                         ],
-
-            'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input,
-                                         {
-                                             '-n': ['name', 'str', 'Name of data to set'],
-                                             '-x': ['x', 'str', 'Raw sentence input']
-                                         },
-                                         'Parse a raw sentence as input and set it as a chatbot data',
-                                         "chatbotDataSetParseInput -n 'data name' -x 'hey how are you'"
-                                         ],
-
-            'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input,
-                                           {
-                                               '-n': ['name', 'str', 'Name of data to add on'],
-                                               '-x': ['x', 'str', 'Raw sentence input']
-                                           },
-                                           'Parse a raw sentence as input and add it to an intent NER data',
-                                           "intentNERDataAddParseInput -n 'data name' -x 'hey how are you'"
-                                           ],
-
-            'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input,
-                                           {
-                                               '-n': ['name', 'str', 'Name of data to set'],
-                                               '-x': ['x', 'str', 'Raw sentence input']
-                                           },
-                                           'Parse a raw sentence as input and set it as an intent NER data',
-                                           "intentNERDataSetParseInput -n 'data name' -x 'hey how are you'"
-                                           ],
-
-            'intentNERDataAddParseDatafolder': [console.intentNER_data_add_parse_data_folder,
-                                                {
-                                                    '-n': ['name', 'str', 'Name of data to add on'],
-                                                    '-p': ['path', 'str', 'Path to a folder contains input files']
-                                                },
-                                                'Parse files from a folder and add them to a chatbot data',
-                                                "intentNERDataAddParseDatafolder -n 'data name' -p '\\some\\path\\to\\intents'"
-                                                ],
-
-            'speakerVerificationDataAddDataPaths': [console.speakerVerification_data_add_data_paths,
-                                                    {
+            'speakerVerificationDataAddDataFolder': [console.speakerVerification_data_add_folder,
+                                                     {
                                                         '-n': ['name', 'str', 'Name of data to add on'],
-                                                        '-p': ['-path', 'list<str>',
-                                                               'List of string paths to raw audio files'],
+                                                         '-p': ['-path', 'str',
+                                                                'Path to folder to add on'],
                                                         '-y': ['y', 'bool',
                                                                'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
                                                     },
-                                                    'Parse and add raw audio files to a speaker verification data',
-                                                    'speakerVerificationDataAddDataPaths -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
-                                                    ],
+                                                     'Add folder to a speaker verification data.',
+                                                     'speakerVerificationDataAddDataFolder -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                     ],
 
-            'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
-                                                   {
-                                                       '-n': ['name', 'str', 'Name of data to add on'],
-                                                       '-p': ['path', 'str',
-                                                              'Path to file containing a path of a raw audio file on each line'],
-                                                       '-y': ['y', 'bool',
-                                                              'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
-                                                   },
-                                                   'Read paths to raw audio files and add them to a speaker verification data',
-                                                   "speakerVerificationDataAddDataFile -n 'data name' -p '\\some\\path\x07udios.txt' -y True"
-                                                   ],
+            'speakerVerificationDataSetDataFolder': [console.speakerVerification_data_set_folder,
+                                                     {
+                                                         '-n': ['name', 'str', 'Name of data to add on'],
+                                                         '-p': ['-path', 'str',
+                                                                'Path to folder to set'],
+                                                         '-y': ['y', 'bool',
+                                                                'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                     },
+                                                     'Set folder to a speaker verification data.',
+                                                     'speakerVerificationDataSetDataFolder -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                     ],
+
+            # 'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
+            #                                        {
+            #                                            '-n': ['name', 'str', 'Name of data to add on'],
+            #                                            '-p': ['path', 'str',
+            #                                                   'Path to file containing a path of a raw audio file on each line'],
+            #                                            '-y': ['y', 'bool',
+            #                                                   'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+            #                                        },
+            #                                        'Read paths to raw audio files and add them to a speaker verification data',
+            #                                        "speakerVerificationDataAddDataFile -n 'data name' -p '\\some\\path\x07udios.txt' -y True"
+            #                                        ],
 
             'getEmbeddingDetails': [console.get_embedding_details,
                                     {
