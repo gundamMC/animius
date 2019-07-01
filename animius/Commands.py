@@ -256,11 +256,12 @@ class Commands:
             'predict': [console.predict,
                         {
                             '-n': ['name', 'str', 'Name of model'],
-                            '-i': ['input_data', 'str', 'Name of input data'],
+                            '-id': ['input_data', 'str', 'Name of input data. (Optional)'],
+                            '-i': ['input', 'str', 'String to input. (Optional)'],
                             '-s': ['save_path', 'str', 'Path to save result (Optional)']
                         },
-                        'Make predictions with a model',
-                        "predict -n 'model name' -i 'name of input data' -s '\\some\\path.txt'"
+                        'Make predictions with a model.',
+                        "predict -n 'model name' -id 'name of input data' -s '\\some\\path.txt'"
                         ],
 
             # endregion
@@ -435,18 +436,6 @@ class Commands:
                                       "chatbotDataAddCornell -n 'data name' -mcp '\\some\\cornell\\movie_conversations.txt' -mlp '\\some\\cornell\\movie_lines.txt'"
                                       ],
 
-            # 'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences,
-            #                                  {
-            #                                      '-n': ['name', 'str', 'Name of data to add on'],
-            #                                      '-x': ['x', 'list<str>',
-            #                                             'List of strings, each representing a sentence input'],
-            #                                      '-y': ['y', 'list<str>',
-            #                                             'List of strings, each representing a sentence output']
-            #                                  },
-            #                                  'Add Cornell dataset to a chatbot data',
-            #                                  "chatbotDataAddParseSentences -n 'data name' -x '['some input']' -y '['some output']'"
-            #                                  ],
-
             'chatbotDataAddFiles': [console.chatbot_data_add_files,
                                     {
                                         '-n': ['name', 'str', 'Name of data to add on'],
@@ -528,17 +517,54 @@ class Commands:
                                                      'speakerVerificationDataSetDataFolder -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
                                                      ],
 
-            # 'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
-            #                                        {
-            #                                            '-n': ['name', 'str', 'Name of data to add on'],
-            #                                            '-p': ['path', 'str',
-            #                                                   'Path to file containing a path of a raw audio file on each line'],
-            #                                            '-y': ['y', 'bool',
-            #                                                   'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
-            #                                        },
-            #                                        'Read paths to raw audio files and add them to a speaker verification data',
-            #                                        "speakerVerificationDataAddDataFile -n 'data name' -p '\\some\\path\x07udios.txt' -y True"
-            #                                        ],
+            'speakerVerificationDataAddWavFile': [console.speakerVerification_data_add_wav_file,
+                                                  {
+                                                      '-n': ['name', 'str', 'Name of data to add on'],
+                                                      '-p': ['-path', 'str',
+                                                             'Path to wav file to add on'],
+                                                      '-y': ['y', 'bool',
+                                                             'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                  },
+                                                  'Add wav file to a speaker verification data.',
+                                                  'speakerVerificationDataAddWavFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                  ],
+
+            'speakerVerificationDataSetWavFile': [console.speakerVerification_data_set_wav_file,
+                                                  {
+                                                      '-n': ['name', 'str', 'Name of data to add on'],
+                                                      '-p': ['-path', 'str',
+                                                             'Path to wav file to set'],
+                                                      '-y': ['y', 'bool',
+                                                             'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                  },
+                                                  'Set wav file to a speaker verification data.',
+                                                  'speakerVerificationDataSetWavFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                  ],
+
+            'speakerVerificationDataAddTextFile': [console.speakerVerification_data_add_text_file,
+                                                   {
+                                                       '-n': ['name', 'str', 'Name of data to add on'],
+                                                       '-p': ['-path', 'str',
+                                                              'Path to text file to add on'],
+                                                       '-y': ['y', 'bool',
+                                                              'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                   },
+                                                   'Add wav file to a speaker verification data.',
+                                                   'speakerVerificationDataAddTextFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                   ],
+
+            'speakerVerificationDataSetTextFile': [console.speakerVerification_data_set_text_file,
+                                                   {
+                                                       '-n': ['name', 'str', 'Name of data to add on'],
+                                                       '-p': ['-path', 'str',
+                                                              'Path to text file to set'],
+                                                       '-y': ['y', 'bool',
+                                                              'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                   },
+                                                   'Set wav file to a speaker verification data.',
+                                                   'speakerVerificationDataSetTextFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                   ],
+
 
             'getEmbeddingDetails': [console.get_embedding_details,
                                     {

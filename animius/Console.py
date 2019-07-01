@@ -1166,21 +1166,35 @@ i
         :param kwargs:
 
         :Keyword Arguments:
-        * *name* (``str``) -- Name of model to predict
-        * *input_data* (``str``) -- Name of input data
-        * *save_path* (``str``) -- Path to save result
+        * *name* (``str``) -- Name of model to predict.
+        * *input_data* (``str``) -- Name of input data. (Optional)
+        * *input* (``str``) -- String to input. (Optional)
+        * *save_path* (``str``) -- Path to save result. (Optional)
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'input_data'],
+                                hard_requirements=['name'],
                                 soft_requirements=['save_path'])
 
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
-        if kwargs['input_data'] not in self.data:
-            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
 
-        return self.models[kwargs['name']].item.predict(kwargs['input_data'], save_path=kwargs['save_path'])
+        if 'input_data' in kwargs:
+            if kwargs['input_data'] not in self.data:
+                raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
+            else:
+                if 'save_path' in kwargs:
+                    result = self.models[kwargs['name']].item.predict(kwargs['input_data'],
+                                                                      save_path=kwargs['save_path'])
+                else:
+                    result = self.models[kwargs['name']].item.predict(kwargs['input_data'])
+        elif 'input' in kwargs:
+            if 'save_path' in kwargs:
+                result = self.models[kwargs['name']].item.predict(kwargs['input'], save_path=kwargs['save_path'])
+            else:
+                result = self.models[kwargs['name']].item.predict(kwargs['input'])
+
+        return result
 
     def freeze_graph(self, **kwargs):
         """
@@ -1572,28 +1586,6 @@ i
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    # def chatbot_data_add_parse_sentences(self, **kwargs):
-    #     """
-    #     Parse raw sentences and add them to a chatbot data.
-    #
-    #     :param kwargs:
-    #
-    #     :Keyword Arguments:
-    #     * *name* (``str``) -- Name of data to add on
-    #     * *x* (``list<str>``) -- List of strings, each representing a sentence input
-    #     * *y* (``list<str>``) -- List of strings, each representing a sentence output
-    #     """
-    #     Console.check_arguments(kwargs,
-    #                             hard_requirements=['name', 'x', 'y'])
-    #
-    #     if kwargs['name'] in self.data:
-    #         if isinstance(self.data[kwargs['name']].item, am.ChatData):
-    #             self.data[kwargs['name']].item.add_parse_sentences(kwargs['x'], kwargs['y'])
-    #         else:
-    #             raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
-    #     else:
-    #         raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
-
     def chatbot_data_add_files(self, **kwargs):
         """
         Parse raw sentences from text files and add them to a chatbot data.
@@ -1768,50 +1760,101 @@ i
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    # def speakerVerification_data_add_data_file(self, **kwargs):
-    #     """
-    #     Read paths to raw audio files and add them to a speaker verification data
-    #
-    #     :param kwargs:
-    #
-    #     :Keyword Arguments:
-    #     * *name* (``str``) -- Name of data to add on
-    #     * *path* (``str``) -- Path to file containing a path of a raw audio file on each line
-    #     * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
-    #     """
-    #     Console.check_arguments(kwargs,
-    #                             hard_requirements=['name', 'paths'],
-    #                             soft_requirements=['y'])
-    #
-    #     if kwargs['name'] in self.data:
-    #         if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-    #             self.data[kwargs['name']].item.add_parse_data_file(kwargs['paths'], kwargs['y'])
-    #         else:
-    #             raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
-    #     else:
-    #         raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
-
     def speakerVerification_data_add_wav_file(self, **kwargs):
+        """
+        Add wav file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to wav file to add on
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'],
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-                self.data[kwargs['name']].item.set_folder(kwargs['paths'], kwargs['y'])
+                self.data[kwargs['name']].item.add_wav_file(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def speakerVerification_data_set_wav_file(self, **kwargs):
-        pass
+        """
+        Set wav file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to wav file to set
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.set_wav_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def speakerVerification_data_add_text_file(self, **kwargs):
-        pass
+        """
+        Add text file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to text file to add on
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.add_text_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def speakerVerification_data_set_text_file(self, **kwargs):
-        pass
+        """
+        Set wav file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to wav file to set
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.set_text_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
     def delete_data(self, **kwargs):
         """
@@ -2017,7 +2060,6 @@ i
             return request.id, 2, str(exc), {}
 
     def handle_command(self, user_input):
-
         # initialize commands first
         if self.commands is None:
             self.init_commands()
