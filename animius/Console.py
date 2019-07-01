@@ -1432,13 +1432,16 @@ i
 
         if kwargs['model_config'] in self.model_configs:
             if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
-                data = am.ChatData(self.model_configs[kwargs['model_config']].item)
+                data = am.ChatData()
             elif kwargs['type'] == 'IntentNERD':
-                data = am.IntentNERData(self.model_configs[kwargs['model_config']].item)
+                data = am.IntentNERData()
             elif kwargs['type'] == 'SpeakerVerification':
-                data = am.SpeakerVerificationData(self.model_configs[kwargs['model_config']].item)
+                data = am.SpeakerVerificationData()
             else:
                 raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
+
+            data.set_model_config(self.model_configs[kwargs['model_config']].item)
+
         else:
             raise KeyError("Model config \"{0}\" not found.".format(kwargs['model_config']))
 
@@ -1539,7 +1542,7 @@ i
                                 hard_requirements=['name', 'path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
                 self.data[kwargs['name']].item.add_twitter(kwargs['path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
@@ -1561,7 +1564,7 @@ i
                                 hard_requirements=['name', 'movie_conversations_path', 'movie_lines_path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
                 self.data[kwargs['name']].item.add_cornell(kwargs['movie_conversations_path'],
                                                            kwargs['movie_lines_path'])
             else:
@@ -1569,29 +1572,29 @@ i
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def chatbot_data_add_parse_sentences(self, **kwargs):
-        """
-        Parse raw sentences and add them to a chatbot data.
+    # def chatbot_data_add_parse_sentences(self, **kwargs):
+    #     """
+    #     Parse raw sentences and add them to a chatbot data.
+    #
+    #     :param kwargs:
+    #
+    #     :Keyword Arguments:
+    #     * *name* (``str``) -- Name of data to add on
+    #     * *x* (``list<str>``) -- List of strings, each representing a sentence input
+    #     * *y* (``list<str>``) -- List of strings, each representing a sentence output
+    #     """
+    #     Console.check_arguments(kwargs,
+    #                             hard_requirements=['name', 'x', 'y'])
+    #
+    #     if kwargs['name'] in self.data:
+    #         if isinstance(self.data[kwargs['name']].item, am.ChatData):
+    #             self.data[kwargs['name']].item.add_parse_sentences(kwargs['x'], kwargs['y'])
+    #         else:
+    #             raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
+    #     else:
+    #         raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-        :param kwargs:
-
-        :Keyword Arguments:
-        * *name* (``str``) -- Name of data to add on
-        * *x* (``list<str>``) -- List of strings, each representing a sentence input
-        * *y* (``list<str>``) -- List of strings, each representing a sentence output
-        """
-        Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'x', 'y'])
-
-        if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_parse_sentences(kwargs['x'], kwargs['y'])
-            else:
-                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
-        else:
-            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
-
-    def chatbot_data_add_parse_file(self, **kwargs):
+    def chatbot_data_add_files(self, **kwargs):
         """
         Parse raw sentences from text files and add them to a chatbot data.
 
@@ -1606,14 +1609,14 @@ i
                                 hard_requirements=['name', 'x_path', 'y_path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_parse_file(kwargs['x_path'], kwargs['y_path'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
+                self.data[kwargs['name']].item.add_files(kwargs['x_path'], kwargs['y_path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def chatbot_data_add_parse_input(self, **kwargs):
+    def chatbot_data_add_input(self, **kwargs):
         """
         Parse a raw sentence as input and add it to a chatbot data.
 
@@ -1627,14 +1630,14 @@ i
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
+                self.data[kwargs['name']].item.add_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def chatbot_data_set_parse_input(self, **kwargs):
+    def chatbot_data_set_input(self, **kwargs):
         """
         Parse a raw sentence as input and set it as a chatbot data.
 
@@ -1648,35 +1651,35 @@ i
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.set_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
+                self.data[kwargs['name']].item.set_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def intentNER_data_add_parse_data_folder(self, **kwargs):
+    def intentNER_data_set_intent_folder(self, **kwargs):
         """
-        Parse files from a folder and add them to a chatbot data.
+        Set folder for IntentNER Data.
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *path* (``str``) -- Path to a folder contains input files
+        * *path* (``str``) -- Path to the intent folder
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.add_parse_data_folder(kwargs['path'])
+                self.data[kwargs['name']].item.set_intent_folder(kwargs['path'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def intentNER_data_add_parse_input(self, **kwargs):
+    def intentNER_data_add_input(self, **kwargs):
         """
         Parse a raw sentence as input and add it to an intent NER data.
 
@@ -1686,18 +1689,19 @@ i
         * *name* (``str``) -- Name of data to add on
         * *x* (``str``) -- Raw sentence input
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.add_parse_input(kwargs['x'])
+                self.data[kwargs['name']].item.add_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def intentNER_data_set_parse_input(self, **kwargs):
+    def intentNER_data_set_input(self, **kwargs):
         """
         Parse a raw sentence as input and set it as an intent NER data.
 
@@ -1712,57 +1716,102 @@ i
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.set_parse_input(kwargs['x'])
+                self.data[kwargs['name']].item.set_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def speakerVerification_data_add_data_paths(self, **kwargs):
+    def speakerVerification_data_add_folder(self, **kwargs):
         """
-        Parse and add raw audio files to a speaker verification data
+        Add folder to a speaker verification data
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *paths* (``list<str>``) -- List of string paths to raw audio files
+        * *path* (``str``) -- Path to folder to add on
         * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'paths'],
+                                hard_requirements=['name', 'path'],
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-                self.data[kwargs['name']].item.add_parse_data_paths(kwargs['paths'], kwargs['y'])
+                self.data[kwargs['name']].item.add_folder(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def speakerVerification_data_add_data_file(self, **kwargs):
+    def speakerVerification_data_set_folder(self, **kwargs):
         """
-        Read paths to raw audio files and add them to a speaker verification data
+        Set folder to a speaker verification data
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *path* (``str``) -- Path to file containing a path of a raw audio file on each line
+        * *path* (``str``) -- Path to folder to set
         * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'paths'],
+                                hard_requirements=['name', 'path'],
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-                self.data[kwargs['name']].item.add_parse_data_file(kwargs['paths'], kwargs['y'])
+                self.data[kwargs['name']].item.set_folder(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    # def speakerVerification_data_add_data_file(self, **kwargs):
+    #     """
+    #     Read paths to raw audio files and add them to a speaker verification data
+    #
+    #     :param kwargs:
+    #
+    #     :Keyword Arguments:
+    #     * *name* (``str``) -- Name of data to add on
+    #     * *path* (``str``) -- Path to file containing a path of a raw audio file on each line
+    #     * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+    #     """
+    #     Console.check_arguments(kwargs,
+    #                             hard_requirements=['name', 'paths'],
+    #                             soft_requirements=['y'])
+    #
+    #     if kwargs['name'] in self.data:
+    #         if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+    #             self.data[kwargs['name']].item.add_parse_data_file(kwargs['paths'], kwargs['y'])
+    #         else:
+    #             raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+    #     else:
+    #         raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    def speakerVerification_data_add_wav_file(self, **kwargs):
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.set_folder(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    def speakerVerification_data_set_wav_file(self, **kwargs):
+        pass
+
+    def speakerVerification_data_add_text_file(self, **kwargs):
+        pass
+
+    def speakerVerification_data_set_text_file(self, **kwargs):
+        pass
 
     def delete_data(self, **kwargs):
         """
