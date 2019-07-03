@@ -27,17 +27,17 @@ In this example, we will be creating an Intent NER model. (You can read more abo
 To begin, let's create an Intent NER model config called ```myModelConfig``` which will be initialized with default configs, hyperparameters, and model structures of Intent NER model.
 
 ```
-myModelConfig = am.ModelConfig(cls='IntentNER')
+myIntentModelConfig = am.ModelConfig(cls='IntentNER')
 
-myModelConfig.apply_defaults()
+myIntentModelConfig.apply_defaults()
 ```
 
 Moreover, it's really convenient to retrieve or change this model config.
 
 ```
-print(myModelConfig.model_structure)
+print(myModelIntentConfig.model_structure)
 
-myModelConfig.hyperparameters['learning_rate'] = 0.01
+myIntentModelConfig.hyperparameters['learning_rate'] = 0.01
 ```
 
 We will be coming back to the model config after creating the data.
@@ -64,11 +64,11 @@ For Intent NER, which takes in English sentences as input, the data object requi
 So, let's create an Intent NER data object named ```myData```, import our glove embedding which created in the previous section, and then set intent folder.
 
 ```
-myData = am.IntentNERData()
+myIntentData = am.IntentNERData()
 
-myData.add_embedding_class(myGloveEmbedding)
+myIntentData.add_embedding_class(myGloveEmbedding)
 
-myData.set_intent_folder('resources\\IntentNER Data')
+myIntentData.set_intent_folder('resources\\IntentNER Data')
 ```
 
 ## Setup IntentNER Model
@@ -76,7 +76,7 @@ myData.set_intent_folder('resources\\IntentNER Data')
 After creating the model config and data, we can create Intent NER model called ```myModel```.
 
 ```
-myModel = am.IntentNER.IntentNERModel()
+myIntentModel = am.IntentNER.IntentNERModel()
 ```
 
 ## Build graph and initialize TensorFlow
@@ -85,9 +85,9 @@ TensorFlow uses a dataflow graph to represent your computation in terms of the d
 In order to train our model, let's build its graph and initialize TensorFlow sessions and datasets.
 
 ```
-myModel.build_graph(myModelConfig, myData)
+myIntentModel.build_graph(myModelConfig, myData)
 
-myModel.init_tensorflow()
+myIntentModel.init_tensorflow()
 ```
 
 ### Train model
@@ -97,33 +97,152 @@ Let's test it out by training 10 epochs.
 An epoch is just a cycle during which the model trains over the entire training set.
 
 ```
-intentNER_model.build_graph(intentNER_mc, intentNER_data)
-intentNER_model.init_tensorflow()
+myIntentModel.build_graph(intentNER_mc, intentNER_data)
+myIntentModel.init_tensorflow()
 
-myModel.train(epochs=10)
+myIntentModel.train(epochs=10)
 ```
 
 ### Predict sentence
 
 As we mentioned before, Intent NER will analyze English sentence and extract its Intents and NERs.
-After training our model, let's generate our input sentence and test its performance.
+After training our model, let's generate our input sentence and test its performance. 
+Rather than creating a data, we may simply use string, list, or numpy array as argument.
 
 ```
-input_data = myModel.data
+myIntentModel.add_embedding_class(myGloveEmbedding)
 
-input_data.add_embedding_class(myGloveEmbedding)
-
-input_data.set_input('How's the weather in Vancouver.')
-
-myModel.predict(input_data)
+myIntentModel.predict(input_data)
 ```
 
 ### Save model
 
-Congrats! Our model performs as well as we imagined before. Now, it's time to save it into your disk so that you can retrieve it whenever you want.
+Congrats! Our model performs as well as we imagined before. 
+Now, it's time to save it into your disk so that you can retrieve it whenever you want.
 
 ```
-myModel.save(directory='Animius', name='myIntentNER')
+myIntentModel.save(directory='Animius', name='myIntentNER')
+```
+
+## Setup SpeakerVerification Model
+
+Now, as a crucial step to build our own virtual assistant, let's create a SpeakerVerification Model which could verify speakers of audio clips.
+
+### Parse Subtitle
+
+First, let's use ```am.ParseSubtitle``` to split an audio file into small pieces of audio clips according to its corresponding subtitle.
+
+```
+parser = am.ParseSubtitle.Parser()
+
+parser.load('Animius Violet Evergarden\\01 jp.ass')
+
+parser.slice_audio('Animius Violet Evergarden\\01.mp3', 'Animius Violet Evergarden\\01_slices')
+```
+
+### Create model
+
+Simply following the steps of creating IntentNER model as we mentioned above.
+
+```
+mySpeakerVerificationModelConfig = am.ModelConfig(cls='SpeakerVerification')
+
+mySpeakerVerificationData = am.SpeakerVerificationData()
+
+mySpeakerVerificationData.add_text_file('Animius Violet Evergarden\\01 true.txt', is_speaker=True)
+
+mySpeakerVerificationData.add_text_file('Animius Violet Evergarden\\01 false.txt', is_speaker=False)
+
+mySpeakerVerificationModel = am.SpeakerVerification.SpeakerVerificationModel()
+```
+
+### Train and save model
+
+```
+mySpeakerVerificationModel.build_graph(mySpeakerVerificationModelConfig, mySpeakerVerificationData)
+
+mySpeakerVerificationModel.init_tensorflow()
+
+mySpeakerVerificationModel.train()
+
+mySpeakerVerificationModel.save(r'SpeakerVerification')
+```
+
+## Setup Chatbot Model
+
+Now, as an another crucial step to build our own virtual assistant, let's create a Chatbot Model.
+
+### Create Data and add Twitter
+
+```
+myChatbotModelConfig = am.ModelConfig(cls='Chatbot')
+
+myChatbotData = am.ChatData()
+
+
+myGloveEmbedding = am.WordEmbedding()
+
+myGloveEmbedding.create_embedding('Animius Violet Evergarden\\glove.twitter.27B.50d.txt', vocab_size=40000)
+
+myChatbotData.add_embedding_class(myGloveEmbedding)
+
+myChatbotData.add_twitter(r'Animius Violet Evergarden\chat.txt')
+```
+
+### Create model
+
+Simply following the steps of creating IntentNER model as we mentioned above.
+
+```
+myChatbotModel = am.Chatbot.CombinedChatbotModel()
+```
+
+### Train and save model
+
+```
+myChatbotModel.build_graph(myChatbotModelConfig, myChatbotModelData)
+
+myChatbotModel.init_tensorflow()
+
+myChatbotModel.train(10)
+
+myChatbotModel.save(directory='Chatbot')
+```
+
+## Create Combined Chatbot Model
+
+Now, as an another crucial step to build our own virtual assistant, let's create a Combined Chatbot Model.
+
+### Create Model and Data
+
+```
+myCombinedChatbotModelConfig = am.ModelConfig(cls='Chatbot')
+
+myGloveEmbedding = am.WordEmbedding()
+
+myGloveEmbedding.create_embedding('Animius Violet Evergarden\\glove.twitter.27B.50d.txt', vocab_size=40000)
+
+myCombinedChatbotModelData = am.ChatData()
+
+myCombinedChatbotModelData.add_embedding_class(myGloveEmbedding)
+```
+
+### Create model
+
+Simply following the steps of creating IntentNER model as we mentioned above.
+
+```
+myCombinedChatbotModel = am.Chatbot.CombinedChatbotModel()
+```
+
+### Initialize and save model
+
+```
+myCombinedChatbotModel.build_graph(mc, data, intent_ner=('Animius', 'myIntentNER'))
+
+myCombinedChatbotModel.init_tensorflow()
+
+myCombinedChatbotModel.save(directory='myCombinedChatbotModel')
 ```
 
 ## Creating your Waifu
