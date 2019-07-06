@@ -1435,7 +1435,6 @@ i
         :Keyword Arguments:
         * *name* (``str``) -- Name of data
         * *type* (``str``) -- Type of data (based on the model)
-        * *model_config* (``str``) -- Name of model config
         """
 
         Console.check_arguments(kwargs,
@@ -1444,20 +1443,14 @@ i
         if kwargs['name'] in self.data:
             raise NameAlreadyExistError("The name {0} is already used by another data".format(kwargs['name']))
 
-        if kwargs['model_config'] in self.model_configs:
-            if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
-                data = am.ChatData()
-            elif kwargs['type'] == 'IntentNERD':
-                data = am.IntentNERData()
-            elif kwargs['type'] == 'SpeakerVerification':
-                data = am.SpeakerVerificationData()
-            else:
-                raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
-
-            data.set_model_config(self.model_configs[kwargs['model_config']].item)
-
+        if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
+            data = am.ChatData()
+        elif kwargs['type'] == 'IntentNERD':
+            data = am.IntentNERData()
+        elif kwargs['type'] == 'SpeakerVerification':
+            data = am.SpeakerVerificationData()
         else:
-            raise KeyError("Model config \"{0}\" not found.".format(kwargs['model_config']))
+            raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
 
         # saving it first to set up its saving location
         console_item = _ConsoleItem(data, os.path.join(self.directories['data'], kwargs['name']), kwargs['name'])
