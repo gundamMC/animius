@@ -17,7 +17,7 @@ setuptools.setup(
         'console_scripts': ['animius = animius.Console:Console.start']
     },
     python_requires='>=3',
-    install_requires=['numpy', 'pysubs2', 'pydub', 'scipy', 'speechpy'],
+    install_requires=['numpy', 'pysubs2', 'pydub', 'scipy', 'speechpy', 'psutil', 'pynvml'],
     extras_require={
         "tf": ["tensorflow==1.12.0"],
         "tf_gpu": ["tensorflow-gpu==1.12.0"],
