@@ -2,22 +2,14 @@
 
 ## Overview
 
-###getData
-
-Get a list of existing data.
-
-```
-getData
-```
-
-No argument required.
-
 ### createData
 
 Create a data with empty values.
 
+Available data types: 'Chatbot', 'IntentNER', 'SpeakerVerification'.
+
 ```
-createData -n 'data name' -t 'ModelType' -c 'model config name'
+createData -n 'data name' -t 'DataType'
 ```
 
 Keyword Arguments:
@@ -25,8 +17,6 @@ Keyword Arguments:
 * *-n, --name* (`str`) -- Name of data
 
 * *-t, --type* (`str`) -- Type of data (based on the model)
-
-* *-c, --model_config* (`str`) -- Name of model config
 
 ### dataAddEmbedding
 
@@ -198,28 +188,12 @@ Keyword Arguments:
 
 * *-mlp, --movie_lines_path* (`str`) -- Path to movie_lines.txt in the Cornell dataset
 
-### chatbotDataAddParseSentences
+### chatbotDataAddFiles
 
-Parse raw sentences and add them to a chatbot data.
-
-```
-chatbotDataAddParseSentences -n 'data name' -x '["some input"]' -y '["some output"]'
-```
-
-Keyword Arguments:
-
-* *-n, --name* (`str`) -- Name of data to add on
-
-* *-x, --x* (`list<str>`) -- List of strings, each representing a sentence input
-
-* *-y, --y* (`list<str>`) -- List of strings, each representing a sentence output
-
-### chatbotDataAddParseFile
-
-Parse raw sentences from text files and add them to a chatbot data.
+Add text files to a chatbot data.
 
 ```
-chatbotDataAddParseFile -n 'data name' -x '\some\path\x.txt' -y '\some\path\y.txt'
+chatbotDataAddFile -n 'data name' -x '\some\path\x.txt' -y '\some\path\y.txt'
 ```
 
 Keyword Arguments:
@@ -230,12 +204,12 @@ Keyword Arguments:
 
 * *-y, --y_path* (`str`) -- Path to a UTF-8 file containing a raw sentence output on each line
 
-### chatbotDataAddParseInput
+### chatbotDataAddInput
 
-Parse a raw sentence as input and add it to a chatbot data.
+Add input to a chatbot data.
 
 ```
-chatbotDataAddParseInput -n 'data name' -x 'hey how are you'
+chatbotDataAddInput -n 'data name' -x 'hey how are you'
 ```
 
 Keyword Arguments:
@@ -244,12 +218,12 @@ Keyword Arguments:
 
 * *-x, --x* (`str`) -- Raw sentence input
 
-### chatbotDataSetParseInput
+### chatbotDataSetInput
 
-Parse a raw sentence as input and set it as a chatbot data.
+Set input as a chatbot data.
 
 ```
-chatbotDataSetParseInput -n 'data name' -x 'hey how are you'
+chatbotDataSetInput -n 'data name' -x 'hey how are you'
 ```
 
 Keyword Arguments:
@@ -260,12 +234,12 @@ Keyword Arguments:
 
 ## IntentNER Data
 
-### intentNERDataAddParseDatafolder
+### intentNERDataSetIntentfolder
 
-Parse files from a folder and add them to a chatbot data.
+Set folder for IntentNER Data.
 
 ```
-intentNERDataAddParseDatafolder -n 'data name' -p '\some\path\to\intents'
+intentNERDataSetIntentFolder -n 'data name' -p '\\some\\path\\to\\intents'
 ```
 
 Keyword Arguments:
@@ -274,9 +248,9 @@ Keyword Arguments:
 
 * *-p, --path* (`str`) -- Path to a folder contains input files
 
-### intentNERDataAddParseInput
+### intentNERDataAddInput
 
-Parse a raw sentence as input and add it to an intent NER data.
+Add a raw sentence as an intent NER data.
 
 ```
 intentNERDataAddParseInput -n 'data name' -x 'hey how are you'
@@ -288,9 +262,9 @@ Keyword Arguments:
 
 * *-x, --x* (`str`) -- Raw sentence input
 
-### intentNERDataSetParseInput
+### intentNERDataSetInput
 
-Parse a raw sentence as input and set it as an intent NER data.
+Set a raw sentence as an intent NER data.
 
 ```
 intentNERDataSetParseInput -n 'data name' -x 'hey how are you'
@@ -304,34 +278,99 @@ Keyword Arguments:
 
 ## SpeakerVerification Data
 
-### speakerVerificationDataAddDataPaths
+### speakerVerificationDataAddDataFolder
 
-Parse and add raw audio files to a speaker verification data.
+Add folder to a speaker verification data.
 
 ```
-speakerVerificationDataAddDataPaths -n 'data name' -p '["\some\path\01.wav"]' [-y True]
+speakerVerificationDataAddDataFolder -n 'data name' -p 'path' [-y True]
 ```
 
 Keyword Arguments:
 
 * *-n, --name* (`str`) -- Name of data to add on
 
-* *-p, -path* (`list<str>`) -- List of string paths to raw audio files
+* *-p, -path* (`str`) -- Path of folder to set
 
 * *-y, --y* (`bool`) -- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)
 
-### speakerVerificationDataAddDataFile
+### speakerVerificationDataSetDataFolder
 
-Read paths to raw audio files and add them to a speaker verification data.
+set folder to a speaker verification data.
 
 ```
-speakerVerificationDataAddDataFile -n 'data name' -p '\some\path\audios.txt' -y True
+speakerVerificationDataSetDataFolder -n 'data name' -p 'path' [-y True]
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of data to set
+
+* *-p, -path* (`str`) -- Path of folder to set
+
+* *-y, --y* (`bool`) -- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)
+
+
+### speakerVerificationDataAddWavFile
+
+Add wav file to a speaker verification data.
+
+```
+speakerVerificationDataAddWavFile -n 'data name' -p '["\some\path\01.wav"]' [-y True]
 ```
 
 Keyword Arguments:
 
 * *-n, --name* (`str`) -- Name of data to add on
 
-* *-p, --path* (`str`) -- Path to file containing a path of a raw audio file on each line
+* *-p, --path* (`str`) -- Path to wav file
+
+* *-y, --y* (`bool`) -- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)
+
+### speakerVerificationDataSetWavFile
+
+Set wav file to a speaker verification data.
+
+```
+speakerVerificationDataSetWavFile -n 'data name' -p '["\some\path\01.wav"]' [-y True]
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of data to set
+
+* *-p, --path* (`str`) -- Path to wav file
+
+* *-y, --y* (`bool`) -- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)
+
+### speakerVerificationDataAddTextFile
+
+Add text file to a speaker verification data.
+
+```
+speakerVerificationDataAddTextFile -n 'data name' -p '["\some\path\01.txt"]' [-y True]
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of data to add on
+
+* *-p, --path* (`str`) -- Path to text file
+
+* *-y, --y* (`bool`) -- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)
+
+### speakerVerificationDataSetTextFile
+
+Set text file to a speaker verification data.
+
+```
+speakerVerificationDataSetTextFile -n 'data name' -p '["\some\path\01.txt"]' [-y True]
+```
+
+Keyword Arguments:
+
+* *-n, --name* (`str`) -- Name of data to set
+
+* *-p, --path* (`str`) -- Path to text file
 
 * *-y, --y* (`bool`) -- The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)

@@ -471,7 +471,7 @@ class Commands:
                                           '-n': ['name', 'str', 'Name of data to add on'],
                                           '-x': ['x', 'str', 'Raw sentence input']
                                       },
-                                      'Parse a raw sentence as input and add it to an intent NER data',
+                                      'Add a raw sentence as an intent NER data.',
                                       "intentNERDataAddInput -n 'data name' -x 'hey how are you'"
                                       ],
 
@@ -480,7 +480,7 @@ class Commands:
                                           '-n': ['name', 'str', 'Name of data to set'],
                                           '-x': ['x', 'str', 'Raw sentence input']
                                       },
-                                      'Parse a raw sentence as input and set it as an intent NER data',
+                                      'Set a raw sentence as an intent NER data.',
                                       "intentNERDataSetInput -n 'data name' -x 'hey how are you'"
                                       ],
 
@@ -502,7 +502,7 @@ class Commands:
                                                                'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
                                                     },
                                                      'Add folder to a speaker verification data.',
-                                                     'speakerVerificationDataAddDataFolder -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                     'speakerVerificationDataAddDataFolder -n \'data name\' -p \'path\' [-y True]'
                                                      ],
 
             'speakerVerificationDataSetDataFolder': [console.speakerVerification_data_set_folder,
@@ -550,7 +550,7 @@ class Commands:
                                                               'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
                                                    },
                                                    'Add wav file to a speaker verification data.',
-                                                   'speakerVerificationDataAddTextFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                   'speakerVerificationDataAddTextFile -n \'data name\' -p \'["\\some\\path\\01.txt"]\' [-y True]'
                                                    ],
 
             'speakerVerificationDataSetTextFile': [console.speakerVerification_data_set_text_file,
@@ -562,7 +562,7 @@ class Commands:
                                                               'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
                                                    },
                                                    'Set wav file to a speaker verification data.',
-                                                   'speakerVerificationDataSetTextFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                   'speakerVerificationDataSetTextFile -n \'data name\' -p \'["\\some\\path\\01.txt"]\' [-y True]'
                                                    ],
 
 

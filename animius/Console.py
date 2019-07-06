@@ -1445,7 +1445,7 @@ i
 
         if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
             data = am.ChatData()
-        elif kwargs['type'] == 'IntentNERD':
+        elif kwargs['type'] == 'IntentNER':
             data = am.IntentNERData()
         elif kwargs['type'] == 'SpeakerVerification':
             data = am.SpeakerVerificationData()
@@ -1581,7 +1581,7 @@ i
 
     def chatbot_data_add_files(self, **kwargs):
         """
-        Parse raw sentences from text files and add them to a chatbot data.
+        Add text files to a chatbot data.
 
         :param kwargs:
 
