@@ -175,8 +175,8 @@ class Console:
         waifu_directory = self.waifu[kwargs['name']].saved_directory
         waifu_name = self.waifu[kwargs['name']].saved_name
 
-        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
-        model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionDirectory']
+        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedChatbotName']
+        model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedChatbotDirectory']
 
         zip_path = os.path.join(kwargs['path'], waifu_name + '.zip')
         zf = zipfile.ZipFile(zip_path, mode='w')
@@ -813,8 +813,8 @@ i
         image = '' if 'image' not in kwargs else kwargs['image']
 
         waifu = am.Waifu(kwargs['name'], description=desc, image=image)
-        waifu.add_combined_prediction_model(model_directory, model_name)
-        waifu.build_input(self.embeddings[kwargs['embedding']].item)
+        waifu.add_combined_chatbot_model(model_directory, model_name)
+        waifu.add_embedding(self.embeddings[kwargs['embedding']].item)
 
         console_item = _ConsoleItem(waifu, os.path.join(self.directories['waifu'], kwargs['name']), kwargs['name'])
         # saving it first to set up its saving location
