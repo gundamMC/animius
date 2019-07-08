@@ -938,7 +938,7 @@
                 
                 
                 <h1 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
-<p>This guide will go over the console module of Animius, <code class="codehilite">am.Console</code>, and how the conosle provides a set a commands to simplify the interaction process while automating a lot of the house-keeping mess.
+<p>This guide will go over the console module of Animius, <code class="codehilite">am.Console</code>, and how the console provides a set of commands to simplify the interaction process while automating a lot of the house-keeping mess.
 <em>This guide assumes that you have already read the <a href="../overview/">Quick Start Overview</a> and is familiar with Animius's models</em></p>
 <h2 id="starting-console">Starting console<a class="headerlink" href="#starting-console" title="Permanent link">&para;</a></h2>
 <p>To start the console, simply type in <code class="codehilite">animius</code> in your command line. If you installed animius with docker, the console should start automatically when you run an image.</p>
@@ -952,13 +952,15 @@ Default (\...\animius\resources\)
 
 <p>Now, the console will wait for your input - a command.</p>
 <h2 id="set-up-a-model-config">Set up a model config<a class="headerlink" href="#set-up-a-model-config" title="Permanent link">&para;</a></h2>
-<p>In order to create a model and ultimately a waifu, we will have to create a model config first. In this example, we will be creating an intent-NER model (You can read more about Intent NER here). To begin, let's create an Intent NER model config called <code class="codehilite">myModelConfig</code>.</p>
+<p>In order to create a model and ultimately a waifu, we will have to create a model config first. 
+In this example, we will be creating an intent-NER model (You can read more about Intent NER here). 
+To begin, let's create an Intent NER model config called <code class="codehilite">myModelConfig</code>.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createModelConfig --name &#39;myModelConfig&#39; --type &#39;IntentNER&#39;
 </pre></div>
 </td></tr></table>
 
 <p>With <code class="codehilite">getModelConfigs</code>, which reveals a list of model configs, you can verify that <code class="codehilite">myModelConfig</code> has been created and loaded.
-If you like, you can also get more insight into the model config values with <code class="codehilite">getModelConfigDetails</code>. (Note that <em>--name</em> and <em>-n</em> can be used interchangably.)</p>
+If you like, you can also get more insight into the model config values with <code class="codehilite">getModelConfigDetails</code>. (Note that <em>--name</em> and <em>-n</em> can be used interchangeably.)</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1
 2
 3</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>getModelConfigs
@@ -969,15 +971,19 @@ getModelConfigDetails -n &#39;myModelConfig&#39;
 
 <p>We will be coming back to the model config after creating the data.</p>
 <h2 id="prepare-the-data">Prepare the data<a class="headerlink" href="#prepare-the-data" title="Permanent link">&para;</a></h2>
-<p>Data is essential when training models. For Intent NER, which takes in English sentences as input, the data object requires a word embedding to both parse data and to create a model. So, let us begin by creating a data named <code class="codehilite">myData</code>.</p>
-<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createData --name &#39;myData&#39; --model_config &#39;myModelConfig&#39;
+<p>Data is essential when training models. 
+For Intent NER, which takes in English sentences as input, the data object requires a word embedding to both parse data and to create a model. 
+So, let us begin by creating a data named <code class="codehilite">myData</code>.</p>
+<table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createData --name &#39;myData&#39; --type &#39;IntentNER&#39;
 </pre></div>
 </td></tr></table>
 
 <p>The data equivalent of <code class="codehilite">getModelConfigs</code> and <code class="codehilite">getModelConfigDetails</code> are <code class="codehilite">getData</code> and <code class="codehilite">getDataDetails</code>. </p>
 <h3 id="setting-up-the-word-embedding">Setting up the word embedding<a class="headerlink" href="#setting-up-the-word-embedding" title="Permanent link">&para;</a></h3>
-<p>Next, download a word embedding (we recommend glove) and the Intent NER Data from our <a href="https://animius.org/">resources page</a>. Extract the zip file and place the folder somewhere safe. </p>
-<p>To enable the parsing of English text, we will have to use a word embedding. We can create an embedding object with <code class="codehilite">createEmbedding</code>:</p>
+<p>Next, download a word embedding (we recommend glove) and the Intent NER Data from our <a href="https://www.animius.org/datasets/">resources page</a>. 
+Extract the zip file and place the folder somewhere safe. </p>
+<p>To enable the parsing of English text, we will have to use a word embedding. 
+We can create an embedding object with <code class="codehilite">createEmbedding</code>:</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createEmbedding --name &#39;myEmbedding&#39; --path &#39;/some/path/to/embedding.txt&#39; --vocab_size 50000
 </pre></div>
 </td></tr></table>
@@ -989,7 +995,8 @@ getModelConfigDetails -n &#39;myModelConfig&#39;
 </pre></div>
 </td></tr></table>
 
-<p>Now, the data will be parsed and stored in <code class="codehilite">myData</code>. You can have a closer look with <code class="codehilite">getModelConfigDetails</code>.</p>
+<p>Now, the data will be parsed and stored in <code class="codehilite">myData</code>. 
+You can have a closer look with <code class="codehilite">getModelConfigDetails</code>.</p>
 <h2 id="setup-the-model">Setup the Model<a class="headerlink" href="#setup-the-model" title="Permanent link">&para;</a></h2>
 <p>After creating model config and data, we can create the model now.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createModel -n &#39;myModel&#39; -t &#39;IntentNER&#39; --model_config &#39;myModelConfig&#39; --data &#39;myData&#39;
@@ -998,7 +1005,9 @@ getModelConfigDetails -n &#39;myModelConfig&#39;
 
 <p>The data equivalent of <code class="codehilite">getModelConfigs</code> and <code class="codehilite">getModelConfigDetails</code> are <code class="codehilite">getModels</code> and <code class="codehilite">getModelDetails</code>. </p>
 <h3 id="training">Training<a class="headerlink" href="#training" title="Permanent link">&para;</a></h3>
-<p>Now we need to train our model, which means making the model learn from the data we prepared. Let's test it out by training 10 epochs. An epoch is just a cycle during which the model trains over the entire training set.</p>
+<p>Now we need to train our model, which means making the model learn from the data we prepared. 
+Let's test it out by training 10 epochs. 
+An epoch is just a cycle during which the model trains over the entire training set.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>train -n &#39;myModel&#39; -e 10
 </pre></div>
 </td></tr></table>
@@ -1006,24 +1015,30 @@ getModelConfigDetails -n &#39;myModelConfig&#39;
 <p>Training will be done in the background by another thread, and you can cancel the training process by using <code class="codehilite">stopTrain -n &#39;myModel&#39;</code>.</p>
 <h2 id="the-console-system">The Console System<a class="headerlink" href="#the-console-system" title="Permanent link">&para;</a></h2>
 <h3 id="saving">Saving<a class="headerlink" href="#saving" title="Permanent link">&para;</a></h3>
-<p>The console provides an automatic clean saving system. To save any object, simple use the command <code class="codehilite">save{Type}</code>. For instance, to save a model config, use <code class="codehilite">saveModelConfig -n &#39;myModelConfig&#39;</code>. To save a data, <code class="codehilite">saveData</code>. And, to save a model, <code class="codehilite">saveModel</code>.</p>
-<p>And, please remember to save the console also, or else your created objects will not be recognized the next time you start animius. To save the console, simply use:</p>
+<p>The console provides an automatic clean saving system. To save any object, simply use the command <code class="codehilite">save{Type}</code>. 
+For instance, to save a model config, use <code class="codehilite">saveModelConfig -n &#39;myModelConfig&#39;</code>. 
+To save data, <code class="codehilite">saveData</code>. And, to save a model, <code class="codehilite">saveModel</code>.</p>
+<p>And, please remember to save the console also, or else your created objects will not be recognized the next time you start animius. 
+To save the console, simply use:</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>save
 </pre></div>
 </td></tr></table>
 
 <h3 id="loading">Loading<a class="headerlink" href="#loading" title="Permanent link">&para;</a></h3>
-<p>A item created in the console will be automatically loaded. However, when restarting a console, an item will not be loaded to save performance. Thus, before an object can be used, it must be loaded with the <code class="codehilite">load{Type}</code> command. This is similar to the save command. (e.g. <code class="codehilite">loadModelConfig</code>, <code class="codehilite">loadData</code>)</p>
+<p>An item created in the console will be automatically loaded. However, when restarting a console, an item will not be loaded to save performance. Thus, before an object can be used, it must be loaded with the <code class="codehilite">load{Type}</code> command. This is similar to the save command. (e.g. <code class="codehilite">loadModelConfig</code>, <code class="codehilite">loadData</code>)</p>
 <h3 id="deleting">Deleting<a class="headerlink" href="#deleting" title="Permanent link">&para;</a></h3>
-<p>If you would like to delete an object from the console, simply use <code class="codehilite">delete{Type}</code>. This will remove the object from console but will not remove the actual file storage. That is, any save files will remain. See <a href="../../file_structure/overview/">file structure</a></p>
+<p>If you would like to delete an object from the console, simply use <code class="codehilite">delete{Type}</code>. 
+This will remove the object from console but will not remove the actual file storage. 
+That is, any save files will remain. See <a href="../../file_structure/overview/">file structure</a></p>
 <h2 id="creating-your-waifu">Creating your Waifu<a class="headerlink" href="#creating-your-waifu" title="Permanent link">&para;</a></h2>
-<p>Now, this tutorial will jump a bit from the IntentNER model to a CombinedChatbot model to give a broader sense of using console. We will assume that we have already created a CombinedChatbot model called 'myCombinedChatbot' and a word embedding named 'myEmbedding'.</p>
+<p>Now, this tutorial will jump a bit from the IntentNER model to a CombinedChatbot model to give a broader sense of using console. 
+We will assume that we have already created a CombinedChatbot model called 'myCombinedChatbot' and a word embedding named 'myEmbedding'.</p>
 <p>Now, create your waifu with <code class="codehilite">createWaifu</code>.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>createWaifu -n &#39;myWaifu&#39; --combined_chatbot_model &#39;myCombinedChatbot&#39; --embedding &#39;myEmbedding&#39;
 </pre></div>
 </td></tr></table>
 
-<p>We can take a sneak peak with <code class="codehilite">getWaifuDetail -n &#39;myWaifu&#39;</code>.</p>
+<p>We can take a sneak peek with <code class="codehilite">getWaifuDetail -n &#39;myWaifu&#39;</code>.</p>
 <h3 id="prediction">Prediction<a class="headerlink" href="#prediction" title="Permanent link">&para;</a></h3>
 <p>To make a prediction (also referred to as inference) using our waifu, simply use <code class="codehilite">waifuPredict</code>.</p>
 <table class="codehilitetable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="codehilite"><pre><span></span>waifuPredict -n &#39;myWaifu&#39; --sentence &#39;Hello world!&#39;
@@ -1031,7 +1046,8 @@ getModelConfigDetails -n &#39;myModelConfig&#39;
 </td></tr></table>
 
 <h2 id="other-commands">Other commands<a class="headerlink" href="#other-commands" title="Permanent link">&para;</a></h2>
-<p>We have covered the basics of using commands to interact with the console in this tutorial. There are, nevertheless, much more commands that you can use to customize your workflow and your virutal assistant.</p>
+<p>We have covered the basics of using commands to interact with the console in this tutorial. 
+There are, nevertheless, much more commands that you can use to customize your workflow and your virtual assistant.</p>
 <p>To learn more about commands, visit the <a href="../../commands/overview/">commands section</a>.</p>
                 
                   
