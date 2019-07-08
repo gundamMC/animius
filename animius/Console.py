@@ -1188,11 +1188,15 @@ i
                                                                       save_path=kwargs['save_path'])
                 else:
                     result = self.models[kwargs['name']].item.predict(kwargs['input_data'])
+
         elif 'input' in kwargs:
             if 'save_path' in kwargs:
                 result = self.models[kwargs['name']].item.predict(kwargs['input'], save_path=kwargs['save_path'])
             else:
                 result = self.models[kwargs['name']].item.predict(kwargs['input'])
+
+        else:
+            result = ''
 
         return result
 
@@ -1438,7 +1442,7 @@ i
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'type', 'model_config'])
+                                hard_requirements=['name', 'type'])
 
         if kwargs['name'] in self.data:
             raise NameAlreadyExistError("The name {0} is already used by another data".format(kwargs['name']))

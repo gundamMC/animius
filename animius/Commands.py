@@ -359,11 +359,10 @@ class Commands:
             'createData': [console.create_data,
                            {
                                '-n': ['name', 'str', 'Name of data'],
-                               '-t': ['type', 'str', 'Type of data (based on the model)'],
-                               '-c': ['model_config', 'str', 'Name of model config']
+                               '-t': ['type', 'str', 'Type of data (based on the model)']
                            },
                            'Create a data with empty values',
-                           "createData -n 'data name' -t 'ModelType' -c 'model config name"
+                           "createData -n 'data name' -t 'ModelType'"
                            ],
 
             'dataAddEmbedding': [console.data_add_embedding,

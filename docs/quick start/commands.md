@@ -47,14 +47,14 @@ For Intent NER, which takes in English sentences as input, the data object requi
 So, let us begin by creating a data named `myData`.
 
 ```
-createData --name 'myData' --model_config 'myModelConfig'
+createData --name 'myData' --type 'IntentNER'
 ```
 
 The data equivalent of `getModelConfigs` and `getModelConfigDetails` are `getData` and `getDataDetails`. 
 
 ### Setting up the word embedding
 
-Next, download a word embedding (we recommend glove) and the Intent NER Data from our [resources page](https://animius.org/). 
+Next, download a word embedding (we recommend glove) and the Intent NER Data from our [resources page](https://www.animius.org/datasets/). 
 Extract the zip file and place the folder somewhere safe. 
 
 To enable the parsing of English text, we will have to use a word embedding. 
