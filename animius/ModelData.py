@@ -246,17 +246,21 @@ class ChatData(Data):
         else:
             item_x, item_y = item  # try to unpack
 
-        result_x, result_y, lengths_x, lengths_y, result_y_target =\
+        # result_x, result_y, lengths_x, lengths_y, result_y_target
+        result = \
             am.Chatbot.Parse.data_to_index(item_x,
                                            item_y,
                                            self.values['embedding'].words_to_index,
                                            max_seq=self.model_config.model_structure['max_sequence'])
 
+        # cast to int32 (as py defaults to int64 on certain platforms)
+        result = (np.array(x, np.int32) for x in result)
+
         if self.enable_cache:
-            self.cache[item] = result_x, result_y, lengths_x, lengths_y, result_y_target
+            self.cache[item] = result
             return self.cache[item]
         else:
-            return result_x, result_y, lengths_x, lengths_y, result_y_target
+            return result
 
     @property
     def steps_per_epoch(self):
