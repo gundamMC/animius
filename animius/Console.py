@@ -1096,12 +1096,12 @@ i
         self.models[kwargs['name']].item.set_data(self.data[kwargs['data']].item)
 
     @staticmethod
-    def train_complete_callback(print_string, model_name, training_dict, empty):
+    def train_complete_callback(print_string, model_name, training_dict, future_object):
         """
         Called when a model finishes training. See train() for details
         """
         print(print_string)
-        print(empty)
+        future_object.result()
         training_dict.pop(model_name)
 
     def train(self, **kwargs):
@@ -1128,7 +1128,7 @@ i
 
         future = self.training_pool.submit(self.models[kwargs['name']].item.train,
                                            epochs=kwargs['epoch'],
-                                           CancellationToken=cancelToken)
+                                           cancellation_token=cancelToken)
 
         callback_string = "Model {0} has finished training for {1} epochs!".format(kwargs['name'], kwargs['epoch'])
 
