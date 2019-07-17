@@ -233,8 +233,9 @@ class ChatData(Data):
                                                         go=True,
                                                         eos=True)
             if self.enable_cache:
-                self.cache[item] = x, x_length
-            return x, x_length
+                # turn into int32 first (see issue #3)
+                self.cache[item] = np.array(x, np.int32), np.array(x_length, np.int32)
+            return np.array(x, np.int32), np.array(x_length, np.int32)
 
         if self.enable_cache and item in self.cache:
             return self.cache[item]
