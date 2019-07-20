@@ -119,7 +119,8 @@ class Commands:
                                 '-c': ['combined_chatbot_model', 'str',
                                        'Name or directory of combined chatbot model to use'],
                                 '-e': ['embedding', 'str', 'Name of word embedding to use'],
-                                '-d': ['description', 'str', 'Description of waifu (Optional)']
+                                '-d': ['description', 'str', 'Description of waifu (Optional)'],
+                                '-i': ['image', 'str', 'Image of waifu. (path or base64 string) (Optional)']
                             },
                             'Create a waifu.',
                             'createWaifu -n \'waifu name\' -c \'name of model\' -e \'name of embedding\''
@@ -156,6 +157,17 @@ class Commands:
                                'Get the detail information of a waifu.',
                                'getWaifuDetail -n \'waifu name\''
                                ],
+
+            'editWaifu': [console.edit_waifu,
+                          {
+                              '-n': ['name', 'str', 'Name of waifu'],
+                              '-d': ['description', 'str', 'Description of waifu (Optional)'],
+                              '-i': ['image', 'str', 'Image of waifu. (path or base64 string) (Optional)'],
+                              '-nn': ['new_name', 'str', 'Change the name of waifu (Optional)']
+                          },
+                          'Get the detail information of a waifu.',
+                          'getWaifuDetail -n \'waifu name\''
+                          ],
 
             'waifuPredict': [console.waifu_predict,
                              {
@@ -244,11 +256,12 @@ class Commands:
             'predict': [console.predict,
                         {
                             '-n': ['name', 'str', 'Name of model'],
-                            '-i': ['input_data', 'str', 'Name of input data'],
+                            '-id': ['input_data', 'str', 'Name of input data. (Optional)'],
+                            '-i': ['input', 'str', 'String to input. (Optional)'],
                             '-s': ['save_path', 'str', 'Path to save result (Optional)']
                         },
-                        'Make predictions with a model',
-                        "predict -n 'model name' -i 'name of input data' -s '\\some\\path.txt'"
+                        'Make predictions with a model.',
+                        "predict -n 'model name' -id 'name of input data' -s '\\some\\path.txt'"
                         ],
 
             # endregion
@@ -346,11 +359,10 @@ class Commands:
             'createData': [console.create_data,
                            {
                                '-n': ['name', 'str', 'Name of data'],
-                               '-t': ['type', 'str', 'Type of data (based on the model)'],
-                               '-c': ['model_config', 'str', 'Name of model config']
+                               '-t': ['type', 'str', 'Type of data (based on the model)']
                            },
                            'Create a data with empty values',
-                           "createData -n 'data name' -t 'ModelType' -c 'model config name"
+                           "createData -n 'data name' -t 'ModelType'"
                            ],
 
             'dataAddEmbedding': [console.data_add_embedding,
@@ -423,98 +435,135 @@ class Commands:
                                       "chatbotDataAddCornell -n 'data name' -mcp '\\some\\cornell\\movie_conversations.txt' -mlp '\\some\\cornell\\movie_lines.txt'"
                                       ],
 
-            'chatbotDataAddParseSentences': [console.chatbot_data_add_parse_sentences,
+            'chatbotDataAddFiles': [console.chatbot_data_add_files,
+                                    {
+                                        '-n': ['name', 'str', 'Name of data to add on'],
+                                        '-x': ['x_path', 'str',
+                                               'Path to a UTF-8 file containing a raw sentence input on each line'],
+                                        '-y': ['y_path', 'str',
+                                               'Path to a UTF-8 file containing a raw sentence output on each line']
+                                    },
+                                    'Parse raw sentences from text files and add them to a chatbot data',
+                                    "chatbotDataAddFiles -n 'data name' -x '\\some\\path\\x.txt' -y '\\some\\path\\y.txt'"
+                                    ],
+
+            'chatbotDataAddInput': [console.chatbot_data_add_input,
+                                    {
+                                        '-n': ['name', 'str', 'Name of data to add on'],
+                                        '-x': ['x', 'str', 'Raw sentence input']
+                                    },
+                                    'Parse a raw sentence as input and add it to a chatbot data',
+                                    "chatbotDataAddInput -n 'data name' -x 'hey how are you'"
+                                    ],
+
+            'chatbotDataSetInput': [console.chatbot_data_set_input,
+                                    {
+                                        '-n': ['name', 'str', 'Name of data to set'],
+                                        '-x': ['x', 'str', 'Raw sentence input']
+                                    },
+                                    'Parse a raw sentence as input and set it as a chatbot data',
+                                    "chatbotDataSetInput -n 'data name' -x 'hey how are you'"
+                                    ],
+
+            'intentNERDataAddInput': [console.intentNER_data_add_input,
+                                      {
+                                          '-n': ['name', 'str', 'Name of data to add on'],
+                                          '-x': ['x', 'str', 'Raw sentence input']
+                                      },
+                                      'Add a raw sentence as an intent NER data.',
+                                      "intentNERDataAddInput -n 'data name' -x 'hey how are you'"
+                                      ],
+
+            'intentNERDataSetInput': [console.intentNER_data_set_input,
+                                      {
+                                          '-n': ['name', 'str', 'Name of data to set'],
+                                          '-x': ['x', 'str', 'Raw sentence input']
+                                      },
+                                      'Set a raw sentence as an intent NER data.',
+                                      "intentNERDataSetInput -n 'data name' -x 'hey how are you'"
+                                      ],
+
+            'intentNERDataSetIntentFolder': [console.intentNER_data_set_intent_folder,
                                              {
                                                  '-n': ['name', 'str', 'Name of data to add on'],
-                                                 '-x': ['x', 'list<str>',
-                                                        'List of strings, each representing a sentence input'],
-                                                 '-y': ['y', 'list<str>',
-                                                        'List of strings, each representing a sentence output']
+                                                 '-p': ['path', 'str', 'Path to a folder contains input files']
                                              },
-                                             'Add Cornell dataset to a chatbot data',
-                                             "chatbotDataAddParseSentences -n 'data name' -x '['some input']' -y '['some output']'"
+                                             'Set folder for IntentNER Data.',
+                                             "intentNERDataSetIntentFolder -n 'data name' -p '\\some\\path\\to\\intents'"
                                              ],
 
-            'chatbotDataAddParseFile': [console.chatbot_data_add_parse_file,
-                                        {
-                                            '-n': ['name', 'str', 'Name of data to add on'],
-                                            '-x': ['x_path', 'str',
-                                                   'Path to a UTF-8 file containing a raw sentence input on each line'],
-                                            '-y': ['y_path', 'str',
-                                                   'Path to a UTF-8 file containing a raw sentence output on each line']
-                                        },
-                                        'Parse raw sentences from text files and add them to a chatbot data',
-                                        "chatbotDataAddParseFile -n 'data name' -x '\\some\\path\\x.txt' -y '\\some\\path\\y.txt'"
-                                        ],
-
-            'chatbotDataAddParseInput': [console.chatbot_data_add_parse_input,
-                                         {
-                                             '-n': ['name', 'str', 'Name of data to add on'],
-                                             '-x': ['x', 'str', 'Raw sentence input']
-                                         },
-                                         'Parse a raw sentence as input and add it to a chatbot data',
-                                         "chatbotDataAddParseInput -n 'data name' -x 'hey how are you'"
-                                         ],
-
-            'chatbotDataSetParseInput': [console.chatbot_data_set_parse_input,
-                                         {
-                                             '-n': ['name', 'str', 'Name of data to set'],
-                                             '-x': ['x', 'str', 'Raw sentence input']
-                                         },
-                                         'Parse a raw sentence as input and set it as a chatbot data',
-                                         "chatbotDataSetParseInput -n 'data name' -x 'hey how are you'"
-                                         ],
-
-            'intentNERDataAddParseInput': [console.intentNER_data_add_parse_input,
-                                           {
-                                               '-n': ['name', 'str', 'Name of data to add on'],
-                                               '-x': ['x', 'str', 'Raw sentence input']
-                                           },
-                                           'Parse a raw sentence as input and add it to an intent NER data',
-                                           "intentNERDataAddParseInput -n 'data name' -x 'hey how are you'"
-                                           ],
-
-            'intentNERDataSetParseInput': [console.intentNER_data_set_parse_input,
-                                           {
-                                               '-n': ['name', 'str', 'Name of data to set'],
-                                               '-x': ['x', 'str', 'Raw sentence input']
-                                           },
-                                           'Parse a raw sentence as input and set it as an intent NER data',
-                                           "intentNERDataSetParseInput -n 'data name' -x 'hey how are you'"
-                                           ],
-
-            'intentNERDataAddParseDatafolder': [console.intentNER_data_add_parse_data_folder,
-                                                {
-                                                    '-n': ['name', 'str', 'Name of data to add on'],
-                                                    '-p': ['path', 'str', 'Path to a folder contains input files']
-                                                },
-                                                'Parse files from a folder and add them to a chatbot data',
-                                                "intentNERDataAddParseDatafolder -n 'data name' -p '\\some\\path\\to\\intents'"
-                                                ],
-
-            'speakerVerificationDataAddDataPaths': [console.speakerVerification_data_add_data_paths,
-                                                    {
+            'speakerVerificationDataAddDataFolder': [console.speakerVerification_data_add_folder,
+                                                     {
                                                         '-n': ['name', 'str', 'Name of data to add on'],
-                                                        '-p': ['-path', 'list<str>',
-                                                               'List of string paths to raw audio files'],
+                                                         '-p': ['-path', 'str',
+                                                                'Path to folder to add on'],
                                                         '-y': ['y', 'bool',
                                                                'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
                                                     },
-                                                    'Parse and add raw audio files to a speaker verification data',
-                                                    'speakerVerificationDataAddDataPaths -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
-                                                    ],
+                                                     'Add folder to a speaker verification data.',
+                                                     'speakerVerificationDataAddDataFolder -n \'data name\' -p \'path\' [-y True]'
+                                                     ],
 
-            'speakerVerificationDataAddDataFile': [console.speakerVerification_data_add_data_file,
+            'speakerVerificationDataSetDataFolder': [console.speakerVerification_data_set_folder,
+                                                     {
+                                                         '-n': ['name', 'str', 'Name of data to add on'],
+                                                         '-p': ['-path', 'str',
+                                                                'Path to folder to set'],
+                                                         '-y': ['y', 'bool',
+                                                                'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                     },
+                                                     'Set folder to a speaker verification data.',
+                                                     'speakerVerificationDataSetDataFolder -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                     ],
+
+            'speakerVerificationDataAddWavFile': [console.speakerVerification_data_add_wav_file,
+                                                  {
+                                                      '-n': ['name', 'str', 'Name of data to add on'],
+                                                      '-p': ['-path', 'str',
+                                                             'Path to wav file to add on'],
+                                                      '-y': ['y', 'bool',
+                                                             'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                  },
+                                                  'Add wav file to a speaker verification data.',
+                                                  'speakerVerificationDataAddWavFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                  ],
+
+            'speakerVerificationDataSetWavFile': [console.speakerVerification_data_set_wav_file,
+                                                  {
+                                                      '-n': ['name', 'str', 'Name of data to add on'],
+                                                      '-p': ['-path', 'str',
+                                                             'Path to wav file to set'],
+                                                      '-y': ['y', 'bool',
+                                                             'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                  },
+                                                  'Set wav file to a speaker verification data.',
+                                                  'speakerVerificationDataSetWavFile -n \'data name\' -p \'["\\some\\path\\01.wav"]\' [-y True]'
+                                                  ],
+
+            'speakerVerificationDataAddTextFile': [console.speakerVerification_data_add_text_file,
                                                    {
                                                        '-n': ['name', 'str', 'Name of data to add on'],
-                                                       '-p': ['path', 'str',
-                                                              'Path to file containing a path of a raw audio file on each line'],
+                                                       '-p': ['-path', 'str',
+                                                              'Path to text file to add on'],
                                                        '-y': ['y', 'bool',
                                                               'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
                                                    },
-                                                   'Read paths to raw audio files and add them to a speaker verification data',
-                                                   "speakerVerificationDataAddDataFile -n 'data name' -p '\\some\\path\x07udios.txt' -y True"
+                                                   'Add wav file to a speaker verification data.',
+                                                   'speakerVerificationDataAddTextFile -n \'data name\' -p \'["\\some\\path\\01.txt"]\' [-y True]'
                                                    ],
+
+            'speakerVerificationDataSetTextFile': [console.speakerVerification_data_set_text_file,
+                                                   {
+                                                       '-n': ['name', 'str', 'Name of data to add on'],
+                                                       '-p': ['-path', 'str',
+                                                              'Path to text file to set'],
+                                                       '-y': ['y', 'bool',
+                                                              'The label (True for is speaker and vice versa) of the audio files. Include for training, leave out for prediction. (Optional)']
+                                                   },
+                                                   'Set wav file to a speaker verification data.',
+                                                   'speakerVerificationDataSetTextFile -n \'data name\' -p \'["\\some\\path\\01.txt"]\' [-y True]'
+                                                   ],
+
 
             'getEmbeddingDetails': [console.get_embedding_details,
                                     {
@@ -557,8 +606,9 @@ class Commands:
 
             'startServer': [console.start_server,
                             {
-                                '-p': ['port', 'int', 'Port to listen on'], '-l': ['local', 'bool',
-                                                                                   'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
+                                '-p': ['port', 'int', 'Port to listen on'],
+                                '-l': ['local', 'bool',
+                                       'If the server is running locally (server will listen on 127.0.0.1 if this is true or not set) (Optional)'],
                                 '-pwd': ['password', 'str', 'Password of server (Optional)'],
                                 '-c': ['max_clients', 'int', 'Maximum number of clients (Optional)']
                             },
@@ -604,7 +654,7 @@ class Commands:
 
                      },
                      'Save the console. (This does not save individual items such as models and waifus.)',
-                     'save '
+                     'save'
                      ],
 
             's': [console.save,
@@ -612,6 +662,26 @@ class Commands:
 
                   },
                   'Save the console. (This does not save individual items such as models and waifus.)',
-                  'save '
-                  ]
+                  'save'
+                  ],
+
+            'getSystemInfo': [console.get_system_info,
+                              {
+
+                              },
+                              'Get System Info such as CPU usage, Memory usage, etc.',
+                              'get System Info'
+                              ],
+
+            'addRegex': [console.add_regex,
+                         {
+                             '-n': ['name', 'str', 'Name of waifu'],
+                             '-r': ['regex', 'str', 'Regex rule'],
+                             '-i': ['intent', 'str', 'Intent'],
+                             '-c': ['chat', 'str', 'Chat message']
+                         },
+                         'Add regex rule to a waifu',
+                         "addRegex -n 'waifu name' -r 'how's the weather in (.+)' -i 'getWeather'"
+                         ],
+
         }

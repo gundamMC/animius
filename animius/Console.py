@@ -1,11 +1,15 @@
-import animius as am
-import os
-import zipfile
+import base64
 import json
+import os
+import queue
+import threading
+import zipfile
 from ast import literal_eval
-from shlex import split as arg_split
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from shlex import split as arg_split
+
+import animius as am
 
 
 class ArgumentError(Exception):
@@ -48,7 +52,7 @@ class CancellationToken:
 class Console:
 
     def __init__(self, init_directory=None):
-
+        self.queue = None
         self.commands = None
 
         animius_dir = os.path.dirname(os.path.realpath(__file__))
@@ -171,8 +175,8 @@ class Console:
         waifu_directory = self.waifu[kwargs['name']].saved_directory
         waifu_name = self.waifu[kwargs['name']].saved_name
 
-        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionName']
-        model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedPredictionDirectory']
+        model_name = self.waifu[kwargs['name']].item.config['models']['CombinedChatbotName']
+        model_directory = self.waifu[kwargs['name']].item.config['models']['CombinedChatbotDirectory']
 
         zip_path = os.path.join(kwargs['path'], waifu_name + '.zip')
         zf = zipfile.ZipFile(zip_path, mode='w')
@@ -588,6 +592,7 @@ i
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of waifu
+        * *base64* (``boolean``) -- Convert image to base64 (Optional)
         """
 
         Console.check_arguments(kwargs,
@@ -597,6 +602,11 @@ i
             raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
 
         tmp = dict(self.waifu[kwargs['name']].item.config)
+
+        if 'base64' in kwargs and kwargs['base64'] and os.path.isfile(tmp['image']):
+            with open(tmp['image'], "rb") as imageFile:
+                tmp['image'] = base64.b64encode(imageFile.read())
+                tmp['image'].decode()
 
         tmp['saved_directory'] = self.waifu[kwargs['name']].saved_directory
         tmp['saved_name'] = self.waifu[kwargs['name']].saved_name
@@ -772,6 +782,7 @@ i
         * *combined_chatbot_model* (``str``) -- Name or directory of combined chatbot model to use
         * *embedding* (``str``) -- Name of embedding
         * *description* (``str``) -- Description of waifu. Optional
+        * *image* (``str``) -- Image of waifu. (path or base64 string) Optional
         """
 
         Console.check_arguments(kwargs,
@@ -798,15 +809,51 @@ i
 
         desc = '' if 'description' not in kwargs else kwargs['description']
 
-        waifu = am.Waifu(kwargs['name'], description=desc)
-        waifu.add_combined_prediction_model(model_directory, model_name)
-        waifu.build_input(self.embeddings[kwargs['embedding']].item)
+        # [file_type, base64 string] or 'file_path'
+        image = '' if 'image' not in kwargs else kwargs['image']
+
+        waifu = am.Waifu(kwargs['name'], description=desc, image=image)
+        waifu.add_combined_chatbot_model(model_directory, model_name)
+        waifu.add_embedding(self.embeddings[kwargs['embedding']].item)
 
         console_item = _ConsoleItem(waifu, os.path.join(self.directories['waifu'], kwargs['name']), kwargs['name'])
         # saving it first to set up its saving location
         console_item.save()
 
         self.waifu[kwargs['name']] = console_item
+
+    def edit_waifu(self, **kwargs):
+        """
+        Edit details of waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *new_name* (``str``) -- Change the name of waifu Optional
+        * *image* (``str``) -- Set image of waifu (path or base64 string) Optional
+        * *description* (``str``) -- Change Description of waifu. Optional
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'combined_chatbot_model', 'embedding'])
+
+        if kwargs['name'] in self.waifu:
+            raise NameNotFoundError("Waifu {0} not found".format(kwargs['name']))
+
+        waifu = self.waifu[kwargs['name']]
+
+        if 'image' in kwargs['waifu']:
+            waifu.config['image'] = kwargs['image']
+
+        if 'description' in kwargs['waifu']:
+            waifu.config['description'] = kwargs['description']
+
+        if 'new_name' in kwargs['waifu']:
+            waifu.config['name'] = kwargs['new_name']
+            self.waifu.pop(kwargs['name'])
+            self.waifu['new_name'] = waifu
+            waifu.save()
 
     def delete_waifu(self, **kwargs):
         """
@@ -843,6 +890,30 @@ i
             raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
 
         self.waifu[kwargs['name']].save()
+
+    def add_regex(self, **kwargs):
+        """
+        Add regex rule to a waifu
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of waifu
+        * *regex* (``str``) -- Regex rule
+        * *intent* (``str``) -- Intent (Optional)
+        * *chat* (``str``) -- Chat message(Optional)
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'regex'])
+        if kwargs['name'] not in self.waifu:
+            raise NameNotFoundError("Waifu \"{0}\" not found".format(kwargs['name']))
+
+        if 'chat' in kwargs:
+            self.waifu[kwargs['name']].item.config['regex_rule'][kwargs['regex']] = [False, kwargs['chat']]
+
+        elif 'intent' in kwargs:
+            self.waifu[kwargs['name']].item.config['regex_rule'][kwargs['regex']] = [True, kwargs['intent']]
 
     def load_waifu(self, **kwargs):
         """
@@ -1095,21 +1166,39 @@ i
         :param kwargs:
 
         :Keyword Arguments:
-        * *name* (``str``) -- Name of model to predict
-        * *input_data* (``str``) -- Name of input data
-        * *save_path* (``str``) -- Path to save result
+        * *name* (``str``) -- Name of model to predict.
+        * *input_data* (``str``) -- Name of input data. (Optional)
+        * *input* (``str``) -- String to input. (Optional)
+        * *save_path* (``str``) -- Path to save result. (Optional)
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'input_data'],
+                                hard_requirements=['name'],
                                 soft_requirements=['save_path'])
 
         if kwargs['name'] not in self.models:
             raise NameNotFoundError("Model \"{0}\" not found".format(kwargs['name']))
-        if kwargs['input_data'] not in self.data:
-            raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
 
-        return self.models[kwargs['name']].item.predict(kwargs['input_data'], save_path=kwargs['save_path'])
+        if 'input_data' in kwargs:
+            if kwargs['input_data'] not in self.data:
+                raise NameNotFoundError("Data \"{0}\" not found".format(kwargs['input_data']))
+            else:
+                if 'save_path' in kwargs:
+                    result = self.models[kwargs['name']].item.predict(kwargs['input_data'],
+                                                                      save_path=kwargs['save_path'])
+                else:
+                    result = self.models[kwargs['name']].item.predict(kwargs['input_data'])
+
+        elif 'input' in kwargs:
+            if 'save_path' in kwargs:
+                result = self.models[kwargs['name']].item.predict(kwargs['input'], save_path=kwargs['save_path'])
+            else:
+                result = self.models[kwargs['name']].item.predict(kwargs['input'])
+
+        else:
+            result = ''
+
+        return result
 
     def freeze_graph(self, **kwargs):
         """
@@ -1350,26 +1439,22 @@ i
         :Keyword Arguments:
         * *name* (``str``) -- Name of data
         * *type* (``str``) -- Type of data (based on the model)
-        * *model_config* (``str``) -- Name of model config
         """
 
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'type', 'model_config'])
+                                hard_requirements=['name', 'type'])
 
         if kwargs['name'] in self.data:
             raise NameAlreadyExistError("The name {0} is already used by another data".format(kwargs['name']))
 
-        if kwargs['model_config'] in self.model_configs:
-            if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
-                data = am.ChatbotData(self.model_configs[kwargs['model_config']].item)
-            elif kwargs['type'] == 'IntentNERD':
-                data = am.IntentNERData(self.model_configs[kwargs['model_config']].item)
-            elif kwargs['type'] == 'SpeakerVerification':
-                data = am.SpeakerVerificationData(self.model_configs[kwargs['model_config']].item)
-            else:
-                raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
+        if kwargs['type'] == 'Chatbot' or kwargs['type'] == 'CombinedChatbot':
+            data = am.ChatData()
+        elif kwargs['type'] == 'IntentNER':
+            data = am.IntentNERData()
+        elif kwargs['type'] == 'SpeakerVerification':
+            data = am.SpeakerVerificationData()
         else:
-            raise KeyError("Model config \"{0}\" not found.".format(kwargs['model_config']))
+            raise KeyError("Data type \"{0}\" not found.".format(kwargs['type']))
 
         # saving it first to set up its saving location
         console_item = _ConsoleItem(data, os.path.join(self.directories['data'], kwargs['name']), kwargs['name'])
@@ -1468,7 +1553,7 @@ i
                                 hard_requirements=['name', 'path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
                 self.data[kwargs['name']].item.add_twitter(kwargs['path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
@@ -1490,7 +1575,7 @@ i
                                 hard_requirements=['name', 'movie_conversations_path', 'movie_lines_path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
                 self.data[kwargs['name']].item.add_cornell(kwargs['movie_conversations_path'],
                                                            kwargs['movie_lines_path'])
             else:
@@ -1498,31 +1583,9 @@ i
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def chatbot_data_add_parse_sentences(self, **kwargs):
+    def chatbot_data_add_files(self, **kwargs):
         """
-        Parse raw sentences and add them to a chatbot data.
-
-        :param kwargs:
-
-        :Keyword Arguments:
-        * *name* (``str``) -- Name of data to add on
-        * *x* (``list<str>``) -- List of strings, each representing a sentence input
-        * *y* (``list<str>``) -- List of strings, each representing a sentence output
-        """
-        Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'x', 'y'])
-
-        if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_parse_sentences(kwargs['x'], kwargs['y'])
-            else:
-                raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
-        else:
-            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
-
-    def chatbot_data_add_parse_file(self, **kwargs):
-        """
-        Parse raw sentences from text files and add them to a chatbot data.
+        Add text files to a chatbot data.
 
         :param kwargs:
 
@@ -1535,14 +1598,14 @@ i
                                 hard_requirements=['name', 'x_path', 'y_path'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_parse_file(kwargs['x_path'], kwargs['y_path'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
+                self.data[kwargs['name']].item.add_files(kwargs['x_path'], kwargs['y_path'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def chatbot_data_add_parse_input(self, **kwargs):
+    def chatbot_data_add_input(self, **kwargs):
         """
         Parse a raw sentence as input and add it to a chatbot data.
 
@@ -1556,14 +1619,14 @@ i
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.add_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
+                self.data[kwargs['name']].item.add_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def chatbot_data_set_parse_input(self, **kwargs):
+    def chatbot_data_set_input(self, **kwargs):
         """
         Parse a raw sentence as input and set it as a chatbot data.
 
@@ -1577,35 +1640,35 @@ i
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
-            if isinstance(self.data[kwargs['name']].item, am.ChatbotData):
-                self.data[kwargs['name']].item.set_parse_input(kwargs['x'])
+            if isinstance(self.data[kwargs['name']].item, am.ChatData):
+                self.data[kwargs['name']].item.set_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a ChatbotData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def intentNER_data_add_parse_data_folder(self, **kwargs):
+    def intentNER_data_set_intent_folder(self, **kwargs):
         """
-        Parse files from a folder and add them to a chatbot data.
+        Set folder for IntentNER Data.
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *path* (``str``) -- Path to a folder contains input files
+        * *path* (``str``) -- Path to the intent folder
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'path'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.add_parse_data_folder(kwargs['path'])
+                self.data[kwargs['name']].item.set_intent_folder(kwargs['path'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def intentNER_data_add_parse_input(self, **kwargs):
+    def intentNER_data_add_input(self, **kwargs):
         """
         Parse a raw sentence as input and add it to an intent NER data.
 
@@ -1615,18 +1678,19 @@ i
         * *name* (``str``) -- Name of data to add on
         * *x* (``str``) -- Raw sentence input
         """
+
         Console.check_arguments(kwargs,
                                 hard_requirements=['name', 'x'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.add_parse_input(kwargs['x'])
+                self.data[kwargs['name']].item.add_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def intentNER_data_set_parse_input(self, **kwargs):
+    def intentNER_data_set_input(self, **kwargs):
         """
         Parse a raw sentence as input and set it as an intent NER data.
 
@@ -1641,53 +1705,149 @@ i
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.IntentNERData):
-                self.data[kwargs['name']].item.set_parse_input(kwargs['x'])
+                self.data[kwargs['name']].item.set_input(kwargs['x'])
             else:
                 raise KeyError("Data \"{0}\" is not a IntentNERData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def speakerVerification_data_add_data_paths(self, **kwargs):
+    def speakerVerification_data_add_folder(self, **kwargs):
         """
-        Parse and add raw audio files to a speaker verification data
+        Add folder to a speaker verification data
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *paths* (``list<str>``) -- List of string paths to raw audio files
+        * *path* (``str``) -- Path to folder to add on
         * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'paths'],
+                                hard_requirements=['name', 'path'],
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-                self.data[kwargs['name']].item.add_parse_data_paths(kwargs['paths'], kwargs['y'])
+                self.data[kwargs['name']].item.add_folder(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
             raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
 
-    def speakerVerification_data_add_data_file(self, **kwargs):
+    def speakerVerification_data_set_folder(self, **kwargs):
         """
-        Read paths to raw audio files and add them to a speaker verification data
+        Set folder to a speaker verification data
 
         :param kwargs:
 
         :Keyword Arguments:
         * *name* (``str``) -- Name of data to add on
-        * *path* (``str``) -- Path to file containing a path of a raw audio file on each line
+        * *path* (``str``) -- Path to folder to set
         * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
         """
         Console.check_arguments(kwargs,
-                                hard_requirements=['name', 'paths'],
+                                hard_requirements=['name', 'path'],
                                 soft_requirements=['y'])
 
         if kwargs['name'] in self.data:
             if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
-                self.data[kwargs['name']].item.add_parse_data_file(kwargs['paths'], kwargs['y'])
+                self.data[kwargs['name']].item.set_folder(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    def speakerVerification_data_add_wav_file(self, **kwargs):
+        """
+        Add wav file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to wav file to add on
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.add_wav_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    def speakerVerification_data_set_wav_file(self, **kwargs):
+        """
+        Set wav file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to wav file to set
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.set_wav_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    def speakerVerification_data_add_text_file(self, **kwargs):
+        """
+        Add text file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to text file to add on
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.add_text_file(kwargs['paths'], kwargs['y'])
+            else:
+                raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
+        else:
+            raise KeyError("Data \"{0}\" not found.".format(kwargs['name']))
+
+    def speakerVerification_data_set_text_file(self, **kwargs):
+        """
+        Set wav file to a speaker verification data
+
+        :param kwargs:
+
+        :Keyword Arguments:
+        * *name* (``str``) -- Name of data to add on
+        * *path* (``str``) -- Path to wav file to set
+        * *y* (``bool``) -- The label (True for is speaker and vice versa) of the audio files. Optional. Include for training, leave out for prediction.
+        """
+
+        Console.check_arguments(kwargs,
+                                hard_requirements=['name', 'path'],
+                                soft_requirements=['y'])
+
+        if kwargs['name'] in self.data:
+            if isinstance(self.data[kwargs['name']].item, am.SpeakerVerificationData):
+                self.data[kwargs['name']].item.set_text_file(kwargs['paths'], kwargs['y'])
             else:
                 raise KeyError("Data \"{0}\" is not a SpeakerVerificationData.".format(kwargs['name']))
         else:
@@ -1798,6 +1958,23 @@ i
         else:
             raise KeyError("Embedding \"{0}\" not found.".format(kwargs['name']))
 
+    def get_system_info(self):
+        """
+        Get System Info such as CPU usage, Memory usage, etc.
+        """
+
+        # {'cpu_percent': 25.5, 'cpu_count': 6, 'mem_total': 16307, 'mem_available': 11110, 'mem_percent': 31.9,
+        # 'disk_total': 339338, 'disk_used': 237581, 'disk_percent': 70.0, 'boot_time': 1556635120.0,
+        # 'gpu_driver_version': '430.39', 'gpu_device_list': [
+        # {'gpu_name': 'GeForce GTX 1060 6GB', 'gpu_mem_total': 6144, 'gpu_mem_used': 449, 'gpu_mem_percent': 0}]}
+
+        system_info = am.Utils.get_system_info()
+
+        for key in system_info:
+            print(key, ':', system_info[key])
+
+        return system_info
+
     def start_server(self, **kwargs):
         """
         Start server
@@ -1812,7 +1989,7 @@ i
         """
         Console.check_arguments(kwargs,
                                 hard_requirements=['port'],
-                                soft_requirements=['local', 'pwd', 'max_clients'])
+                                soft_requirements=['local', 'password', 'max_clients'])
 
         if self.socket_server is not None:
             raise ValueError("A server is already running on this console.")
@@ -1820,14 +1997,21 @@ i
         if kwargs['max_clients'] is None:
             kwargs['max_clients'] = 10
 
-        if kwargs['pwd'] is None:
-            kwargs['pwd'] = ''
+        if kwargs['password'] is None:
+            kwargs['password'] = ''
 
         if kwargs['local'] is None:
             kwargs['local'] = True
 
         self.socket_server = \
-            am.start_server(self, kwargs['port'], kwargs['local'], kwargs['pwd'], kwargs['max_clients'])
+            self.server(self, kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
+
+    def server(self, console, port, local=True, password='', max_clients=10):
+        from .SocketServer import _ServerThread
+        thread = _ServerThread(console, port, local, password, max_clients)
+        thread.daemon = True
+        thread.start()
+        return thread
 
     def stop_server(self, **kwargs):
         """
@@ -1847,29 +2031,32 @@ i
         self.commands = am.Commands(self)
 
     def handle_network(self, request):
-
-        # initialize commands first
-        if self.commands is None:
-            self.init_commands()
-
-        # command must be pre-defined
-        if request.command not in self.commands:
-            return
-
-        method_to_call = self.commands[request.command][0]
-
         try:
-            result = method_to_call.__call__(**request.arguments)
+            print(request.id, request.command)
+            # initialize commands first
+            if self.commands is None:
+                self.init_commands()
+
+            # command must be pre-defined
+            if request.command not in self.commands:
+                raise Exception('Invalid command')
+
+            method_to_call = self.commands[request.command][0]
+
+            if request.arguments == '':
+                result = method_to_call.__call__()
+            else:
+                result = method_to_call.__call__(**request.arguments)
+
             if result is None:
                 result = {}
             return request.id, 0, 'success', result
         except ArgumentError as exc:
-            return request.id, 1, exc, {}
+            return request.id, 1, str(exc), {}
         except Exception as exc:  # all other errors
-            return request.id, 2, exc, {}
+            return request.id, 2, str(exc), {}
 
     def handle_command(self, user_input):
-
         # initialize commands first
         if self.commands is None:
             self.init_commands()
@@ -1921,22 +2108,26 @@ i
                     print(self.commands[command][0])
                     print('==================================================')
 
-                    try:
-                        result = self.commands[command][0].__call__(**kwargs)
-                        if result is not None:
-                            print(result)
-                    except Exception as exc:
-                        print('{0}: {1}'.format(type(exc).__name__, exc))
-                        raise exc
+                    # try:
+                    result = self.commands[command][0].__call__(**kwargs)
+                    if result is not None:
+                        print(result)
+                    # except Exception as exc:
+                    #     print('{0}: {1}'.format(type(exc).__name__, exc))
+                    #     raise exc
             else:
                 print('Invalid command')
 
     @staticmethod
     def start():
         import readline
-
+        TaskQueue = queue.Queue(0)
+        ResultQueue = queue.Queue(0)
         console = am.Console()
-        console.init_commands()
+
+        thread = _ClientThread(console, TaskQueue, ResultQueue)
+        thread.daemon = True
+        thread.start()
 
         def completer(user_input, state):
             options = [i for i in console.commands if i.startswith(user_input)]
@@ -1955,5 +2146,28 @@ i
 
             if user_input.lower() == 'exit':
                 break
+            TaskQueue.put(user_input)
 
-            console.handle_command(user_input)
+
+class _ClientThread(threading.Thread):
+    def __init__(self, console, TaskQueue, ResultQueue):
+        super(_ClientThread, self).__init__()
+
+        self.console = console
+        self.console.init_commands()
+        self.console.queue = [TaskQueue, ResultQueue]
+
+    def run(self):
+        while True:
+            if not self.console.queue[0].empty():
+                task = self.console.queue[0].get()
+                if isinstance(task, str):
+                    self.console.handle_command(task)
+                else:
+                    id, status, result, data = self.console.handle_network(task)
+                    self.console.queue[1].put({"id": id, "status": status, "result": result, "data": data})
+
+                self.console.queue[0].task_done()
+
+    def stop(self):
+        self.console.queue = None

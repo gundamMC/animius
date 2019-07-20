@@ -1,62 +1,96 @@
 import errno
 import json
+import re
+import shutil
 from os import mkdir
-from os.path import join
+from os.path import join, isfile, splitext
 
 import animius as am
 
 
 class Waifu:
 
-    def __init__(self, name, models=None, description=''):
+    def __init__(self, name, models=None, description='', image=''):
 
-        self.combined_prediction = None
-        self.input_data = None
+        self.combined_chatbot = None
 
         if models is None:
             models = {}
 
-        self.config = {'name': name, 'description': description, 'data': None, 'models': models}
+        self.config = {'name': name, 'description': description, 'image': image,
+                       'models': models, 'regex_rule': {}}
 
         self.saved_directory = None
         self.saved_name = None
 
-    def add_combined_prediction_model(self, directory, name):
+    def add_combined_chatbot_model(self, directory, name='model'):
 
-        if self.combined_prediction is not None:
-            self.combined_prediction.close()
-            print('Waifu {0}: Closing existing combined prediction model'.format(self.config['name']))
+        if self.combined_chatbot is not None:
+            self.combined_chatbot.close()
+            print('Waifu {0}: Closing existing combined chatbot model'.format(self.config['name']))
 
-        self.combined_prediction = am.Chatbot.CombinedPredictionModel(directory, name)
+        self.combined_chatbot = am.Chatbot.CombinedChatbotModel.load(directory, name)
 
-        if 'CombinedPrediction' in self.config['models']:
-            print('Waifu {0}: Overwriting existing combined prediction model'.format(self.config['name']))
+        if 'CombinedChatbot' in self.config['models']:
+            print('Waifu {0}: Overwriting existing combined chatbot model'.format(self.config['name']))
 
-        self.config['models']['CombinedPredictionDirectory'] = directory
-        self.config['models']['CombinedPredictionName'] = name
+        self.config['models']['CombinedChatbotDirectory'] = directory
+        self.config['models']['CombinedChatbotName'] = name
 
-    def load_combined_prediction_model(self):
+    def load_combined_chatbot_model(self):
 
-        if self.combined_prediction is not None:
-            self.combined_prediction.close()
-            print('Waifu {0}: Closing existing combined prediction model'.format(self.config['name']))
+        if self.combined_chatbot is not None:
+            self.combined_chatbot.close()
+            print('Waifu {0}: Closing existing combined chatbot model'.format(self.config['name']))
 
-        if 'CombinedPrediction' not in self.config['models']:
-            print('Waifu {0}: No combined prediction model found.'.format(self.config['name']))
+        if 'CombinedChatbot' not in self.config['models']:
+            print('Waifu {0}: No combined chatbot model found.'.format(self.config['name']))
 
-        self.combined_prediction = am.Chatbot.CombinedPredictionModel(
-            self.config['models']['CombinedPredictionDirectory'], self.config['models']['CombinedPredictionName']
+        self.combined_chatbot = am.Chatbot.CombinedChatbotModel.load(
+            self.config['models']['CombinedChatbotDirectory'], self.config['models']['CombinedChatbotName']
         )
 
-    def build_input(self, embedding):
-        self.input_data = am.ModelData.CombinedPredictionData(self.combined_prediction.model_config)
-        self.input_data.add_embedding_class(embedding)
+    def add_embedding(self, embedding):
+        if self.combined_chatbot is not None:
+            self.combined_chatbot.add_embedding(embedding)
+
+    def add_regex(self, regex_rule, isIntentNER, result):
+        self.config['regex_rule'][regex_rule] = [isIntentNER, result]
 
     def predict(self, sentence):
 
-        self.input_data.set_parse_input(sentence)
+        regex_rule = self.config['regex_rule']
 
-        return self.combined_prediction.predict(self.input_data)
+        # {"how's the weather in (.+)": [True, 'getWeather'], "good morning": [False, 'Good morning!']}
+
+        for rule in regex_rule.keys():
+            placeholder = re.findall(rule, sentence)
+
+            if len(placeholder) != 0:
+                if regex_rule[rule][0]:  # return intent and ner
+                    count = 0
+
+                    intent = regex_rule[rule]
+                    ner = []
+                    word_list = sentence.split(' ')
+                    ner_sentence = []
+                    for word in word_list:
+                        if word in placeholder:
+                            ner.append('placeholder_' + str(count))
+                            count += 1
+                        else:
+                            ner.append('')
+
+                        ner_sentence.append(word)
+
+                    return {'intent': intent, 'ner': [ner, ner_sentence]}
+
+                else:  # return chat
+                    return {'message': regex_rule[rule][1]}
+
+        result = self.combined_chatbot.predict(sentence)
+
+        return result
 
     def save(self, directory, name='waifu'):
 
@@ -76,10 +110,24 @@ class Waifu:
             if exc.errno != errno.EEXIST:
                 raise exc
 
-        # save input data
-        self.input_data.save(directory=directory, name=name + '_input_data', save_embedding=True)
-        self.config['data'] = name + '_input_data'
+        image = self.config['image']
+        file_name = ''
 
+        if isinstance(image, list):
+            file_type = image[0]
+            b64 = image[1]
+            file_name = join(directory, name + '.' + file_type)
+            with open(file_name, 'w') as f:
+                f.write(b64.decode('base64'))
+
+        elif isinstance(image, str):
+            if isfile(image):
+                file_name = join(directory, name + splitext(image)[1])
+                shutil.copy(image, file_name)
+
+        self.config['image'] = join(directory, file_name)
+
+        # save config
         with open(join(directory, name + '.json'), 'w') as f:
             json.dump(self.config, f, indent=4)
 
@@ -93,15 +141,11 @@ class Waifu:
         with open(join(directory, name + '.json'), 'r') as f:
             config = json.load(f)
 
-        waifu = cls(config['name'], config['models'], config['description'])
+        waifu = cls(config['name'], config['models'], config['description'], config['image'])
 
         # load models
-        if 'CombinedPredictionDirectory' in config['models']:
-            waifu.load_combined_prediction_model()
-
-        # set up input data
-        if 'data' in config and 'data' is not None:
-            waifu.input_data = am.CombinedPredictionData.load(directory, name + '_input_data')
+        if 'CombinedChatbotDirectory' in config['models']:
+            waifu.load_combined_chatbot_model()
 
         waifu.saved_directory = directory
         waifu.saved_name = name

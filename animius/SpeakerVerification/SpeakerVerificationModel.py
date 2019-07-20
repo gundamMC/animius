@@ -9,8 +9,8 @@ class SpeakerVerificationModel(am.Model):
     @staticmethod
     def DEFAULT_HYPERPARAMETERS():
         return {
-            'learning_rate': 0.005,
-            'batch_size': 2048,
+            'learning_rate': 0.001,
+            'batch_size': 512,
             'optimizer': 'adam'
         }
 
@@ -39,6 +39,54 @@ class SpeakerVerificationModel(am.Model):
         self.cost = None
         self.tb_merged = None
 
+        self.data_count = None
+        self.iterator = None
+        self.predict_dataset = None
+        self.predict_iterator = None
+
+    def init_dataset(self, data=None):
+
+        super().init_dataset(data)
+
+        self.data_count = tf.placeholder(tf.int64, shape=(), name='ds_data_count')
+
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        ds = index_ds.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=self.data.steps_per_epoch))
+
+        def _py_func(x):
+            return tf.py_func(self.data.parse, [x, False], [tf.float32, tf.float32])
+
+        ds = ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        ds = ds.apply(tf.data.experimental.unbatch())  # testing needed
+
+        ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
+
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
+
+        self.dataset = ds
+
+        return ds
+
+    def init_predict_dataset(self):
+        index_ds = tf.data.Dataset.from_tensor_slices(tf.expand_dims(tf.range(self.data_count), -1))
+
+        def _py_func(x):
+            return tf.py_func(self.data.parse, [x, True], tf.float32)
+
+        ds = index_ds.map(_py_func, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        ds = ds.apply(tf.data.experimental.unbatch())
+
+        ds = ds.batch(batch_size=self.hyperparameters['batch_size'])
+
+        ds = ds.apply(tf.data.experimental.prefetch_to_device(self.config['device'],
+                                                              buffer_size=tf.data.experimental.AUTOTUNE))
+
+        self.predict_dataset = ds
+
     def build_graph(self, model_config, data, graph=None):
 
         # make copies of the dictionaries since we will be editing it
@@ -47,15 +95,6 @@ class SpeakerVerificationModel(am.Model):
         self.model_structure = dict(model_config.model_structure)
         self.hyperparameters = dict(model_config.hyperparameters)
         self.data = data
-
-        def test_model_structure(key, lambda_value):
-            if key in self.model_structure:
-                return self.model_structure[key]
-            elif self.data is None:
-                raise ValueError('Data cannot be none')
-            else:
-                self.model_structure[key] = lambda_value()
-                return lambda_value()
 
         if graph is None:
             graph = tf.Graph()
@@ -66,19 +105,18 @@ class SpeakerVerificationModel(am.Model):
                 self.config['device'] = '/cpu:0'
                 # override to CPU since no GPU is available
 
+            with graph.device('/cpu:0'):
+                if self.dataset is None:
+                    self.init_dataset(data)
+                self.iterator = self.dataset.make_initializable_iterator()
+
+                if self.predict_dataset is None:
+                    self.init_predict_dataset()
+                self.predict_iterator = self.predict_dataset.make_initializable_iterator()
+
             with graph.device(self.config['device']):
 
-                input_window = test_model_structure('input_window', data.values['x'].shape[1])
-                input_cepstral = test_model_structure('input_cepstral', data.values['x'].shape[2])
-
-                # Tensorflow placeholders
-                self.x = tf.placeholder(tf.float32,
-                                        [None,
-                                         input_window,
-                                         input_cepstral],
-                                        name='input_x'
-                                        )
-                self.y = tf.placeholder(tf.float32, [None, 1], name='train_y')
+                self.x, self.y = self.iterator.get_next()
 
                 # Network parameters
                 weights = {
@@ -112,9 +150,9 @@ class SpeakerVerificationModel(am.Model):
                 }
 
                 # define neural network
-                def network():
+                def network(x):
 
-                    conv_x = tf.expand_dims(self.x, -1)
+                    conv_x = tf.expand_dims(x, -1)
 
                     conv1 = tf.nn.conv2d(conv_x, weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
 
@@ -140,7 +178,7 @@ class SpeakerVerificationModel(am.Model):
 
                     conv2 = tf.nn.conv2d(conv1_pooled, weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
 
-                    conv2 = tf.reshape(conv2, [tf.shape(self.x)[0], -1])  # maintain batch size
+                    conv2 = tf.reshape(conv2, [tf.shape(x)[0], -1])  # maintain batch size
                     fc1 = tf.add(tf.matmul(conv2, weights["wd1"]), biases["bd1"])
                     fc1 = tf.nn.relu(fc1)
 
@@ -149,8 +187,9 @@ class SpeakerVerificationModel(am.Model):
                     return out
 
                 # Optimization
-                self.prediction = network()
-                self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(), labels=self.y),
+                self.prediction = network(self.predict_iterator.get_next())
+                self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(self.x),
+                                                                                   labels=self.y),
                                            name='train_cost')
                 self.train_op = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate']).minimize(
                     self.cost, name='train_op')
@@ -164,50 +203,56 @@ class SpeakerVerificationModel(am.Model):
         self.graph = graph
         return graph
 
-    def train(self, epochs=800, CancellationToken=None):
+    def train(self, epochs=800, cancellation_token=None):
 
-        for epoch in range(epochs):
+        print('starting training')
 
-            if CancellationToken is not None and CancellationToken.is_cancalled:
+        with self.graph.device('/cpu:0'):
+            self.sess.run(self.iterator.initializer, feed_dict={self.data_count: len(self.data['train_y'])})
+
+        print('initialized iterator')
+
+        epoch = 0
+
+        while epoch < epochs:
+
+            print('training epoch', epoch, '|', self.data.steps_per_epoch)
+
+            if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
 
-            mini_batches_x, mini_batches_y = am.Utils.get_mini_batches(
-                am.Utils.shuffle([
-                    self.data['x'],
-                    self.data['y']]
-                ), self.hyperparameters['batch_size'])
+            batch_num = 0
 
-            for batch in range(len(mini_batches_x)):
-                batch_x = mini_batches_x[batch]
-                batch_y = mini_batches_y[batch]
+            try:
 
-                if (self.config['display_step'] == 0 or
-                    self.config['epoch'] % self.config['display_step'] == 0 or
-                    epoch == epochs) and \
-                        (batch % 100 == 0 or batch == 0):
-                    _, cost_value = self.sess.run([self.train_op, self.cost], feed_dict={
-                        self.x: batch_x,
-                        self.y: batch_y
-                    })
+                while batch_num < self.data.steps_per_epoch:
 
-                    print("epoch:", self.config['epoch'], "- (", batch, "/", len(mini_batches_x), ") -", cost_value)
+                    if (self.config['display_step'] == 0 or
+                        self.config['epoch'] % self.config['display_step'] == 0 or
+                        epoch == epochs) and \
+                            (batch_num % 100 == 0 or batch_num == 0):
+                        _, cost_value = self.sess.run([self.train_op, self.cost])
 
-                    self.config['cost'] = cost_value.item()
+                        print("epoch:", self.config['epoch'], "- (", batch_num, ") -", cost_value)
 
-                    if self.config['hyperdash'] is not None:
-                        self.hyperdash.metric("cost", cost_value)
+                        self.config['cost'] = cost_value.item()
 
-                else:
-                    self.sess.run([self.train_op], feed_dict={
-                        self.x: batch_x,
-                        self.y: batch_y
-                    })
+                        if self.config['hyperdash'] is not None:
+                            self.hyperdash.metric("cost", cost_value)
+
+                    else:
+                        self.sess.run([self.train_op])
+
+                    batch_num += 1
+
+            except tf.errors.OutOfRangeError:
+                # this should never happen
+                print(batch_num)
+
+            epoch += 1
 
             if self.config['tensorboard'] is not None:
-                summary = self.sess.run(self.tb_merged, feed_dict={
-                    self.x: mini_batches_x[0],
-                    self.y: mini_batches_y[0]
-                })
+                summary = self.sess.run(self.tb_merged)
                 self.tensorboard_writer.add_summary(summary, self.config['epoch'])
 
             self.config['epoch'] += 1
@@ -219,69 +264,85 @@ class SpeakerVerificationModel(am.Model):
         model.restore_config(directory, name)
         if data is not None:
             model.data = data
+        else:
+            model.data = am.SpeakerVerificationData()
 
-        graph = tf.Graph()
+        model.build_graph(model.model_config(), model.data)
 
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        model.sess = tf.Session(config=config, graph=graph)
+        # model.sess = tf.Session(config=config, graph=graph)
+        model.init_tensorflow(init_param=False, init_sess=True)
 
         checkpoint = tf.train.get_checkpoint_state(directory)
         input_checkpoint = checkpoint.model_checkpoint_path
 
-        with graph.as_default():
-            model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta')
+        with model.graph.as_default():
+            # model.init_dataset()
+            # model.iterator = model.dataset.make_initializable_iterator()
+            # model.iter_init_op = model.iterator.make_initializer(model.dataset, name='iterator_init')
+            #
+            # model.sess.run(model.iterator.initializer, feed_dict={model.data_count: len(model.data['train_y'])})
+
+            # model.saver = tf.train.import_meta_graph(input_checkpoint + '.meta',
+            #                                          input_map={'IteratorGetNext': tf.convert_to_tensor(model.iterator.get_next())})
             model.saver.restore(model.sess, input_checkpoint)
 
         # set up self attributes used by other methods
-        model.x = model.sess.graph.get_tensor_by_name('input_x:0')
-        model.y = model.sess.graph.get_tensor_by_name('train_y:0')
-        model.train_op = model.sess.graph.get_operation_by_name('train_op')
-        model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
-        model.prediction = model.sess.graph.get_tensor_by_name('output_predict:0')
+        # model.data_count = model.sess.graph.get_tensor_by_name('ds_data_count:0')
+        # model.train_op = model.sess.graph.get_operation_by_name('train_op')
+        # model.cost = model.sess.graph.get_tensor_by_name('train_cost:0')
+        # model.prediction = model.sess.graph.get_tensor_by_name('output_predict:0')
 
-        model.init_tensorflow(graph, init_param=False, init_sess=False)
+        # model.init_tensorflow(graph, init_param=False, init_sess=False)
 
         model.saved_directory = directory
         model.saved_name = name
 
         return model
 
-    def predict(self, input_data, save_path=None, raw=False):
-        result = self.sess.run(self.prediction,
-                               feed_dict={
-                                   self.x: input_data.values['x'],
-                               })
+    def predict(self, input_data=None, save_path=None, raw=False):
 
-        result = result.squeeze().mean()
+        if input_data is None:
+            input_data = self.data
+        elif isinstance(input_data, am.SpeakerVerificationData):
+            self.data = input_data  # is a new speaker verification data, override the current one
+        else:
+            self.data.set_wav_file(input_data, is_speaker=None)  # None = input
+            input_data = self.data
 
-        if save_path is not None:
-            with open(save_path, "w") as file:
-                if raw:
-                    for i in range(len(result)):
-                        file.write(str(result[i].item()) + '\n')
-                else:
-                    for i in range(len(result)):
-                        file.write(str(result[i].item() > 0.5) + '\n')
+        with self.graph.device('/cpu:0'):
+            self.sess.run(self.predict_iterator.initializer, feed_dict={self.data_count: len(input_data['input'])})
 
-        return result if raw else result > 0.5
+        outputs = []
+        batch_num = 0
+        try:
+            while batch_num < self.data.predict_steps:
+                outputs.append(self.sess.run(self.prediction))
+                batch_num += 1
+        except tf.errors.OutOfRangeError:
+            print(batch_num)
 
-    def predict_folder(self, input_data, folder_directory, save_path=None, raw=False):
-
-        from os import path, listdir
-
-        file_paths = [path.join(folder_directory, f) for f in listdir(folder_directory) if
-                      path.isfile(path.join(folder_directory, f))]
+        import numpy as np
+        outputs = np.concatenate(outputs)
 
         results = []
+        end_index = 0
 
-        for path in file_paths:
-            input_data.set_parse_input_path(path)
-            results.append(self.predict(input_data, save_path=None, raw=raw).item())
+        print(outputs.shape)
+
+        if raw:
+            for index in range(len(self.data.values['input'])):
+                windows = outputs[end_index:end_index + self.data.predict_step_nums[index]]
+                end_index += self.data.predict_step_nums[index]
+                results.append(windows.mean())
+        else:
+            for index in range(len(self.data.values['input'])):
+                windows = outputs[end_index:end_index + self.data.predict_step_nums[index]]
+                end_index += self.data.predict_step_nums[index]
+                results.append(windows.mean() > 0.5)
 
         if save_path is not None:
             with open(save_path, "w") as file:
-                for i in range(len(results)):
-                    file.write(str(results[i]) + '\n')
+                for i in results:
+                    file.write(str(i) + '\n')
 
         return results
