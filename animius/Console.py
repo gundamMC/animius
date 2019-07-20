@@ -1096,12 +1096,12 @@ i
         self.models[kwargs['name']].item.set_data(self.data[kwargs['data']].item)
 
     @staticmethod
-    def train_complete_callback(print_string, model_name, training_dict, empty):
+    def train_complete_callback(print_string, model_name, training_dict, future_object):
         """
         Called when a model finishes training. See train() for details
         """
         print(print_string)
-        print(empty)
+        future_object.result()
         training_dict.pop(model_name)
 
     def train(self, **kwargs):
@@ -1128,7 +1128,7 @@ i
 
         future = self.training_pool.submit(self.models[kwargs['name']].item.train,
                                            epochs=kwargs['epoch'],
-                                           CancellationToken=cancelToken)
+                                           cancellation_token=cancelToken)
 
         callback_string = "Model {0} has finished training for {1} epochs!".format(kwargs['name'], kwargs['epoch'])
 
@@ -1321,22 +1321,6 @@ i
         * *model_structure* (``model_structure``) -- Dictionary containing the updated model_structure values
         """
 
-        """
-            Console.check_arguments(kwargs, hard_requirements=['name'], soft_requirements=['config, hyperparameters, model_structure'])
-    
-            if kwargs['name'] in self.model_configs:
-    
-                def update_dict(target, update_values):
-                    for key in update_values:
-                        target[key] = update_values[key]
-    
-                update_dict(self.model_configs[kwargs['name']].item.config, kwargs['config'])
-                update_dict(self.model_configs[kwargs['name']].item.hyperparameters, kwargs['hyperparameters'])
-                update_dict(self.model_configs[kwargs['name']].item.model_structure, kwargs['model_structure'])
-    
-            else:
-                raise KeyError("Model config \"{0}\" not found.".format(kwargs['name']))
-        """
         Console.check_arguments(kwargs, hard_requirements=['name'])
 
         configs = ['device', 'class', 'epoch', 'cost', 'display_step', 'tensorboard', 'hyperdash']
@@ -2057,66 +2041,68 @@ i
             return request.id, 2, str(exc), {}
 
     def handle_command(self, user_input):
-        # initialize commands first
-        if self.commands is None:
-            self.init_commands()
 
-        if user_input.lower() == 'help' or user_input == '?':
-            pass
-        elif user_input.lower() == 'about' or user_input.lower() == 'version':
-            pass
-        elif user_input is None or not user_input.strip():  # empty string gives false
-            return
-        else:
-            command, args = am.Console.ParseArgs(user_input)
+        try:
+            # initialize commands first
+            if self.commands is None:
+                self.init_commands()
 
-            print('command:', command)
-            print('args', args)
-
-            if command is None:
+            if user_input.lower() == 'help' or user_input == '?':
+                pass
+            elif user_input.lower() == 'about' or user_input.lower() == 'version':
+                pass
+            elif user_input is None or not user_input.strip():  # empty string gives false
                 return
-            elif command in self.commands:
-                if '--help' in args:
-                    print(self.commands[command][2])
-                    print('usage: ' + self.commands[command][3])
-                    print('  arguments:')
-                    for short in self.commands[command][1]:
-                        print('    {0}, --{1} ({2}) \t {3}'.format(
-                            short,
-                            self.commands[command][1][short][0],
-                            self.commands[command][1][short][1],
-                            self.commands[command][1][short][2]
-                        ).expandtabs(30)
-                              )
-                else:
-                    # valid command and valid args
-
-                    # change arguments into kwargs for passing into console
-                    kwargs = {}
-                    for arg in args:
-                        if arg[:2] == '--':  # long
-                            kwargs[arg[2:]] = args[arg]
-                        elif arg[:1] == '-':  # short
-                            if arg not in self.commands[command][1]:
-                                print("Invalid short argument {0}, skipping it".format(arg))
-                                continue
-
-                            long_arg = self.commands[command][1][arg][0]
-                            kwargs[long_arg] = args[arg]
-
-                    print(kwargs)
-                    print(self.commands[command][0])
-                    print('==================================================')
-
-                    # try:
-                    result = self.commands[command][0].__call__(**kwargs)
-                    if result is not None:
-                        print(result)
-                    # except Exception as exc:
-                    #     print('{0}: {1}'.format(type(exc).__name__, exc))
-                    #     raise exc
             else:
-                print('Invalid command')
+                command, args = am.Console.ParseArgs(user_input)
+
+                print('command:', command)
+                print('args', args)
+
+                if command is None:
+                    return
+                elif command in self.commands:
+                    if '--help' in args:
+                        print(self.commands[command][2])
+                        print('usage: ' + self.commands[command][3])
+                        print('  arguments:')
+                        for short in self.commands[command][1]:
+                            print('    {0}, --{1} ({2}) \t {3}'.format(
+                                short,
+                                self.commands[command][1][short][0],
+                                self.commands[command][1][short][1],
+                                self.commands[command][1][short][2]
+                            ).expandtabs(30)
+                                  )
+                    else:
+                        # valid command and valid args
+
+                        # change arguments into kwargs for passing into console
+                        kwargs = {}
+                        for arg in args:
+                            if arg[:2] == '--':  # long
+                                kwargs[arg[2:]] = args[arg]
+                            elif arg[:1] == '-':  # short
+                                if arg not in self.commands[command][1]:
+                                    print("Invalid short argument {0}, skipping it".format(arg))
+                                    continue
+
+                                long_arg = self.commands[command][1][arg][0]
+                                kwargs[long_arg] = args[arg]
+
+                        print(kwargs)
+                        print(self.commands[command][0])
+                        print('==================================================')
+
+                        result = self.commands[command][0].__call__(**kwargs)
+                        if result is not None:
+                            print(result)
+
+                else:
+                    print('Invalid command')
+
+        except Exception as exc:
+            print('{0}: {1}'.format(type(exc).__name__, exc))
 
     @staticmethod
     def start():

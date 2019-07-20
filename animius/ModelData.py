@@ -314,7 +314,9 @@ class IntentNERData(Data):
 
             out_ner.extend([0] * (self.model_config.model_structure['max_sequence'] - len(out_ner)))
 
-            results.append((np.array(input_sentence, np.int32), input_length, out_intent, np.array(out_ner, np.int32)))
+            # cast to int32 (since python use int64 as default on specific platforms)
+            results.append((np.array(input_sentence, np.int32), np.array(input_length, np.int32),
+                            np.array(out_intent, np.int32), np.array(out_ner, np.int32)))
 
         self.values['train'] = results
 
@@ -364,7 +366,9 @@ class IntentNERData(Data):
                                                                                  max_seq=self.model_config.model_structure[
                                                                                      'max_sequence'],
                                                                                  go=True, eos=False)
-                    self.values['input'][item[0]] = np.array(input_sentence, np.int32), input_length
+
+                    # cast to int32 (since python use int64 as default on specific platforms)
+                    self.values['input'][item[0]] = np.array(input_sentence, np.int32), np.array(input_length, np.int32)
                     return self.values['input'][item[0]]
 
             # training data
