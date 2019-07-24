@@ -409,6 +409,10 @@ class SpeakerVerificationData(Data):
         self.cache = dict()
         self.predict_cache = dict()
 
+    def add_data(self, data):
+        # implement abstract method to avoid exception
+        pass
+
     def add_wav_file(self, input_path, is_speaker=True):
 
         if isinstance(input_path, str):
