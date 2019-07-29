@@ -171,9 +171,13 @@ class ChatData(Data):
         # iteration object = (train_x sentence, train_y sentence)
 
     def add_data(self, data):
-        assert len(data) == 2
-        self.values['train_x'].append(data[0])
-        self.values['train_y'].append(data[1])
+        if len(data) == 2:
+            self.values['train_x'].append(data[0])
+            self.values['train_y'].append(data[1])
+        elif len(data) > 2:
+            data_x, data_y = zip(*data)
+            self.values['train_x'].append(data_x)
+            self.values['train_y'].append(data_y)
 
     def add_input(self, input_x):
         if isinstance(input_x, str):
