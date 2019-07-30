@@ -65,7 +65,7 @@ class MFCC:
         return strided
 
     @staticmethod
-    def get_MFCC(path, window=10, step=3, num_cepstral=39, flatten=False):
+    def get_MFCC(path, window=10, step=10, num_cepstral=39, flatten=False):
         # read wav
         sample_rate, signal = wav.read(path)
 
