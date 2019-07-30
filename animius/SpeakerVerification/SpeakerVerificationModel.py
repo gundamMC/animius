@@ -165,7 +165,7 @@ class SpeakerVerificationModel(am.Model):
                     return out
 
                 # Optimization
-                self.prediction = network(self.predict_iterator.get_next())
+                self.prediction = tf.math.sigmoid(network(self.predict_iterator.get_next()))
                 self.cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=network(self.x),
                                                                                    labels=self.y),
                                            name='train_cost')
@@ -191,10 +191,11 @@ class SpeakerVerificationModel(am.Model):
         print('initialized iterator')
 
         epoch = 0
+        total_epoch = self.config['epoch'] + epochs
 
         while epoch < epochs:
 
-            print('training epoch', epoch, '|', self.data.steps_per_epoch)
+            print('training epoch', self.config['epoch'], '|', total_epoch)
 
             if cancellation_token is not None and cancellation_token.is_cancalled:
                 return  # early stopping
