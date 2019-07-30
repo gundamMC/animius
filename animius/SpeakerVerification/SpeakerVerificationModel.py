@@ -9,8 +9,8 @@ class SpeakerVerificationModel(am.Model):
     @staticmethod
     def DEFAULT_HYPERPARAMETERS():
         return {
-            'learning_rate': 0.001,
-            'batch_size': 512,
+            'learning_rate': 0.0001,
+            'batch_size': 256,
             'optimizer': 'adam'
         }
 
@@ -18,14 +18,12 @@ class SpeakerVerificationModel(am.Model):
     def DEFAULT_MODEL_STRUCTURE():
         return {
             'filter_size_1': 3,
-            'num_filter_1': 10,
-            'pool_size_1': 2,
-            'pool_type': 'max',
-            'filter_size_2': 5,
-            'num_filter_2': 15,
-            'fully_connected_1': 128,
-            'input_window': 10,
-            'input_cepstral': 39
+            'num_filter_1': 16,
+            'filter_size_2': 3,
+            'num_filter_2': 32,
+            'fully_connected_1': 256,
+            'input_window': 20,
+            'input_cepstral': 18
         }
 
     def __init__(self):
@@ -133,13 +131,13 @@ class SpeakerVerificationModel(am.Model):
                                                          self.model_structure['num_filter_2']]
                                                         )),
                     # fully connected 1, 15 input layers, 128 outpute nodes
-                    'wd1': tf.Variable(tf.random_normal([round(self.model_structure['input_window'] / 2) *
-                                                         round(self.model_structure['input_cepstral'] / 2) *
+                    'wd1': tf.Variable(tf.random_normal([self.model_structure['input_window'] *
+                                                         self.model_structure['input_cepstral'] *
                                                          self.model_structure['num_filter_2'],
                                                          self.model_structure['fully_connected_1']]
                                                         )),
                     # output, 128 input nodes, 1 output node
-                    'out': tf.Variable(tf.random_normal([128, 1]))
+                    'out': tf.Variable(tf.random_normal([self.model_structure['fully_connected_1'], 1]))
                 }
 
                 biases = {
@@ -156,27 +154,7 @@ class SpeakerVerificationModel(am.Model):
 
                     conv1 = tf.nn.conv2d(conv_x, weights["wc1"], strides=[1, 1, 1, 1], padding='SAME')
 
-                    if self.model_structure['pool_type'] == 'max':
-                        conv1_pooled = tf.nn.max_pool(conv1,
-                                                      ksize=[1, self.model_structure['pool_size_1'],
-                                                             self.model_structure['pool_size_1'],
-                                                             1],
-                                                      strides=[1, self.model_structure['pool_size_1'],
-                                                               self.model_structure['pool_size_1'],
-                                                               1],
-                                                      padding='SAME')
-
-                    else:
-                        conv1_pooled = tf.nn.avg_pool(conv1,
-                                                      ksize=[1, self.model_structure['pool_size_1'],
-                                                             self.model_structure['pool_size_1'],
-                                                             1],
-                                                      strides=[1, self.model_structure['pool_size_1'],
-                                                               self.model_structure['pool_size_1'],
-                                                               1],
-                                                      padding='SAME')
-
-                    conv2 = tf.nn.conv2d(conv1_pooled, weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
+                    conv2 = tf.nn.conv2d(conv1, weights["wc2"], strides=[1, 1, 1, 1], padding='SAME')
 
                     conv2 = tf.reshape(conv2, [tf.shape(x)[0], -1])  # maintain batch size
                     fc1 = tf.add(tf.matmul(conv2, weights["wd1"]), biases["bd1"])
