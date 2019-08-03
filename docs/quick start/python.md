@@ -1,4 +1,4 @@
-# Python Library Quick Start
+ # Python Library Quick Start
 
 Animius makes it easy for developers to learn and use our python API to create their own virtual assistants.
 
@@ -121,12 +121,14 @@ Congrats! Our model performs as well as we imagined before.
 Now, it's time to save it into your disk so that you can retrieve it whenever you want.
 
 ```
-myIntentModel.save(directory='Animius', name='myIntentNER')
+myIntentModel.save(directory='/resource/models/myIntentNER', name='myIntentNER')
 ```
 
 ## Setup SpeakerVerification Model
 
-Now, as a crucial step to build our own virtual assistant, let's create a SpeakerVerification Model which could verify speakers of audio clips.
+In order to the sentences of specific character, we could train a SpeakerVerification Model.
+
+Thus, you only need to label a few audio slices and let the model automatically detect the others.
 
 ### Parse Subtitle
 
@@ -139,6 +141,14 @@ parser.load('Animius Violet Evergarden\\01 jp.ass')
 
 parser.slice_audio('Animius Violet Evergarden\\01.mp3', 'Animius Violet Evergarden\\01_slices')
 ```
+
+### Label audio slices
+
+Next, create two text files: '01 true.txt' and '01 false.txt'.
+
+In '01 true.txt', you should add several paths to audio slices which are the voice of the character you selected.
+
+In '01 false.txt', you should add several paths to audio slices which are not the voice of the character you selected.
 
 ### Create model
 
@@ -165,7 +175,24 @@ mySpeakerVerificationModel.init_tensorflow()
 
 mySpeakerVerificationModel.train()
 
-mySpeakerVerificationModel.save(r'SpeakerVerification')
+mySpeakerVerificationModel.save(r'resources/models/speaker_verification')
+```
+
+### Predict
+
+```
+sv_data = am.SpeakerVerificationData()
+
+sv_data.add_text_file('resources/Violet_Evergarden/true.txt', is_speaker=True)
+
+sv_data.add_text_file('resources/Violet_Evergarden/false.txt', is_speaker=False)
+
+
+sv_model = am.Model.load(r'resources/models/speaker_verification', data=sv_data)
+
+sv_data.add_folder('resources/Violet_Evergarden/slices/01/', is_speaker=None)
+
+result = sv_model.predict(sv_data, save_path='resources/Violet_Evergarden/results/01_result.txt')
 ```
 
 ## Setup Chatbot Model
