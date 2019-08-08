@@ -74,14 +74,18 @@ class Data(ABC):
 
             # add embedding values to json
             shallow_copy.pop('embedding')
-            shallow_copy['embedding_directory'] = self.values['embedding'].saved_directory
-            shallow_copy['embedding_name'] = self.values['embedding'].saved_name
+            # shallow_copy['embedding_directory'] = self.values['embedding'].saved_directory
+            # shallow_copy['embedding_name'] = self.values['embedding'].saved_name
 
         # dictionary of configs to save as json
         save_dict = {'cls': type(self).__name__,
                      'saved_directory': directory,
                      'save_name': name,
-                     'values': shallow_copy}
+                     'values': shallow_copy,
+                     'embedding_directory': self.values['embedding'].saved_directory,
+                     'embedding_name': self.values['embedding'].saved_name
+                     # save at root
+                     }
 
         self.saved_directory = directory
         self.saved_name = name
