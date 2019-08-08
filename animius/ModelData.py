@@ -263,7 +263,7 @@ class ChatData(Data):
                                            max_seq=self.model_config.model_structure['max_sequence'])
 
         # cast to int32 (as py defaults to int64 on certain platforms)
-        result = (np.array(x, np.int32) for x in result)
+        result = [np.array(x, np.int32) for x in result]
 
         if self.enable_cache:
             self.cache[item] = result
