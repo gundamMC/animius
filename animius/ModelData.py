@@ -176,12 +176,12 @@ class ChatData(Data):
 
     def add_data(self, data):
         if len(data) == 2:
-            self.values['train_x'].append(data[0])
-            self.values['train_y'].append(data[1])
+            self.values['train_x'].extend(data[0])
+            self.values['train_y'].extend(data[1])
         elif len(data) > 2:
             data_x, data_y = zip(*data)
-            self.values['train_x'].append(data_x)
-            self.values['train_y'].append(data_y)
+            self.values['train_x'].extend(data_x)
+            self.values['train_y'].extend(data_y)
 
     def add_input(self, input_x):
         if isinstance(input_x, str):
@@ -292,7 +292,7 @@ class IntentNERData(Data):
         self.folder_tmp = None
 
     def add_data(self, x_input):
-        self.values['train'].append(x_input)
+        self.values['train'].extend(x_input)
 
     def set_intent_folder(self, x_path):
 
