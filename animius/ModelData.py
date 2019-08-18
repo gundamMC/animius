@@ -235,7 +235,7 @@ class ChatData(Data):
             if self.enable_cache and item in self.predict_cache:
                 return self.predict_cache[item]
 
-            x, x_length, _ = am.Utils.sentence_to_index(self.values['input'][item],
+            x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(self.values['input'][item]),
                                                         self.values['embedding'].words_to_index,
                                                         max_seq=self.model_config.model_structure['max_sequence'],
                                                         go=True,
@@ -257,8 +257,8 @@ class ChatData(Data):
 
         # result_x, result_y, lengths_x, lengths_y, result_y_target
         result = \
-            am.Chatbot.Parse.data_to_index(item_x,
-                                           item_y,
+            am.Chatbot.Parse.data_to_index(am.Chatbot.Parse.split_sentence(item_x),
+                                           am.Chatbot.Parse.split_sentence(item_y),
                                            self.values['embedding'].words_to_index,
                                            max_seq=self.model_config.model_structure['max_sequence'])
 

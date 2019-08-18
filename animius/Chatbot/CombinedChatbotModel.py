@@ -1,3 +1,5 @@
+import copy
+
 import tensorflow as tf
 
 import animius as am
@@ -179,6 +181,12 @@ class CombinedChatbotModel(ChatbotModel):
         if isinstance(input_sentences, am.IntentNERData) or isinstance(input_sentences, am.ChatData):
             input_sentences = input_sentences.values['input']
 
+        # package str in a list
+        if isinstance(input_sentences, str):
+            input_sentences = [input_sentences]
+
+        sentences_cache = copy.copy(input_sentences)
+
         intent_ner_results = self.predict_intent_ner(input_sentences, raw=False)
 
         results = []
@@ -193,7 +201,7 @@ class CombinedChatbotModel(ChatbotModel):
                 results.append(None)  # add tmp placeholder
 
         if len(chat_indexes) > 0:  # there are chat responses, proceed with chatbot prediction
-            chat_results = super().predict([input_sentences[i] for i in chat_indexes], raw=False)
+            chat_results = super().predict([sentences_cache[i] for i in chat_indexes], raw=False)
 
             for i in range(len(chat_results)):
                 results[chat_indexes[i]] = (0, chat_results[i])
@@ -210,7 +218,7 @@ class CombinedChatbotModel(ChatbotModel):
         # automatically selects a prediction function
         if combined:
             # use combined
-            return self.predict_combined(input_data)
+            return self.predict_combined(input_sentences=input_data, save_path=save_path)
         elif isinstance(input_data, am.IntentNERData):
             return self.predict_intent_ner(input_data, save_path, raw)
         else:
