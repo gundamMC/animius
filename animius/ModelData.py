@@ -235,14 +235,18 @@ class ChatData(Data):
             if self.enable_cache and item in self.predict_cache:
                 return self.predict_cache[item]
 
-            x, x_length, _ = am.Utils.sentence_to_index(am.Chatbot.Parse.split_sentence(self.values['input'][item]),
-                                                        self.values['embedding'].words_to_index,
-                                                        max_seq=self.model_config.model_structure['max_sequence'],
-                                                        go=True,
-                                                        eos=True)
-            if self.enable_cache:
-                # turn into int32 first (see issue #3)
-                self.cache[item] = np.array(x, np.int32), np.array(x_length, np.int32)
+            x, x_length, _ = am.Utils.sentence_to_index(
+                am.Chatbot.Parse.split_sentence(self.values['input'][item].lower()),
+                self.values['embedding'].words_to_index,
+                max_seq=self.model_config.model_structure['max_sequence'],
+                go=True,
+                eos=True)
+
+            # if self.enable_cache:
+            #     # turn into int32 first (see issue #3)
+            #     self.cache[item] = np.array(x, np.int32), np.array(x_length, np.int32)
+            # don't store cache when predicting
+
             return np.array(x, np.int32), np.array(x_length, np.int32)
 
         if self.enable_cache and item in self.cache:
@@ -257,8 +261,8 @@ class ChatData(Data):
 
         # result_x, result_y, lengths_x, lengths_y, result_y_target
         result = \
-            am.Chatbot.Parse.data_to_index(am.Chatbot.Parse.split_sentence(item_x),
-                                           am.Chatbot.Parse.split_sentence(item_y),
+            am.Chatbot.Parse.data_to_index(am.Chatbot.Parse.split_sentence(item_x.lower()),
+                                           am.Chatbot.Parse.split_sentence(item_y.lower()),
                                            self.values['embedding'].words_to_index,
                                            max_seq=self.model_config.model_structure['max_sequence'])
 
@@ -366,7 +370,7 @@ class IntentNERData(Data):
                     return self.values['input'][item[0]]
                 else:
 
-                    sentence = str.split(str.lower(self.values['input'][item[0]]))
+                    sentence = am.Chatbot.Parse.split_sentence(self.values['input'][item[0]].lower())
 
                     input_sentence, input_length, _ = am.Utils.sentence_to_index(sentence,
                                                                                  word_to_index=self.values[

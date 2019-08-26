@@ -99,7 +99,7 @@ class Parse:
     @staticmethod
     def split_sentence(sentence):
         # collect independent words
-        result = re.findall(r"[\w]+|[.,!?;\"]+", sentence.replace('\'', ''))
+        result = re.findall(r"[\w]+|[.,!?;\"\']", sentence.replace('\'', ''))
         return result
 
     @staticmethod
