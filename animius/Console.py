@@ -793,13 +793,31 @@ i
 
         if kwargs['embedding'] not in self.embeddings:
             raise NameNotFoundError("Embedding {0} no found".format(kwargs['embedding']))
+        elif not self.embeddings[kwargs['embedding']].loaded:
+            self.load_embedding(name=kwargs['embedding'])
 
         if not os.path.isdir(kwargs['combined_chatbot_model']):
             if kwargs['combined_chatbot_model'] in self.models:
                 model_directory = self.models[kwargs['combined_chatbot_model']].saved_directory
                 model_name = self.models[kwargs['combined_chatbot_model']].saved_name
             else:
-                raise NameNotFoundError("Model {0} not found".format(kwargs['model']))
+                # the model may simply be in the format of
+                # dir/of/model/name
+                # where name is not an actual directory but simply the name of the stored file
+                try:
+                    # replace since normapth replaces windows paths to backward slashes
+
+                    model_directory, model_name = os.path.normpath(kwargs['combined_chatbot_model'])\
+                                                    .replace('\\', '/')\
+                                                    .rsplit(r'/', 1)
+
+                    # double check that the dir exists
+                    if not os.path.isdir(model_directory):
+                        raise NameNotFoundError("Model {0} does not exist at {1}".format(model_directory, model_name))
+
+                # raised when the kwargs[ccm] does not include a '/,' meaning that it is not a path
+                except ValueError as e:
+                    raise NameNotFoundError("Model {0} not found".format(kwargs['combined_chatbot_model']))
         else:
             # try parsing it as a path
             # not really supposed to be dosing this when using console
