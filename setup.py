@@ -17,10 +17,10 @@ setuptools.setup(
         'console_scripts': ['animius = animius.Console:Console.start']
     },
     python_requires='>=3',
-    install_requires=['numpy', 'pysubs2', 'pydub', 'scipy', 'speechpy', 'psutil', 'pynvml'],
+    install_requires=['numpy', 'pysubs2', 'pydub', 'scipy', 'speechpy', 'psutil', 'pynvml', 'pyreadline'],
     extras_require={
-        "tf": ["tensorflow==1.12.0"],
-        "tf_gpu": ["tensorflow-gpu==1.12.0"],
+        "tf": ["tensorflow>=1.12.0"],
+        "tf_gpu": ["tensorflow-gpu>=1.12.0"],
     },  # tf 2.0 not supported for now
     classifiers=[
         'Intended Audience :: Developers',
