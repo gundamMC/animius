@@ -18,7 +18,8 @@ def new_client(c, console, event):
     if c.password != '':
         recvPassword = c.recv_pass()
         print(recvPassword)
-        if recvPassword != c.password:
+        recvPassword = json.loads(recvPassword)
+        if recvPassword['command'] == 'login' and recvPassword['arguments']['pwd'] != c.password:
             # wrong password, close connection
             c.close()
             return None
@@ -36,7 +37,11 @@ def new_client(c, console, event):
         if req is None or req is "":
             continue
         print(req)
-        console.queue[0].put(req)
+
+        if req['command'] == 'logout':
+            break
+        elif req['command'] != 'login':
+            console.queue[0].put(req)
 
 
 def send_queue(client, queue):
@@ -46,13 +51,6 @@ def send_queue(client, queue):
             client.send(result['id'], result['status'], result['result'], result['data'])
             print(result)
             queue.task_done()
-
-
-# def start_server(console, port, local=True, password='', max_clients=10):
-#     thread = _ServerThread(console, port, local, password, max_clients)
-#     thread.daemon = True
-#     thread.start()
-#     return thread
 
 
 class _ServerThread(threading.Thread):
@@ -151,13 +149,13 @@ class Client:
 
     def send(self, id, status, message, data):
         resp = Response.createResp(id, status, message, data)
-        print(resp)
+        print('socket_send', resp)
         self._send(resp)
 
     def recv(self):
         req = self._recv()
         req = req.decode()
-        print(req)
+        print('socket_recv', req)
         req = Request.initFromReq(req)
         return req
 
