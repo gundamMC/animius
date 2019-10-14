@@ -1,7 +1,6 @@
 import base64
 import json
 import os
-import queue
 import threading
 import zipfile
 from ast import literal_eval
@@ -52,7 +51,6 @@ class CancellationToken:
 class Console:
 
     def __init__(self, init_directory=None):
-        self.queue = None
         self.commands = None
 
         animius_dir = os.path.dirname(os.path.realpath(__file__))
@@ -65,6 +63,9 @@ class Console:
         self.model_configs = {}
         self.data = {}
         self.embeddings = {}
+
+        # used for Multi-thread processing
+        self.thread_pool = None
 
         # used for SocketServer interactions
         self.socket_server = None
@@ -111,6 +112,7 @@ class Console:
 
         self.training_pool = ThreadPoolExecutor(max_workers=3)  # thread pool for training threads
         self.training_models = dict()
+
 
     @staticmethod
     def ParseArgs(user_input):
@@ -2009,11 +2011,10 @@ i
             self.server(self, kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
 
     def server(self, console, port, local=True, password='', max_clients=10):
-        from .SocketServer import _ServerThread
-        thread = _ServerThread(console, port, local, password, max_clients)
-        thread.daemon = True
-        thread.start()
-        return thread
+        from .SocketServer import SocketServer
+        server = SocketServer(self, port, local, password, max_clients)
+        server.start_server()
+        return server
 
     def stop_server(self, **kwargs):
         """
@@ -2025,38 +2026,38 @@ i
         if self.socket_server is None:
             raise ValueError("No server is currently running.")
 
-        self.socket_server.stop()
+        self.socket_server.stop_server()
 
         self.socket_server = None
 
     def init_commands(self):
         self.commands = am.Commands(self)
 
-    def handle_network(self, request):
+    def handle_network(self, request_id, command, arguments):
         try:
-            print(request.id, request.command)
+            print(request_id, command)
             # initialize commands first
             if self.commands is None:
                 self.init_commands()
 
             # command must be pre-defined
-            if request.command not in self.commands:
+            if command not in self.commands:
                 raise Exception('Invalid command')
 
-            method_to_call = self.commands[request.command][0]
+            method_to_call = self.commands[command][0]
 
-            if request.arguments == '':
+            if arguments == '':
                 result = method_to_call.__call__()
             else:
-                result = method_to_call.__call__(**request.arguments)
+                result = method_to_call.__call__(**arguments)
 
             if result is None:
                 result = {}
-            return request.id, 0, 'success', result
+            return request_id, 0, 'success', result
         except ArgumentError as exc:
-            return request.id, 1, str(exc), {}
+            return request_id, 1, str(exc), {}
         except Exception as exc:  # all other errors
-            return request.id, 2, str(exc), {}
+            return request_id, 2, str(exc), {}
 
     def handle_command(self, user_input):
 
@@ -2112,7 +2113,8 @@ i
                         print(self.commands[command][0])
                         print('==================================================')
 
-                        result = self.commands[command][0].__call__(**kwargs)
+                        submitted = self.thread_pool.submit(self.commands[command][0].__call__(**kwargs))
+                        result = submitted.result()
                         if result is not None:
                             print(result)
 
@@ -2125,13 +2127,8 @@ i
     @staticmethod
     def start():
         import readline
-        TaskQueue = queue.Queue(0)
-        ResultQueue = queue.Queue(0)
         console = am.Console()
-
-        thread = _ClientThread(console, TaskQueue, ResultQueue)
-        thread.daemon = True
-        thread.start()
+        console.thread_pool = ThreadPoolExecutor(10)
 
         def completer(user_input, state):
             options = [i for i in console.commands if i.startswith(user_input)]
@@ -2147,31 +2144,8 @@ i
 
         while True:
             user_input = input('Input: ')
-
             if user_input.lower() == 'exit':
                 break
-            TaskQueue.put(user_input)
+            console.handle_command(user_input)
 
-
-class _ClientThread(threading.Thread):
-    def __init__(self, console, TaskQueue, ResultQueue):
-        super(_ClientThread, self).__init__()
-
-        self.console = console
-        self.console.init_commands()
-        self.console.queue = [TaskQueue, ResultQueue]
-
-    def run(self):
-        while True:
-            if not self.console.queue[0].empty():
-                task = self.console.queue[0].get()
-                if isinstance(task, str):
-                    self.console.handle_command(task)
-                else:
-                    id, status, result, data = self.console.handle_network(task)
-                    self.console.queue[1].put({"id": id, "status": status, "result": result, "data": data})
-
-                self.console.queue[0].task_done()
-
-    def stop(self):
-        self.console.queue = None
+        # threading.Thread(target=Console.handle_input, args=(console,), daemon=False).start()
