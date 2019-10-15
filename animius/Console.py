@@ -1,7 +1,6 @@
 import base64
 import json
 import os
-import threading
 import zipfile
 from ast import literal_eval
 from concurrent.futures import ThreadPoolExecutor
@@ -112,7 +111,6 @@ class Console:
 
         self.training_pool = ThreadPoolExecutor(max_workers=3)  # thread pool for training threads
         self.training_models = dict()
-
 
     @staticmethod
     def ParseArgs(user_input):
@@ -809,9 +807,9 @@ i
                 try:
                     # replace since normapth replaces windows paths to backward slashes
 
-                    model_directory, model_name = os.path.normpath(kwargs['combined_chatbot_model'])\
-                                                    .replace('\\', '/')\
-                                                    .rsplit(r'/', 1)
+                    model_directory, model_name = os.path.normpath(kwargs['combined_chatbot_model']) \
+                        .replace('\\', '/') \
+                        .rsplit(r'/', 1)
 
                     # double check that the dir exists
                     if not os.path.isdir(model_directory):
@@ -2007,13 +2005,12 @@ i
         if kwargs['local'] is None:
             kwargs['local'] = True
 
-        self.socket_server = \
-            self.server(self, kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
+        self.socket_server = self.server(kwargs['port'], kwargs['local'], kwargs['password'], kwargs['max_clients'])
+        self.socket_server.start_server()
 
-    def server(self, console, port, local=True, password='', max_clients=10):
+    def server(self, port, local=True, password='p@ssword', max_clients=10):
         from .SocketServer import SocketServer
         server = SocketServer(self, port, local, password, max_clients)
-        server.start_server()
         return server
 
     def stop_server(self, **kwargs):
@@ -2113,11 +2110,8 @@ i
                         print(self.commands[command][0])
                         print('==================================================')
 
-                        submitted = self.thread_pool.submit(self.commands[command][0].__call__(**kwargs))
-                        result = submitted.result()
-                        if result is not None:
-                            print(result)
-
+                        submitted = self.thread_pool.submit(self.commands[command][0], **kwargs)
+                        submitted.add_done_callback(Console.print_result)
                 else:
                     print('Invalid command')
 
@@ -2125,27 +2119,41 @@ i
             print('{0}: {1}'.format(type(exc).__name__, exc))
 
     @staticmethod
+    def print_result(future):
+        result = future.result()
+        if result is not None:
+            print(result)
+
+    @staticmethod
     def start():
-        import readline
         console = am.Console()
-        console.thread_pool = ThreadPoolExecutor(10)
+        console.thread_pool = ThreadPoolExecutor(max_workers=3)
 
-        def completer(user_input, state):
-            options = [i for i in console.commands if i.startswith(user_input)]
-            if state < len(options):
-                return options[state]
-            else:
-                return None
+        try:
+            import readline
 
-        readline.parse_and_bind("tab: complete")
-        readline.set_completer(completer)
+            def completer(user_input, state):
+                options = [i for i in console.commands if i.startswith(user_input)]
+                if state < len(options):
+                    return options[state]
+                else:
+                    return None
 
-        print("Animius. Type 'help' or '?' to list commands. Use 'exit' to break")
+            readline.parse_and_bind("tab: complete")
+            readline.set_completer(completer)
 
-        while True:
-            user_input = input('Input: ')
-            if user_input.lower() == 'exit':
-                break
-            console.handle_command(user_input)
+            print("Animius. Type 'help' or '?' to list commands. Use 'exit' to break")
 
-        # threading.Thread(target=Console.handle_input, args=(console,), daemon=False).start()
+            while True:
+                user_input = input('Input: ')
+                if user_input.lower() == 'exit':
+                    break
+                console.handle_command(user_input)
+
+        except Exception as exc:
+            print('{0}: {1}'.format(type(exc).__name__, exc))
+
+        except KeyboardInterrupt or SystemExit:
+            if console.socket_server is not None:
+                console.stop_server()
+            console.thread_pool.shutdown()
