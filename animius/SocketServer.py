@@ -30,7 +30,8 @@ class SocketServer:
     @staticmethod
     def parse_request(request):
         request = request.decode()
-        data = json.load(request)
+        print(request)
+        data = json.loads(request)
         return data["id"], data["command"], data["arguments"]
 
     @staticmethod
@@ -41,7 +42,7 @@ class SocketServer:
 
     @staticmethod
     async def await_receive(reader):
-        length_buf = reader.read(4)
+        length_buf = await reader.read(4)
         length, = struct.unpack('!I', length_buf)
         return await reader.read(length)
 
@@ -60,10 +61,11 @@ class SocketServer:
         while valid_session:
             raw_request = await SocketServer.await_receive(reader)
             request_id, command, arguments = SocketServer.parse_request(raw_request)
-            request_id, status, message, data = self.console.thread_pool.submit(
-                self.console.handle_network(request_id, command, arguments)
-            )
-
+            print(request_id, command, arguments)
+            submitted = self.console.thread_pool.submit(
+                self.console.handle_network, request_id, command, arguments)
+            request_id, status, message, data = submitted.result()
+            print(request_id, status, message, data)
             response = SocketServer.create_response(request_id, status, message, data)
             await SocketServer.await_write(writer, response)
 

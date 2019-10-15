@@ -2032,7 +2032,6 @@ i
 
     def handle_network(self, request_id, command, arguments):
         try:
-            print(request_id, command)
             # initialize commands first
             if self.commands is None:
                 self.init_commands()
