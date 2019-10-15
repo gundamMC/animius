@@ -10,12 +10,13 @@ class SocketServer:
         self.port = port
         self.pwd = pwd
         self.max_clients = max_clients
+        self.server = None
 
     def start_server(self):
         asyncio.run(self.main())
 
     def stop_server(self):
-        pass
+        self.server._shutdown_request = True
 
     @staticmethod
     def create_response(response_id, status, message, data):
@@ -69,6 +70,6 @@ class SocketServer:
         writer.close()
 
     async def main(self):
-        server = await asyncio.start_server(self.handle_connection, self.host, self.port)
-        await server.serve_forever()
+        self.server = await asyncio.start_server(self.handle_connection, self.host, self.port)
+        await self.server.serve_forever()
 
