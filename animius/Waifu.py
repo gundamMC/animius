@@ -23,6 +23,8 @@ class Waifu:
         self.saved_directory = None
         self.saved_name = None
 
+        self.embedding = None
+
     def add_combined_chatbot_model(self, directory, name='model'):
 
         if self.combined_chatbot is not None:
@@ -51,6 +53,7 @@ class Waifu:
         )
 
     def add_embedding(self, embedding):
+        self.embedding = embedding
         if self.combined_chatbot is not None:
             self.combined_chatbot.add_embedding(embedding)
 
@@ -127,6 +130,14 @@ class Waifu:
 
         self.config['image'] = join(directory, file_name)
 
+        # save embedding
+        if self.embedding is not None:
+            if self.embedding.saved_directory is None:  # embedding has not been saved
+                self.embedding.save(join(directory, 'embedding'), 'embedding')
+
+            self.config['embedding_directory'] = self.embedding.saved_directory
+            self.config['embedding_name'] = self.embedding.saved_name
+
         # save config
         with open(join(directory, name + '.json'), 'w') as f:
             json.dump(self.config, f, indent=4)
@@ -146,6 +157,11 @@ class Waifu:
         # load models
         if 'CombinedChatbotDirectory' in config['models']:
             waifu.load_combined_chatbot_model()
+
+        # load embedding
+        if 'embedding_directory' in config:
+            waifu.embedding = am.WordEmbedding.load(config['embedding_directory'], config['embedding_name'])
+            waifu.add_embedding(waifu.embedding)
 
         waifu.saved_directory = directory
         waifu.saved_name = name
