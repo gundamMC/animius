@@ -174,14 +174,101 @@ class ChatData(Data):
 
         # iteration object = (train_x sentence, train_y sentence)
 
-    def add_data(self, data):
+    def _augment(self, x, y, max_augments=4,
+                 punctuation=True, apostrophe=True, add_greeting=True, duplicate_word=True, remove_word=True):
+        # check to make sure we can augment the data
+        if max_augments < 1:
+            return x, y
+
+        if len(x) != len(y):
+            raise ValueError("ChatbotData Augmentation Error: x and y must have the same length")
+
+        import random
+
+        # vars
+        result_x = []
+        result_y = []
+
+        for i in range(len(x)):
+            for _ in range(max_augments):
+                sentence = x[i]
+
+                # randomly append "hi" and "hey" to inputs
+                if add_greeting:
+                    rand = random.randint(1, 5)
+                    if rand == 1:
+                        sentence = 'hi. ' + sentence
+                    elif rand == 2:
+                        sentence = 'hey. ' + sentence
+
+                # randomly remove punctuations (. ? ,), or add them
+                if punctuation:
+
+                    if '!' in sentence:
+                        if random.randint(1, 2) == 1:
+                            sentence = sentence.replace('!', '.')
+
+                    if '.' in sentence:
+                        if random.randint(1, 2) == 1:
+                            sentence = sentence.replace('.', '')
+                    else:
+                        if random.randint(1, 2) == 1:
+                            sentence += '.'
+
+                    if '?' in sentence:
+                        if random.randint(1, 2) == 1:
+                            sentence = sentence.replace('?', '')
+
+                    if ',' in sentence:
+                        rand = random.randint(1, 3)
+                        if rand == 1:
+                            sentence = sentence.replace(',', '')
+                        elif rand == 2:
+                            sentence = sentence.replace(',', '.')
+
+                if apostrophe:
+                    rand = random.randint(1, 3)
+                    if rand == 1:
+                        sentence.replace('\'', '')
+                    elif rand == 2:
+                        sentence.replace('\'', ' ')
+                    # replacing it with space makes it two words (i.e. ['that', 's') rather than ['thats']
+
+                if remove_word:
+                    if random.randint(1, 2) == 1:
+                        words = sentence.split(' ')
+                        del words[random.randint(0, len(words) - 1)]
+                        sentence = ' '.join(words)
+
+                if duplicate_word:
+                    if random.randint(1, 2) == 1:
+                        words = sentence.split(' ')
+                        rand = random.randint(0, len(words) - 1)
+                        words.insert(rand, words[rand])
+                        sentence = ' '.join(words)
+
+                # finished with augmentation, append new sentence
+                result_x.append(sentence)
+
+            # appending so we get at least one original, same w/ result_y's +1
+            result_x.append(x[i])
+            # just extend it to prevent having to append multiple times
+            result_y.extend([y[i]] * (max_augments + 1))
+
+        return result_x, result_y
+
+    def add_data(self, data, augment=True):
         if len(data) == 2:
-            self.values['train_x'].extend(data[0])
-            self.values['train_y'].extend(data[1])
+            x, y = data
         elif len(data) > 2:
-            data_x, data_y = zip(*data)
-            self.values['train_x'].extend(data_x)
-            self.values['train_y'].extend(data_y)
+            x, y = zip(*data)
+        else:
+            raise ValueError("ChatData add_data error: data shape invalid")
+
+        if augment:
+            x, y = self._augment(x, y)
+        self.values['train_x'].extend(x)
+        self.values['train_y'].extend(y)
 
     def add_input(self, input_x):
         if isinstance(input_x, str):
